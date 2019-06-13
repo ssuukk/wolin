@@ -1,0 +1,51 @@
+plugins {
+    id 'idea'
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.21'
+    id 'antlr'
+}
+
+group 'pl.qus'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.antlr:antlr4-runtime:4.5.1"
+    antlr "org.antlr:antlr4:4.5.1"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+compileKotlin.dependsOn generateGrammarSource
+
+generateGrammarSource {
+    maxHeapSize="64m"
+    arguments+=['-package','pl.qus.kotlinek','-visitor']
+    //outputDirectory=new File("generated-src/antlr/main/pl/qus/kotlinek".toString())
+    outputDirectory=new File("src/main/java/pl/qus/kotlinek".toString())
+}
+
+sourceSets {
+    generated {
+        java.srcDir 'generated-src/antlr/main'
+    }
+}
+
+compileKotlin.source sourceSets.generated.java, sourceSets.main.java
+
+idea {
+    module {
+        sourceDirs += file('generated-src/antlr/main')
+    }
+}

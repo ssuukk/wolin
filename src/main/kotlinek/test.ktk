@@ -1,0 +1,142 @@
+package pl.qus.wolin
+/*
+import c64.kernal
+
+const val urzadzenie: ubyte = 8
+
+fun setNam^0xffbd(len: ubyte^r.a, name: word^r.xy)
+
+
+
+fun testThrow(arg1: uword, arg2: uword) {
+    throw 12345
+}
+
+fun testCatch() {
+    try {
+        testThrow(4,2)
+    } catch (ex: word) {
+        b=0xcafd
+    }
+}
+
+fun testIf() {
+    if(tlo == 2)
+        b = 50000
+    else if(tlo == 3)
+        b = 50001
+    else
+        tlo++
+}
+
+fun testWhile1() {
+        do {
+            tlo++
+            break
+        } while (tlo==10)
+}
+
+fun testWhile2() {
+        while(tlo==10) {
+            tlo++
+            continue
+        }
+}
+
+fun testIncrement() {
+    tlo++
+}
+
+fun testSum(arg1: ubyte, arg2: ubyte): ubyte {
+    return arg1+arg2
+}
+
+var b: uword //= 0 - inicjalizacja w obrębie pliku powoduje empty stack exception!
+
+var suma: (ubyte, ubyte)->ubyte
+
+
+fun testFunctionVar(x: ubyte, y: ubyte) {
+    suma = { a, b -> a+b }
+    tlo = suma(x,y)
+}
+
+class Dupa {
+	val a: ubyte
+	val b: ubyte
+
+    fun jakasFunkcja() {
+        tlo = a+b
+    }
+}
+
+var dupa: Dupa
+
+fun allocMem(size: uword, count: uword): uword {
+    return 12345
+}
+
+
+fun setLfs^0xffba(lfn: ubyte^CPU.A, channel: ubyte^CPU.Y, dev: ubyte^CPU.X)
+
+*/
+
+var tlo: ubyte^53281
+
+var array: ubyte[ubyte]^3000
+var darray: ubyte[uword]^5000
+
+var maskInterrupts: bool^CPU.I
+
+var dst: ubyte
+var src: ubyte
+
+var lam: (ubyte,ubyte) -> ubyte
+var suma: (ubyte,ubyte)->ubyte
+
+// aby dobrze działało wywołanie, taka musi być kolejność argumentów: A, Y, X
+
+
+fun main() {
+    //var pi: float
+
+    //pi = 3.14
+
+    //setLfs(1, urzadzenie, 1)
+    //setNam(razyDwa(2),"dupa")
+	//testCatch()
+	//testIncrement()
+	//testWhile1()
+	//testWhile2()
+    //b = testSum(2,5)
+    //testFunctionVar(2,3)
+
+    //dupa = Dupa()
+    //dupa.jakasFunkcja()
+
+    tlo = 43
+
+    //var i : ubyte = 0
+
+    //do {
+        //darray[i] = 69
+        //darray[i] = array[i]
+        //i++
+    //} while (i < 10)
+
+    //tlo = array[2+5]
+
+    //maskInterrupts = false
+
+    //setLfs(1, 8, 1)
+
+    //array[5] = 69
+
+    //dst = src
+
+    //lam = { a -> 5 }
+    suma = { a,b -> a+b }
+
+    tlo = suma(1,2)
+
+}
