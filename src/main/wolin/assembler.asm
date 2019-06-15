@@ -569,7 +569,7 @@ alloc SPE, #5
 let SPE(0)[uword] = SP(0)[uword] // adres bloku catch, jeśli będzie exception
 free SP, #2 //catch_addr
 let SPE(2)[ubyte] = SPC[ubyte] // aktualny stos CPU, dwa odejmiemy od niego, jeśli będzie exception
-let SPE(3)[ubyte] = SP[ubyte] // aktualny stos kotlinka
+let SPE(3)[ubyte] = SP[ubyte] // aktualny stos wolina
 // TODO - sprawdzić czy jego też trzeba zmniejszyć, bo catch jest wewnątrz allokacji dla statementu!
 ret
 
@@ -582,7 +582,7 @@ label __wolin_process_exception
 let __wolin_spe_zp_vector[uword] = SPE(0)[uword] // pobieramy adres bloku catch i ustawimy go jako wektor
 add SPE(2)[ubyte] = SPE(2)[ubyte], #2[ubyte] // stos zapamiętaliśmy w podprogramie, musimy go zmniejszyć o adres powrotny
 let SPC[ubyte] = SPE(2)[ubyte] // przywrócenie stosu CPU, takiego jak był w bloku try
-let SP[ubyte] = SPE(3)[ubyte] // przywrócenie stosu kotlinka
+let SP[ubyte] = SPE(3)[ubyte] // przywrócenie stosu wolina
 free SPE, #5
 goto __wolin_spe_zp_vector[ptr]
 

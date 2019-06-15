@@ -1,5 +1,7 @@
-# kotlinek
-A modern, minimal Kotlin-like language for MOS 6502 / 6510
+# Wolin
+A modern, minimal Kotlin-like language compiler for MOS 6502 / 6510
+
+# Features
 
 Currently supporting:
 
@@ -7,8 +9,19 @@ Currently supporting:
 - exception handling
 - if/else if
 - do...while
-- some OO
+- some introductory OO - classes with constructors and methods
+- variables at fixed memory locations like `var border: ubyte^53280`
+- functions at fixed memory locations with native arguments like `fun setLfs^0xffba(lfn: ubyte^CPU.A, channel: ubyte^CPU.Y, dev: ubyte^CPU.X)
+`
 
-Generating assembler code for ca65 and memory config for Commodore 64
+Wolin generates assembler code for ca65 with memory config for Commodore 64, it is very easy, though, to port it to other architectures via intermediate code to native code templates
 
-Very easy to port to other architectures via intermediate code to native code templates
+# TODOs
+
+- code optimizer
+- a lot of other language features
+
+# Example code
+
+See `wolin/test.ktk` in this repo.
+

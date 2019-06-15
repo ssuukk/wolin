@@ -686,6 +686,7 @@ class WolinVisitor(
 
                                 val reg = state.currentReg
                                 val safeDeref = prawo.memberAccessOperator().QUEST() != null
+
                                 val costam = prawo.postfixUnaryExpression()
                                 if (safeDeref) {
                                     state.code("evaleq costam[bool] = $reg[ptr], null")
