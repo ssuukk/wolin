@@ -1,11 +1,31 @@
 package pl.qus.wolin
-/*
-import c64.kernal
 
-const val urzadzenie: ubyte = 8
+//import c64.kernal
 
-fun setNam^0xffbd(len: ubyte^r.a, name: word^r.xy)
+//const val urzadzenie: ubyte = 8
 
+var tlo: ubyte^53281
+var ramka: ubyte^53280
+
+var array: ubyte[ubyte]^3000
+var darray: ubyte[uword]^5000
+
+var maskInterrupts: bool^CPU.I
+
+var dst: ubyte
+var src: ubyte
+
+var suma: (ubyte,ubyte)->ubyte
+
+var b: uword
+
+
+fun allocMem(size: uword, count: uword): uword {
+    return 12345
+}
+
+fun setLfs^0xffba(lfn: ubyte^CPU.A, channel: ubyte^CPU.Y, dev: ubyte^CPU.X)
+fun setNam^0xffbd(len: ubyte^CPU.A, name: word^CPU.XY)
 
 
 fun testThrow(arg1: uword, arg2: uword) {
@@ -37,9 +57,12 @@ fun testWhile1() {
 }
 
 fun testWhile2() {
-        while(tlo==10) {
+        while(tlo<10) {
             tlo++
-            continue
+            if(tlo<5)
+                continue
+
+            ramka++
         }
 }
 
@@ -53,13 +76,12 @@ fun testSum(arg1: ubyte, arg2: ubyte): ubyte {
 
 var b: uword //= 0 - inicjalizacja w obrębie pliku powoduje empty stack exception!
 
-var suma: (ubyte, ubyte)->ubyte
 
 
-fun testFunctionVar(x: ubyte, y: ubyte) {
-    suma = { a, b -> a+b }
-    tlo = suma(x,y)
-}
+//fun testFunctionVar(x: ubyte, y: ubyte) {
+//    suma = { a, b -> a+b }
+//    tlo = suma(x,y)
+//}
 
 class Dupa {
 	val a: ubyte
@@ -72,27 +94,7 @@ class Dupa {
 
 var dupa: Dupa
 
-fun allocMem(size: uword, count: uword): uword {
-    return 12345
-}
 
-
-fun setLfs^0xffba(lfn: ubyte^CPU.A, channel: ubyte^CPU.Y, dev: ubyte^CPU.X)
-
-*/
-
-var tlo: ubyte^53281
-
-var array: ubyte[ubyte]^3000
-var darray: ubyte[uword]^5000
-
-var maskInterrupts: bool^CPU.I
-
-var dst: ubyte
-var src: ubyte
-
-var lam: (ubyte,ubyte) -> ubyte
-var suma: (ubyte,ubyte)->ubyte
 
 // aby dobrze działało wywołanie, taka musi być kolejność argumentów: A, Y, X
 
@@ -135,8 +137,5 @@ fun main() {
     //dst = src
 
     //lam = { a -> 5 }
-    suma = { a,b -> a+b }
-
-    tlo = suma(1,2)
 
 }

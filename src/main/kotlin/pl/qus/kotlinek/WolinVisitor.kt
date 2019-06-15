@@ -60,7 +60,7 @@ class WolinVisitor(
                             operator?.ASSIGNMENT() != null -> {
 
                                 processAssignment(it,
-                                    { znajdźSimpleIdW(lewaStrona!!) /*visitDisjunction(lewaStrona!!)*/ },
+                                    { znajdźSimpleIdW(lewaStrona!!) },
                                     { visitDisjunction(prawaStrona!!) }
                                 )
 

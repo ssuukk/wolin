@@ -513,7 +513,11 @@ class WolinStateObject(val pass: Pass) {
             funkcja = functiary.firstOrNull { it.fullName == pattern }
 
             val ostKropka = gdzieJesteśmy.lastIndexOf(".")
-            gdzieJesteśmy = gdzieJesteśmy.substring(0, ostKropka)
+            try {
+                gdzieJesteśmy = gdzieJesteśmy.substring(0, ostKropka)
+            } catch (ex: StringIndexOutOfBoundsException) {
+                throw Exception("Couldn't find procedure $nazwa")
+            }
         } while (funkcja == null)
 
         return funkcja

@@ -238,7 +238,8 @@ alloc SPF, #?count -> """
 
 free SPF, #0 -> """ """
 
-free SPF, #?count -> """  clc
+free SPF, #?count -> """
+    clc
     lda __wolin_spf
     adc #{count}
     sta __wolin_spf
