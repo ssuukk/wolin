@@ -15,7 +15,7 @@ alloc SP<__wolin_reg0>, #2 // for block level expression return12345
 // switchType to:uword by guess number type
 // switchType to:uword by parse literal constant
 let SP(0)<__wolin_reg0>[uword] = #12345[uword] // atomic ex
-let SPF(4)<pl.qus.wolin.test.allocMem.returnValue>[uword] = SP(0)<__wolin_reg0>[uword] // przez sprawdzacz typów
+let SPF(4)<returnValue>[uword] = SP(0)<__wolin_reg0>[uword] // przez sprawdzacz typów
 // switchType to:uword by return expression
 // inferTopOregType __wolin_reg0 -> uword
 free SP<__wolin_reg0>, #2 // for block level expression return12345, type = uword
@@ -348,11 +348,71 @@ let SP(0)<__wolin_reg36>[ubyte] = SPF(0)<pl.qus.wolin.test.testSum.arg2>[ubyte] 
 add SP(1)<__wolin_reg35>[ubyte] = SP(1)<__wolin_reg35>[ubyte], SP(0)<__wolin_reg36>[ubyte] // two sides
 // inferTopOregType __wolin_reg36 -> ubyte
 free SP<__wolin_reg36>, #1 // for right side, type =ubyte
-let SPF(2)<pl.qus.wolin.test.testSum.returnValue>[ubyte] = SP(0)<__wolin_reg35>[ubyte] // przez sprawdzacz typów
+let SPF(2)<returnValue>[ubyte] = SP(0)<__wolin_reg35>[ubyte] // przez sprawdzacz typów
 // switchType to:ubyte by return expression
 // inferTopOregType __wolin_reg35 -> ubyte
 free SP<__wolin_reg35>, #1 // for block level expression returnarg1+arg2, type = ubyte
 free SPF, #2 // free fn arguments and locals for pl.qus.wolin.test.testSum
+// caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
+ret
+
+// switchType to:unit by function declaration
+
+// ****************************************
+// funkcja: fun pl.qus.wolin.test.testFunctionVar(pl.qus.wolin.test.testFunctionVar.x: ubyte = 0, pl.qus.wolin.test.testFunctionVar.y: ubyte = 0):unit
+// ****************************************
+label __wolin_pl_qus_wolin_test_testFunctionVar
+// lewa strona
+// setTopOregType to ptr
+// inferTopOregType __wolin_reg38 -> unit
+// prawa strona
+alloc SP<__wolin_reg39>, #2 // for assigned value
+// switchType to:(ubyte,ubyte)->ubyte by lambda declaration
+// inferTopOregType __wolin_reg39 -> (ubyte,ubyte)->ubyte
+let SP(0)<__wolin_reg39>[ptr] = __wolin_lambda_function_0[adr]
+let __wolin_pl_qus_wolin_test_suma<pl.qus.wolin.test.suma>[ptr] = SP(0)<__wolin_reg39>[ptr] // przez sprawdzacz typów
+// inferTopOregType __wolin_reg39 -> (ubyte,ubyte)->ubyte
+free SP<__wolin_reg39>, #2 // for assigned variable, type = (ubyte,ubyte)->ubyte
+// switchType to:unit by assignment
+// inferTopOregType __wolin_reg37 -> unit
+// lewa strona
+// setTopOregType to ptr
+// inferTopOregType __wolin_reg42 -> unit
+// prawa strona
+alloc SP<__wolin_reg43>, #1 // for assigned value
+// switchType to:ubyte by function type 1
+// inferTopOregType __wolin_reg43 -> ubyte
+alloc SPF, #3
+// obsługa argumentu 0 wywołania suma
+alloc SP<__wolin_reg44>, #1 // for call argument 0
+//Prze visit vALUE
+// obliczenia dla parametru x
+let SP(0)<__wolin_reg44>[ubyte] = SPF(4)<pl.qus.wolin.test.testFunctionVar.x>[ubyte] // simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.test.testFunctionVar.x
+//po visit value
+let SPF(1)[ubyte] = SP(0)<__wolin_reg44>[ubyte]
+free SP<__wolin_reg44>, #1 // for call argument 0, type = ubyte
+// obsługa argumentu 1 wywołania suma
+alloc SP<__wolin_reg45>, #1 // for call argument 1
+//Prze visit vALUE
+// obliczenia dla parametru y
+let SP(0)<__wolin_reg45>[ubyte] = SPF(3)<pl.qus.wolin.test.testFunctionVar.y>[ubyte] // simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.test.testFunctionVar.y
+//po visit value
+let SPF(0)[ubyte] = SP(0)<__wolin_reg45>[ubyte]
+free SP<__wolin_reg45>, #1 // for call argument 1, type = ubyte
+// switchType to:ubyte by function type 2
+// switchType to:ubyte by function call
+call __wolin_pl_qus_wolin_test_suma[ptr] // lambda call
+
+let SP(0)<__wolin_reg43>[ubyte] = SPF(0)<returnValue>[ubyte]// copy return parameter - TODO sprawdzić co jeśli wywołanie funkcji było bez podstawienia!!!
+free SPF <ubyte>, #1
+let 53281[ubyte] = SP(0)<__wolin_reg43>[ubyte] // przez sprawdzacz typów
+// inferTopOregType __wolin_reg43 -> ubyte
+free SP<__wolin_reg43>, #1 // for assigned variable, type = ubyte
+// switchType to:unit by assignment
+// inferTopOregType __wolin_reg41 -> unit
+free SPF, #2 // free fn arguments and locals for pl.qus.wolin.test.testFunctionVar
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 ret
 
@@ -362,9 +422,9 @@ ret
 // ****************************************
 label __wolin_pl_qus_wolin_test_Dupa
 
-alloc SP<__wolin_reg37>, #2 // for returning this
+alloc SP<__wolin_reg46>, #2 // for returning this
 // switchType to:uword by function type 1
-// inferTopOregType __wolin_reg37 -> uword
+// inferTopOregType __wolin_reg46 -> uword
 // switchType to:uword by function type 2
 // otwarcie stosu na wywolanie pl.qus.wolin.test.allocMem
 alloc SPF, #6
@@ -375,12 +435,13 @@ let SPF(2)[uword] = #3[uword]
 let SPF(0)[uword] = #1[uword]
 // po argumentach dla pl.qus.wolin.test.allocMem
 call __wolin_pl_qus_wolin_test_allocMem[adr]
-let SP(0)<__wolin_reg37>[uword] = SPF(0)<returnValue>[uword] // przez sprawdzacz typów
+let SP(0)<__wolin_reg46>[uword] = SPF(0)<returnValue>[uword] // przez sprawdzacz typów
 free SPF <uword>, #2 // free return value of pl.qus.wolin.test.allocMem from call stack
 // tutaj kod na przepisanie z powyższego rejestru do zwrotki konstruktora
-let SPF(0)<pl.qus.wolin.test.Dupa.returnValue>[ptr] = SP(0)<__wolin_reg37>[uword] // przez sprawdzacz typów
+let SPF(0)<pl.qus.wolin.test.Dupa.returnValue>[ptr] = SP(0)<__wolin_reg46>[uword] // przez sprawdzacz typów
 ret
-free SP<__wolin_reg37>, #2 // for returning this
+free SP<__wolin_reg46>, #2 // for returning this
+// caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // switchType to:unit by function declaration
 
 // ****************************************
@@ -390,24 +451,24 @@ label __wolin_pl_qus_wolin_test_Dupa_jakasFunkcja
 setup HEAP = this
 // lewa strona
 // setTopOregType to ptr
-// inferTopOregType __wolin_reg39 -> unit
+// inferTopOregType __wolin_reg48 -> unit
 // prawa strona
-alloc SP<__wolin_reg40>, #1 // for assigned value
+alloc SP<__wolin_reg49>, #1 // for assigned value
 // lewa strona
-let SP(0)<__wolin_reg40>[ubyte] = HEAP(2)<pl.qus.wolin.test.Dupa.a>[ubyte] // simple id from var
+let SP(0)<__wolin_reg49>[ubyte] = HEAP(2)<pl.qus.wolin.test.Dupa.a>[ubyte] // simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.test.Dupa.a
 // prawa strona
-alloc SP<__wolin_reg41>, #1 // for right side
-let SP(0)<__wolin_reg41>[ubyte] = HEAP(1)<pl.qus.wolin.test.Dupa.b>[ubyte] // simple id from var
+alloc SP<__wolin_reg50>, #1 // for right side
+let SP(0)<__wolin_reg50>[ubyte] = HEAP(1)<pl.qus.wolin.test.Dupa.b>[ubyte] // simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.test.Dupa.b
-add SP(1)<__wolin_reg40>[ubyte] = SP(1)<__wolin_reg40>[ubyte], SP(0)<__wolin_reg41>[ubyte] // two sides
-// inferTopOregType __wolin_reg41 -> ubyte
-free SP<__wolin_reg41>, #1 // for right side, type =ubyte
-let 53281[ubyte] = SP(0)<__wolin_reg40>[ubyte] // przez sprawdzacz typów
-// inferTopOregType __wolin_reg40 -> ubyte
-free SP<__wolin_reg40>, #1 // for assigned variable, type = ubyte
+add SP(1)<__wolin_reg49>[ubyte] = SP(1)<__wolin_reg49>[ubyte], SP(0)<__wolin_reg50>[ubyte] // two sides
+// inferTopOregType __wolin_reg50 -> ubyte
+free SP<__wolin_reg50>, #1 // for right side, type =ubyte
+let 53281[ubyte] = SP(0)<__wolin_reg49>[ubyte] // przez sprawdzacz typów
+// inferTopOregType __wolin_reg49 -> ubyte
+free SP<__wolin_reg49>, #1 // for assigned variable, type = ubyte
 // switchType to:unit by assignment
-// inferTopOregType __wolin_reg38 -> unit
+// inferTopOregType __wolin_reg47 -> unit
 free SPF, #2 // free fn arguments and locals for pl.qus.wolin.test.Dupa.jakasFunkcja
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 ret
@@ -418,19 +479,83 @@ ret
 // funkcja: fun pl.qus.wolin.test.main():unit
 // ****************************************
 label __wolin_pl_qus_wolin_test_main
-// lewa strona
-// setTopOregType to ptr
-// inferTopOregType __wolin_reg43 -> unit
-// prawa strona
-alloc SP<__wolin_reg44>, #1 // for assigned value
+// switchType to:unit by function type 1
+// inferTopOregType __wolin_reg51 -> unit
+alloc SPF, #0
+// switchType to:unit by function type 2
+// switchType to:unit by function call
+call __wolin_pl_qus_wolin_test_testCatch[adr]
+
+free SPF <unit>, #0
+// inferTopOregType __wolin_reg51 -> unit
+// switchType to:unit by function type 1
+// inferTopOregType __wolin_reg52 -> unit
+alloc SPF, #0
+// switchType to:unit by function type 2
+// switchType to:unit by function call
+call __wolin_pl_qus_wolin_test_testIncrement[adr]
+
+free SPF <unit>, #0
+// inferTopOregType __wolin_reg52 -> unit
+// switchType to:unit by function type 1
+// inferTopOregType __wolin_reg53 -> unit
+alloc SPF, #0
+// switchType to:unit by function type 2
+// switchType to:unit by function call
+call __wolin_pl_qus_wolin_test_testWhile1[adr]
+
+free SPF <unit>, #0
+// inferTopOregType __wolin_reg53 -> unit
+// switchType to:unit by function type 1
+// inferTopOregType __wolin_reg54 -> unit
+alloc SPF, #0
+// switchType to:unit by function type 2
+// switchType to:unit by function call
+call __wolin_pl_qus_wolin_test_testWhile2[adr]
+
+free SPF <unit>, #0
+// inferTopOregType __wolin_reg54 -> unit
+// switchType to:unit by function type 1
+// inferTopOregType __wolin_reg55 -> unit
+alloc SPF, #2
+// obsługa argumentu 0 wywołania testFunctionVar
+alloc SP<__wolin_reg56>, #1 // for call argument 0
+//Prze visit vALUE
+// obliczenia dla parametru 2
 // switchType to:ubyte by guess number type
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg44>[ubyte] = #43[ubyte] // atomic ex
-let 53281[ubyte] = SP(0)<__wolin_reg44>[ubyte] // przez sprawdzacz typów
-// inferTopOregType __wolin_reg44 -> ubyte
-free SP<__wolin_reg44>, #1 // for assigned variable, type = ubyte
+let SP(0)<__wolin_reg56>[ubyte] = #2[ubyte] // atomic ex
+//po visit value
+let SPF(1)[ubyte] = SP(0)<__wolin_reg56>[ubyte]
+free SP<__wolin_reg56>, #1 // for call argument 0, type = ubyte
+// obsługa argumentu 1 wywołania testFunctionVar
+alloc SP<__wolin_reg57>, #1 // for call argument 1
+//Prze visit vALUE
+// obliczenia dla parametru 3
+// switchType to:ubyte by guess number type
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg57>[ubyte] = #3[ubyte] // atomic ex
+//po visit value
+let SPF(0)[ubyte] = SP(0)<__wolin_reg57>[ubyte]
+free SP<__wolin_reg57>, #1 // for call argument 1, type = ubyte
+// switchType to:unit by function type 2
+// switchType to:unit by function call
+call __wolin_pl_qus_wolin_test_testFunctionVar[adr]
+
+free SPF <unit>, #0
+// inferTopOregType __wolin_reg55 -> unit
+// lewa strona
+// setTopOregType to ptr
+// inferTopOregType __wolin_reg59 -> unit
+// prawa strona
+alloc SP<__wolin_reg60>, #1 // for assigned value
+// switchType to:bool by parse literal constant
+let SP(0)<__wolin_reg60>[bool] = #0[bool] // atomic ex
+let CPU.I[bool] = SP(0)<__wolin_reg60>[bool] // przez sprawdzacz typów
+// inferTopOregType __wolin_reg60 -> bool
+free SP<__wolin_reg60>, #1 // for assigned variable, type = bool
 // switchType to:unit by assignment
-// inferTopOregType __wolin_reg42 -> unit
+// inferTopOregType __wolin_reg58 -> unit
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 ret
 
@@ -465,6 +590,31 @@ goto __wolin_spe_zp_vector[ptr]
 // ****************************************
 // LAMBDAS
 // ****************************************
+// switchType to:unit by function declaration
+
+// ****************************************
+// lambda: lambda_function_0
+// ****************************************
+label __wolin_lambda_function_0
+alloc SP<__wolin_reg61>, #1 // for block level expression a+b
+// lewa strona
+let SP(0)<__wolin_reg61>[ubyte] = SPF(1)<lambda_function_0.a>[ubyte] // simple id from var
+// switchType to:ubyte by type from lambda_function_0.a
+// prawa strona
+alloc SP<__wolin_reg62>, #1 // for right side
+let SP(0)<__wolin_reg62>[ubyte] = SPF(0)<lambda_function_0.b>[ubyte] // simple id from var
+// switchType to:ubyte by type from lambda_function_0.b
+add SP(1)<__wolin_reg61>[ubyte] = SP(1)<__wolin_reg61>[ubyte], SP(0)<__wolin_reg62>[ubyte] // two sides
+// inferTopOregType __wolin_reg62 -> ubyte
+free SP<__wolin_reg62>, #1 // for right side, type =ubyte
+// inferTopOregType __wolin_reg61 -> ubyte
+let SPF(2)<returnValue>[ubyte] = SP(0)<__wolin_reg61>[ubyte] // LAMBDA return assignment
+free SP<__wolin_reg61>, #1 // for block level expression a+b, type = ubyte
+// switchType to:ubyte by return expression
+free SPF, #2 // free fn arguments and locals for lambda_function_0
+// caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
+ret
+
 
 
 // ****************************************
@@ -472,13 +622,13 @@ goto __wolin_spe_zp_vector[ptr]
 // ****************************************
 label __wolin_indirect_jsr
 goto 65535[adr]
-label __wolin_pl_qus_wolin_test_src
-alloc 0[ubyte]  // pl.qus.wolin.test.src
 label __wolin_pl_qus_wolin_test_dupa
 alloc 65535[ptr]  // pl.qus.wolin.test.dupa
-label __wolin_pl_qus_wolin_test_dst
-alloc 0[ubyte]  // pl.qus.wolin.test.dst
 label __wolin_pl_qus_wolin_test_b
 alloc 0[uword]  // pl.qus.wolin.test.b
 label __wolin_pl_qus_wolin_test_suma
 alloc 0[ptr]  // pl.qus.wolin.test.suma
+label __wolin_pl_qus_wolin_test_src
+alloc 0[ubyte]  // pl.qus.wolin.test.src
+label __wolin_pl_qus_wolin_test_dst
+alloc 0[ubyte]  // pl.qus.wolin.test.dst

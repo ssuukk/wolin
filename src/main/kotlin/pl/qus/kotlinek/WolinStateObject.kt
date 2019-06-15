@@ -1,6 +1,7 @@
 package pl.qus.kotlinek
 
 import pl.qus.kotlinek.components.*
+import pl.qus.kotlinek.exception.FunctionNotFound
 import java.lang.Exception
 import java.util.*
 
@@ -516,7 +517,7 @@ class WolinStateObject(val pass: Pass) {
             try {
                 gdzieJesteśmy = gdzieJesteśmy.substring(0, ostKropka)
             } catch (ex: StringIndexOutOfBoundsException) {
-                throw Exception("Couldn't find procedure $nazwa")
+                throw FunctionNotFound("Couldn't find procedure $nazwa")
             }
         } while (funkcja == null)
 
@@ -645,7 +646,7 @@ class WolinStateObject(val pass: Pass) {
     fun getFunctionCallCode(nazwa: String): String {
         val (proc, lambda) = try {
             Pair(findProc(nazwa), false)
-        } catch (ex: StringIndexOutOfBoundsException) {
+        } catch (ex: FunctionNotFound) {
             Pair(lambdaTypeToFunction(findVarInVariablaryWithDescoping(nazwa)), true)
         }
 

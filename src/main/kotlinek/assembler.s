@@ -61,7 +61,7 @@ __wolin_pl_qus_wolin_test_allocMem:
     lda #>12345
     sta 0+1,x
 
-; letSPF(4)<pl.qus.wolin.test.allocMem.returnValue>[uword]=SP(0)<__wolin_reg0>[uword]
+; letSPF(4)<returnValue>[uword]=SP(0)<__wolin_reg0>[uword]
 
 
     lda 0,x
@@ -833,7 +833,7 @@ __wolin_pl_qus_wolin_test_testSum:
 
     inx
 
-; letSPF(2)<pl.qus.wolin.test.testSum.returnValue>[ubyte]=SP(0)<__wolin_reg35>[ubyte]
+; letSPF(2)<returnValue>[ubyte]=SP(0)<__wolin_reg35>[ubyte]
 
 
     lda 0,x
@@ -859,11 +859,158 @@ __wolin_pl_qus_wolin_test_testSum:
 
     rts
 
+; label__wolin_pl_qus_wolin_test_testFunctionVar
+
+__wolin_pl_qus_wolin_test_testFunctionVar:
+
+; allocSP<__wolin_reg39>,#2
+
+
+    dex
+    dex
+
+; letSP(0)<__wolin_reg39>[ptr]=__wolin_lambda_function_0[adr]
+
+
+    lda #<__wolin_lambda_function_0
+    sta 0,x
+    lda #>__wolin_lambda_function_0
+    sta 0+1,x
+
+; let__wolin_pl_qus_wolin_test_suma<pl.qus.wolin.test.suma>[ptr]=SP(0)<__wolin_reg39>[ptr]
+
+
+    lda 0,x
+    sta __wolin_pl_qus_wolin_test_suma
+    lda 0+1,x
+    sta __wolin_pl_qus_wolin_test_suma+1
+
+; freeSP<__wolin_reg39>,#2
+
+
+    inx
+    inx
+
+; allocSP<__wolin_reg43>,#1
+
+    dex
+
+; allocSPF,#3
+
+
+    clc
+    lda __wolin_spf
+    sbc #3
+    sta __wolin_spf
+    lda __wolin_spf+1
+    sbc #0
+    sta __wolin_spf+1
+
+; allocSP<__wolin_reg44>,#1
+
+    dex
+
+; letSP(0)<__wolin_reg44>[ubyte]=SPF(4)<pl.qus.wolin.test.testFunctionVar.x>[ubyte]
+
+
+    ldy #4
+    lda (__wolin_spf),y
+    sta 0,x
+
+
+; letSPF(1)[ubyte]=SP(0)<__wolin_reg44>[ubyte]
+
+
+    lda 0,x
+    ldy #1
+    sta (__wolin_spf),y
+
+; freeSP<__wolin_reg44>,#1
+
+    inx
+
+; allocSP<__wolin_reg45>,#1
+
+    dex
+
+; letSP(0)<__wolin_reg45>[ubyte]=SPF(3)<pl.qus.wolin.test.testFunctionVar.y>[ubyte]
+
+
+    ldy #3
+    lda (__wolin_spf),y
+    sta 0,x
+
+
+; letSPF(0)[ubyte]=SP(0)<__wolin_reg45>[ubyte]
+
+
+    lda 0,x
+    ldy #0
+    sta (__wolin_spf),y
+
+; freeSP<__wolin_reg45>,#1
+
+    inx
+
+; call__wolin_pl_qus_wolin_test_suma[ptr]
+
+
+    lda __wolin_pl_qus_wolin_test_suma
+    sta __wolin_indirect_jsr+1
+    lda __wolin_pl_qus_wolin_test_suma+1
+    sta __wolin_indirect_jsr+2
+    jsr __wolin_indirect_jsr
+
+; letSP(0)<__wolin_reg43>[ubyte]=SPF(0)<returnValue>[ubyte]
+
+
+    ldy #0
+    lda (__wolin_spf),y
+    sta 0,x
+
+
+; freeSPF<ubyte>,#1
+
+
+    clc
+    lda __wolin_spf
+    adc #1
+    sta __wolin_spf
+    lda __wolin_spf+1
+    adc #0
+    sta __wolin_spf+1
+
+; let53281[ubyte]=SP(0)<__wolin_reg43>[ubyte]
+
+
+    lda 0,x
+    sta 53281
+
+
+; freeSP<__wolin_reg43>,#1
+
+    inx
+
+; freeSPF,#2
+
+
+    clc
+    lda __wolin_spf
+    adc #2
+    sta __wolin_spf
+    lda __wolin_spf+1
+    adc #0
+    sta __wolin_spf+1
+
+; ret
+
+    rts
+
 ; label__wolin_pl_qus_wolin_test_Dupa
 
 __wolin_pl_qus_wolin_test_Dupa:
 
-; allocSP<__wolin_reg37>,#2
+; allocSP<__wolin_reg46>,#2
 
 
     dex
@@ -904,7 +1051,7 @@ __wolin_pl_qus_wolin_test_Dupa:
 
     jsr __wolin_pl_qus_wolin_test_allocMem
 
-; letSP(0)<__wolin_reg37>[uword]=SPF(0)<returnValue>[uword]
+; letSP(0)<__wolin_reg46>[uword]=SPF(0)<returnValue>[uword]
 
 
     ldy #0
@@ -926,7 +1073,7 @@ __wolin_pl_qus_wolin_test_Dupa:
     adc #0
     sta __wolin_spf+1
 
-; letSPF(0)<pl.qus.wolin.test.Dupa.returnValue>[ptr]=SP(0)<__wolin_reg37>[uword]
+; letSPF(0)<pl.qus.wolin.test.Dupa.returnValue>[ptr]=SP(0)<__wolin_reg46>[uword]
 
 
     ldy #0
@@ -940,7 +1087,7 @@ __wolin_pl_qus_wolin_test_Dupa:
 
     rts
 
-; freeSP<__wolin_reg37>,#2
+; freeSP<__wolin_reg46>,#2
 
 
     inx
@@ -960,29 +1107,29 @@ __wolin_pl_qus_wolin_test_Dupa_jakasFunkcja:
     lda (__wolin_spf),y
     sta __wolin_this_ptr+1
 
-; allocSP<__wolin_reg40>,#1
+; allocSP<__wolin_reg49>,#1
 
     dex
 
-; letSP(0)<__wolin_reg40>[ubyte]=HEAP(2)<pl.qus.wolin.test.Dupa.a>[ubyte]
+; letSP(0)<__wolin_reg49>[ubyte]=HEAP(2)<pl.qus.wolin.test.Dupa.a>[ubyte]
 
 
     ldy #2 ; assuming this ZP is set!
     lda (__wolin_this_ptr),y
     sta 0,x
 
-; allocSP<__wolin_reg41>,#1
+; allocSP<__wolin_reg50>,#1
 
     dex
 
-; letSP(0)<__wolin_reg41>[ubyte]=HEAP(1)<pl.qus.wolin.test.Dupa.b>[ubyte]
+; letSP(0)<__wolin_reg50>[ubyte]=HEAP(1)<pl.qus.wolin.test.Dupa.b>[ubyte]
 
 
     ldy #1 ; assuming this ZP is set!
     lda (__wolin_this_ptr),y
     sta 0,x
 
-; addSP(1)<__wolin_reg40>[ubyte]=SP(1)<__wolin_reg40>[ubyte],SP(0)<__wolin_reg41>[ubyte]
+; addSP(1)<__wolin_reg49>[ubyte]=SP(1)<__wolin_reg49>[ubyte],SP(0)<__wolin_reg50>[ubyte]
 
 
     clc
@@ -990,18 +1137,18 @@ __wolin_pl_qus_wolin_test_Dupa_jakasFunkcja:
     adc 0,x
     sta 1,x
 
-; freeSP<__wolin_reg41>,#1
+; freeSP<__wolin_reg50>,#1
 
     inx
 
-; let53281[ubyte]=SP(0)<__wolin_reg40>[ubyte]
+; let53281[ubyte]=SP(0)<__wolin_reg49>[ubyte]
 
 
     lda 0,x
     sta 53281
 
 
-; freeSP<__wolin_reg40>,#1
+; freeSP<__wolin_reg49>,#1
 
     inx
 
@@ -1024,24 +1171,138 @@ __wolin_pl_qus_wolin_test_Dupa_jakasFunkcja:
 
 __wolin_pl_qus_wolin_test_main:
 
-; allocSP<__wolin_reg44>,#1
+; allocSPF,#0
+
+ 
+
+; call__wolin_pl_qus_wolin_test_testCatch[adr]
+
+    jsr __wolin_pl_qus_wolin_test_testCatch
+
+; freeSPF<unit>,#0
+
+ 
+
+; allocSPF,#0
+
+ 
+
+; call__wolin_pl_qus_wolin_test_testIncrement[adr]
+
+    jsr __wolin_pl_qus_wolin_test_testIncrement
+
+; freeSPF<unit>,#0
+
+ 
+
+; allocSPF,#0
+
+ 
+
+; call__wolin_pl_qus_wolin_test_testWhile1[adr]
+
+    jsr __wolin_pl_qus_wolin_test_testWhile1
+
+; freeSPF<unit>,#0
+
+ 
+
+; allocSPF,#0
+
+ 
+
+; call__wolin_pl_qus_wolin_test_testWhile2[adr]
+
+    jsr __wolin_pl_qus_wolin_test_testWhile2
+
+; freeSPF<unit>,#0
+
+ 
+
+; allocSPF,#2
+
+
+    clc
+    lda __wolin_spf
+    sbc #2
+    sta __wolin_spf
+    lda __wolin_spf+1
+    sbc #0
+    sta __wolin_spf+1
+
+; allocSP<__wolin_reg56>,#1
 
     dex
 
-; letSP(0)<__wolin_reg44>[ubyte]=#43[ubyte]
+; letSP(0)<__wolin_reg56>[ubyte]=#2[ubyte]
 
 
-    lda #43
+    lda #2
     sta 0,x
 
-; let53281[ubyte]=SP(0)<__wolin_reg44>[ubyte]
+; letSPF(1)[ubyte]=SP(0)<__wolin_reg56>[ubyte]
 
 
     lda 0,x
-    sta 53281
+    ldy #1
+    sta (__wolin_spf),y
+
+; freeSP<__wolin_reg56>,#1
+
+    inx
+
+; allocSP<__wolin_reg57>,#1
+
+    dex
+
+; letSP(0)<__wolin_reg57>[ubyte]=#3[ubyte]
 
 
-; freeSP<__wolin_reg44>,#1
+    lda #3
+    sta 0,x
+
+; letSPF(0)[ubyte]=SP(0)<__wolin_reg57>[ubyte]
+
+
+    lda 0,x
+    ldy #0
+    sta (__wolin_spf),y
+
+; freeSP<__wolin_reg57>,#1
+
+    inx
+
+; call__wolin_pl_qus_wolin_test_testFunctionVar[adr]
+
+    jsr __wolin_pl_qus_wolin_test_testFunctionVar
+
+; freeSPF<unit>,#0
+
+ 
+
+; allocSP<__wolin_reg60>,#1
+
+    dex
+
+; letSP(0)<__wolin_reg60>[bool]=#0[bool]
+
+
+    lda #0
+    sta0,x
+
+; letCPU.I[bool]=SP(0)<__wolin_reg60>[bool]
+
+
+    lda 0,x
+    bne @seti   // dest != 0? goto skip
+    cli         // dest == 0? I = 0
+    jmp @continue
+@seti:
+    sei         // I = 1
+@continue:
+
+
+; freeSP<__wolin_reg60>,#1
 
     inx
 
@@ -1185,6 +1446,72 @@ __wolin_process_exception:
 
     jmp (__wolin_spe_zp_vector)
 
+; label__wolin_lambda_function_0
+
+__wolin_lambda_function_0:
+
+; allocSP<__wolin_reg61>,#1
+
+    dex
+
+; letSP(0)<__wolin_reg61>[ubyte]=SPF(1)<lambda_function_0.a>[ubyte]
+
+
+    ldy #1
+    lda (__wolin_spf),y
+    sta 0,x
+
+
+; allocSP<__wolin_reg62>,#1
+
+    dex
+
+; letSP(0)<__wolin_reg62>[ubyte]=SPF(0)<lambda_function_0.b>[ubyte]
+
+
+    ldy #0
+    lda (__wolin_spf),y
+    sta 0,x
+
+
+; addSP(1)<__wolin_reg61>[ubyte]=SP(1)<__wolin_reg61>[ubyte],SP(0)<__wolin_reg62>[ubyte]
+
+
+    clc
+    lda 1,x
+    adc 0,x
+    sta 1,x
+
+; freeSP<__wolin_reg62>,#1
+
+    inx
+
+; letSPF(2)<returnValue>[ubyte]=SP(0)<__wolin_reg61>[ubyte]
+
+
+    lda 0,x
+    ldy #2
+    sta (__wolin_spf),y
+
+; freeSP<__wolin_reg61>,#1
+
+    inx
+
+; freeSPF,#2
+
+
+    clc
+    lda __wolin_spf
+    adc #2
+    sta __wolin_spf
+    lda __wolin_spf+1
+    adc #0
+    sta __wolin_spf+1
+
+; ret
+
+    rts
+
 ; label__wolin_indirect_jsr
 
 __wolin_indirect_jsr:
@@ -1193,14 +1520,6 @@ __wolin_indirect_jsr:
 
     jmp 65535
 
-; label__wolin_pl_qus_wolin_test_src
-
-__wolin_pl_qus_wolin_test_src:
-
-; alloc0[ubyte]
-
-    .byte 0
-
 ; label__wolin_pl_qus_wolin_test_dupa
 
 __wolin_pl_qus_wolin_test_dupa:
@@ -1208,14 +1527,6 @@ __wolin_pl_qus_wolin_test_dupa:
 ; alloc65535[ptr]
 
     .word 65535
-
-; label__wolin_pl_qus_wolin_test_dst
-
-__wolin_pl_qus_wolin_test_dst:
-
-; alloc0[ubyte]
-
-    .byte 0
 
 ; label__wolin_pl_qus_wolin_test_b
 
@@ -1232,4 +1543,20 @@ __wolin_pl_qus_wolin_test_suma:
 ; alloc0[ptr]
 
     .word 0
+
+; label__wolin_pl_qus_wolin_test_src
+
+__wolin_pl_qus_wolin_test_src:
+
+; alloc0[ubyte]
+
+    .byte 0
+
+; label__wolin_pl_qus_wolin_test_dst
+
+__wolin_pl_qus_wolin_test_dst:
+
+; alloc0[ubyte]
+
+    .byte 0
 

@@ -3,6 +3,7 @@ package pl.qus.kotlinek
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
 import pl.qus.kotlinek.components.*
+import pl.qus.kotlinek.exception.FunctionNotFound
 import pl.qus.kotlinek.exception.TypeMismatchException
 import java.lang.Exception
 
@@ -565,7 +566,7 @@ class WolinVisitor(
                         } catch (ex: StringIndexOutOfBoundsException) {
                             try {
                                 state.findProc(procName)
-                            } catch (ex: StringIndexOutOfBoundsException) {
+                            } catch (ex: FunctionNotFound) {
                                 state.lambdaTypeToFunction(state.findVarInVariablaryWithDescoping(procName))
                             }
                         }
@@ -1099,9 +1100,7 @@ class WolinVisitor(
                     visitExpression(ctx.expression())
                 }
 
-                //val nazwa = state.nameStitcher("returnValue", true)
-
-                val zwrotka = state.findVarInVariablaryWithDescoping("returnValue")
+                val zwrotka = state.callStack[0]
 
                 checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg)
 
@@ -1289,6 +1288,8 @@ class WolinVisitor(
 
         ////////////////////////////////////////
         state.freeReg("for returning this")
+
+        state.fnDeclFreeStackAndRet(konstruktor)
 
         val a = ctx.classBody()
         a.classMemberDeclaration()?.forEach {
@@ -1543,7 +1544,8 @@ class WolinVisitor(
             //state.allocReg("for lambda ${nowaFunkcja.name} return value",  nowaFunkcja.type?.type ?: "unit")
 
             state.currentFunction!!.lambdaBody?.statement()?.forEach {
-                statementProcessor(it, state.findVarInVariablaryWithDescoping("returnValue"))
+                val zwrotka = state.callStack[0]
+                statementProcessor(it, zwrotka)
             }
 
             state.switchType(state.currentFunction!!.type, "return expression")

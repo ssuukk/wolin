@@ -76,12 +76,10 @@ fun testSum(arg1: ubyte, arg2: ubyte): ubyte {
 
 var b: uword //= 0 - inicjalizacja w obrębie pliku powoduje empty stack exception!
 
-
-
-//fun testFunctionVar(x: ubyte, y: ubyte) {
-//    suma = { a, b -> a+b }
-//    tlo = suma(x,y)
-//}
+fun testFunctionVar(x: ubyte, y: ubyte) {
+    suma = { a, b -> a+b }
+    tlo = suma(x,y)
+}
 
 class Dupa {
 	val a: ubyte
@@ -106,17 +104,18 @@ fun main() {
 
     //setLfs(1, urzadzenie, 1)
     //setNam(razyDwa(2),"dupa")
-	//testCatch()
-	//testIncrement()
-	//testWhile1()
-	//testWhile2()
+
+	testCatch()
+	testIncrement()
+	testWhile1()
+	testWhile2()
     //b = testSum(2,5)
-    //testFunctionVar(2,3)
+    testFunctionVar(2,3)
+
+    maskInterrupts = false
 
     //dupa = Dupa()
     //dupa.jakasFunkcja()
-
-    tlo = 43
 
     //var i : ubyte = 0
 
@@ -127,8 +126,6 @@ fun main() {
     //} while (i < 10)
 
     //tlo = array[2+5]
-
-    //maskInterrupts = false
 
     //setLfs(1, 8, 1)
 
