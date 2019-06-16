@@ -3,10 +3,14 @@ package pl.qus.wolin
 var tlo: ubyte^53281
 var ramka: ubyte^53280
 
-var array: ubyte[]
+var oneByteBigArray: ubyte[]
+var twoBytesBigArray: uword[]
 
 var b: ubyte
+var c: uword
 
 fun main() {
-    b = array[5]
+    //b = oneByteBigArray[5]
+
+    c = twoBytesBigArray[5]
 }

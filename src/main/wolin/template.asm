@@ -772,21 +772,21 @@ restore CPU.A -> """
 
 mul SP(?d)[ubyte] = SP(?d)[ubyte], #1 -> """ """
 
-mul SP(?d)[uword] = SP(?d)[uword], #2 -> """   rol {d},x"""
+mul SP(?d)[uword] = SP(?d)[uword], #2 -> """   asl {d},x"""
 
 mul SP(?d)[uword] = SP(?d)[uword], #1 -> """ """
 
 div SP(?d)[ubyte] = SP(?d)[ubyte], #1 -> """ """
 
-div SP(?d)[ubyte] = SP(?d)[ubyte], #2 -> """   ror {d},x"""
+div SP(?d)[ubyte] = SP(?d)[ubyte], #2 -> """   lsr {d},x"""
 div SP(?d)[ubyte] = SP(?d)[ubyte], #4 -> """
-    ror {d},x
-    ror {d},x"""
+    lsr {d},x
+    lsr {d},x"""
 div SP(?d)[ubyte] = SP(?d)[ubyte], #8 -> """
-    ror {d},x
-    ror {d},x
-    ror {d},x"""
-// itd dla ze znakiem jest inny ror/rol
+    lsr {d},x
+    lsr {d},x
+    lsr {d},x"""
+// itd dla ze znakiem jest inny lsr/asl
 
 div SP(?d)[word] = SP(?dzielna)[word],SP(?dzielnik)[word] -> """  jsr stack_div"""
 

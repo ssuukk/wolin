@@ -111,6 +111,8 @@ class WolinVisitor(
 
         state.assignLeftSideVar = zmienna
 
+        state.switchType(zmienna.type, "by znajdźSimpleIdW")
+
         return state
     }
 
@@ -458,13 +460,19 @@ class WolinVisitor(
 
         leftFunction()
         val destinationReg = state.assignLeftSideVar!!
+        val destinationType = destinationReg.type
+
         state.setTopOregType(Typ.ptr)
         state.inferTopOregType()
 
         state.code("// prawa strona assignment")
 
-        val tempSourceReg = state.allocReg("for assigned value")
+        val tempSourceReg = state.allocReg("for value that gets assigned to left side")
         rightFunction()
+
+        //state.inferTopOregType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji!
+
+        tempSourceReg.type = destinationType
 
         val sourceReg = state.findVarInVariablaryWithDescoping(tempSourceReg.name)
 
@@ -474,8 +482,7 @@ class WolinVisitor(
 
         checkTypeAndAddAssignment(ctx, destinationReg, tempSourceReg)
 
-        state.inferTopOregType()
-        state.freeReg("for assigned variable, type = ${state.currentWolinType}")
+        state.freeReg("for value that gets assigned to left side, type = ${state.currentWolinType}")
 
         state.freeReg("For assignment left side")
 
@@ -695,7 +702,7 @@ class WolinVisitor(
                                 //visitPostfixUnaryExpression(costam)
                             }
                             prawo.arrayAccess() != null -> {
-
+                                // ARRAYCODE
                                 val currEntReg = state.currentReg
                                 state.arrayElementSize = currEntReg.type.sizeOnStack
 
@@ -714,11 +721,10 @@ class WolinVisitor(
                                 state.code("// kod obsługi tablicy")
 
                                 when {
-                                    state.currentShortArray == null -> state.code(
-                                        "let ${state.varToAsm(currEntReg)} = ${state.varToAsmNoType(
-                                            state.currentReg
-                                        )}[ptr]"
-                                    )
+                                    state.currentShortArray == null -> {
+                                        state.code("// non-fast array")
+                                        state.code("let ${state.varToAsm(currEntReg)} = ${state.varToAsmNoType(state.currentReg)}[ptr]")
+                                    }
                                     state.currentShortArray!!.allocation == AllocType.FIXED -> {
                                         state.code("// fixed fast array")
                                         state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}(0)[ptr]")
@@ -750,6 +756,8 @@ class WolinVisitor(
             ctx.expression().size == 1 -> {
                 val prevReg = state.currentReg!!
 
+                // ARRAYCODE
+
                 if(state.currentShortArray == null) {
                     state.allocReg("For calculating index",state.currentWolinType)
                 }
@@ -761,10 +769,8 @@ class WolinVisitor(
                 else
                     state.setTopOregType(Typ.ubyte) // typ indeksu
 
-//                state.code("// wykorzystac najwyzszy rejestr jako przesuniecie do tablicy")
-//                state.code("// przemnożyć go przez wielkosć elementów tablicy")
-//                state.code("// rejestr pod nim zaladowac wartoscia, ktora jest pod tym indeksem tablicy")
 
+                // ARRAYCODE
                 if(state.currentShortArray == null) {
                     when {
                         state.arrayElementSize > 1 -> {
@@ -777,13 +783,12 @@ class WolinVisitor(
                             state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()}")
                         }
                     }
+
+                    state.freeReg("For calculating index")
+
                 } else {
                     state.code("// fast array")
                     state.code("let ${state.varToAsm(prevReg)} = ${state.currentRegToAsm()}")
-                }
-
-                if(state.currentShortArray == null) {
-                    state.freeReg("For calculating index")
                 }
 
                 state.code("// after index")
