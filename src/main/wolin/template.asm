@@ -501,7 +501,6 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // na 65816 jest tryb
 // lda (0,x)
 // sta 0,x
-
 let SP(?dst)[ubyte] = SP(?src)[ptr] -> """
     lda ({src},x)
     sta {dst},x"""

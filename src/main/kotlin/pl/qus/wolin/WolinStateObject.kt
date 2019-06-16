@@ -604,6 +604,7 @@ class WolinStateObject(val pass: Pass) {
             typeName == "word" -> "word"
             typeName == "uword" -> "uword"
             typeName == "bool" -> "bool"
+            typeName == "float" -> "float"
             typeName.contains(".") -> typeName
             typeName.contains("->") /*&& typeName.contains(".")*/ -> typeName
             fromClasses != null -> fromClasses.name

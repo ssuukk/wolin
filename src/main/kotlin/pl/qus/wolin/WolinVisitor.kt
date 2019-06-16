@@ -726,12 +726,13 @@ class WolinVisitor(
                                         state.code("let ${state.varToAsm(currEntReg)} = ${state.varToAsmNoType(state.currentReg)}[ptr]")
                                     }
                                     state.currentShortArray!!.allocation == AllocType.FIXED -> {
-                                        state.code("// fixed fast array")
+                                        state.code("// fixed fast array - warning - SP(0) cannot get optimized!!!")
                                         state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}(0)[ptr]")
                                     }
                                     state.currentShortArray!!.allocation == AllocType.NORMAL -> {
-                                        state.code("// allocated fast array")
-                                        state.code("// ***** some array code ****")
+                                        state.code("// allocated fast array - warning - SP(0) cannot get optimized!!!")
+                                        state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.name}(0)[ptr]")
+                                        state.currentShortArray = null
                                     }
                                     else -> throw Exception("Dereference of unknown array!")
                                 }
@@ -787,8 +788,8 @@ class WolinVisitor(
                     state.freeReg("For calculating index")
 
                 } else {
-                    state.code("// fast array")
-                    state.code("let ${state.varToAsm(prevReg)} = ${state.currentRegToAsm()}")
+                    state.code("// fast array - no additional op")
+                    //state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()}")
                 }
 
                 state.code("// after index")
@@ -1151,7 +1152,7 @@ class WolinVisitor(
 
 
                     if(zmienna.type.shortIndex && zmienna.type.elementOccupiesOneByte) {
-                        state.code("// short - musimy tylko zapamiętać zmienną $zmienna")
+                        //state.code("// short - musimy tylko zapamiętać zmienną $zmienna")
                         state.currentShortArray = zmienna
                     }
                     else {
