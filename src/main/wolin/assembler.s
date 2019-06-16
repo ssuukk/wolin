@@ -42,7 +42,7 @@ __wolin_pl_qus_wolin_test_main:
     lda #5
     sta 0,x
 
-; letSP(1)<__wolin_reg2>[ubyte]=pl.qus.wolin.test.oneByteSmallArray(0)[ptr]
+; letSP(1)<__wolin_reg2>[ubyte]=pl.qus.wolin.test.oneByteSmallArray[ptr],SP(0)<__wolin_reg3>[ubyte]
 
 
     lda 0,x

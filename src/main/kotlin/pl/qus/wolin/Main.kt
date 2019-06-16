@@ -238,6 +238,19 @@ free SPF, #2 // free fn arguments and locals for lambda_function_0
 ret
 
 
+6. Ciekawy przypadek optymalizacji, rugując zmienną reg2 trzeba przenieść deallokację reg3:
+
+label __wolin_pl_qus_wolin_test_main
+alloc SP<__wolin_reg2>, #1 // for value that gets assigned to left side
+alloc SP<__wolin_reg3>, #1 // arr_deref
+let SP(0)<__wolin_reg3>[ubyte] = #5[ubyte] // atomic ex
+let SP(1)<__wolin_reg2>[ubyte] = pl.qus.wolin.test.oneByteSmallArray(0)[ptr]
+free SP<__wolin_reg3>, #1 // arr_deref
+let __wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte] = SP(0)<__wolin_reg2>[ubyte] // przez sprawdzacz typów
+free SP<__wolin_reg2>, #1 // for value that gets assigned to left side, type = ubyte
+free SP<__wolin_reg1>, #1 // For assignment left side
+ret
+
 
 
 TIPSY

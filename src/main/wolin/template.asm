@@ -482,6 +482,20 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // Wskaźniki
 //============================================
 
+// tablice z 8-bitowym indeksem
+//let SP(2)<__wolin_reg2>[ubyte] = 4096(0)[ptr]
+// znaczy:
+// - indeks znajduje się w SP0
+// - pobierz dane z arrStart,SP0
+// - zapisz je w SP2
+let SP(?dst)[ubyte] = ?arrStart[ptr], SP(?srcSP)[ubyte] -> """
+    lda {srcSP},x
+    tay
+    lda {arrStart},y
+    sta {dst},x"""
+
+
+
 // let SP(2)<r.temp6>[ptr] = SP(0)<r.temp7>[word] // powinno znaczyć: ustaw zmienną pod adresem znajdującym się w SP(2) na wartość
 // czyli powinniśmy:
 // lda #mlodszy
@@ -503,18 +517,6 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // sta 0,x
 let SP(?dst)[ubyte] = SP(?src)[ptr] -> """
     lda ({src},x)
-    sta {dst},x"""
-
-// tablice z 8-bitowym indeksem
-//let SP(2)<__wolin_reg2>[ubyte] = 4096(0)[ptr]
-// znaczy:
-// - indeks znajduje się w SP0
-// - pobierz dane z arrStart,SP0
-// - zapisz je w SP2
-let SP(?dst)[ubyte] = ?arrStart(?srcSP)[ptr] -> """
-    lda {srcSP},x
-    tay
-    lda {arrStart},y
     sta {dst},x"""
 
 

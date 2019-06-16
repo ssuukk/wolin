@@ -727,11 +727,11 @@ class WolinVisitor(
                                     }
                                     state.currentShortArray!!.allocation == AllocType.FIXED -> {
                                         state.code("// fixed fast array - warning - SP(0) cannot get optimized!!!")
-                                        state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}(0)[ptr]")
+                                        state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}[ptr], ${state.currentRegToAsm()}")
                                     }
                                     state.currentShortArray!!.allocation == AllocType.NORMAL -> {
                                         state.code("// allocated fast array - warning - SP(0) cannot get optimized!!!")
-                                        state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.name}(0)[ptr]")
+                                        state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.name}[ptr], ${state.currentRegToAsm()}")
                                         state.currentShortArray = null
                                     }
                                     else -> throw Exception("Dereference of unknown array!")
