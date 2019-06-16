@@ -23,5 +23,5 @@ Wolin generates assembler code for ca65 with memory config for Commodore 64, it 
 
 # Example code
 
-See `wolin/test.ktk` in this repo.
+See `wolin/working.ktk` in this repo.
 

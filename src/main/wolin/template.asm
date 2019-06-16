@@ -502,6 +502,10 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // lda (0,x)
 // sta 0,x
 
+let SP(?dst)[ubyte] = SP(?src)[ptr] -> """
+    lda ({src},x)
+    sta {dst},x"""
+
 // tablice z 8-bitowym indeksem
 //let SP(2)<__wolin_reg2>[ubyte] = 4096(0)[ptr]
 // znaczy:
@@ -534,7 +538,7 @@ let SP(?dst)[ubyte] = SP(?src)[ptr] -> """
     lda ({src},x)
     sta {dst},x"""
 
-// do arytmetyki wskaxnikow
+// do arytmetyki wskaznikow
 let SP(?dst)[uword] = ?src[ptr] -> """
     lda #<{src}
     sta {dst},x
@@ -605,6 +609,11 @@ let ?dst[ptr] = SP(?src)[ptr] -> """
     lda {src}+1,x
     sta {dst}+1 """
 
+let SP(?dst)[ptr] = ?adr[ptr] -> """
+    lda #<{adr}
+    sta {dst},x
+    lda #>{adr}
+    sta {dst}+1,x"""
 
 //============================================
 // rozmaite funkcje
@@ -840,8 +849,7 @@ add SP(?d)[word] = SP(?s1)[word], SP(?s2)[word] -> """
     sta {d},x
     lda {s1}+1,x
     adc {s2}+1,x
-    sta {d}+1,x
-"""
+    sta {d}+1,x"""
 
 add SP(?d)[uword] = SP(?s1)[uword], SP(?s2)[uword] -> """
     clc
@@ -850,8 +858,16 @@ add SP(?d)[uword] = SP(?s1)[uword], SP(?s2)[uword] -> """
     sta {d},x
     lda {s1}+1,x
     adc {s2}+1,x
-    sta {d}+1,x
-"""
+    sta {d}+1,x"""
+
+add SP(?d)[ptr] = SP(?s1)[ptr],SP(?s2)[uword] -> """
+    clc
+    lda {s1},x
+    adc {s2},x
+    sta {d},x
+    lda {s1}+1,x
+    adc {s2}+1,x
+    sta {d}+1,x"""
 
 add SPE(?spesrc)[ubyte] = SPE(?spesrc)[ubyte],#?val[ubyte] -> """
     clc
@@ -869,3 +885,4 @@ add SPE(?spedst)[ubyte] = SPE(?spesrc)[ubyte],#?val[ubyte] -> """
     ldy #{spedst}
     sta (__wolin_spe),y
 """
+

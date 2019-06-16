@@ -237,6 +237,21 @@ free SPF, #2 // free fn arguments and locals for lambda_function_0
 
 ret
 
+
+
+
+TIPSY
+
+1.  An automatic compare-to-zero instruction is built into the following 65c02 instructions:  LDA, LDX, LDY, INC, INX, INY, DEC, DEX, DEY, INA, DEA, AND, ORA, EOR, ASL, LSR, ROL, ROR, PLA, PLX, PLY, SBC, ADC, TAX, TXA, TAY, TYA, and TSX.  This means that, for example, a CMP #0 after an LDA is redundant, a wasted instruction.  The only time a 65c02 (CMOS) needs a compare-to-zero instruction after one of these is if you want to compare a register that was not involved in the previous instruction; for example,
+
+
+        DEY
+        CPX  #0
+
+http://wilsonminesco.com/6502primer/PgmTips.html
+
+
+
      */
 
 

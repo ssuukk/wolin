@@ -453,7 +453,7 @@ class WolinVisitor(
 
     fun processAssignment(ctx: ParseTree, leftFunction: () -> WolinStateObject, rightFunction: () -> WolinStateObject) {
 
-        state.code("// lewa strona")
+        state.code("// lewa strona assignment")
         state.allocReg("For assignment left side")
 
         leftFunction()
@@ -461,7 +461,7 @@ class WolinVisitor(
         state.setTopOregType(Typ.ptr)
         state.inferTopOregType()
 
-        state.code("// prawa strona")
+        state.code("// prawa strona assignment")
 
         val tempSourceReg = state.allocReg("for assigned value")
         rightFunction()
@@ -682,8 +682,6 @@ class WolinVisitor(
                                 //visitPostfixUnaryOperation(poKropce)
                                 //błędzik(ctx,"nie wiem jak dereferncić")
 
-
-
                                 val reg = state.currentReg
                                 val safeDeref = prawo.memberAccessOperator().QUEST() != null
 
@@ -722,8 +720,12 @@ class WolinVisitor(
                                         )}[ptr]"
                                     )
                                     state.currentShortArray!!.allocation == AllocType.FIXED -> {
-                                        state.code("// fixed short array")
+                                        state.code("// fixed fast array")
                                         state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}(0)[ptr]")
+                                    }
+                                    state.currentShortArray!!.allocation == AllocType.NORMAL -> {
+                                        state.code("// allocated fast array")
+                                        state.code("// ***** some array code ****")
                                     }
                                     else -> throw Exception("Dereference of unknown array!")
                                 }
@@ -764,16 +766,20 @@ class WolinVisitor(
 //                state.code("// rejestr pod nim zaladowac wartoscia, ktora jest pod tym indeksem tablicy")
 
                 if(state.currentShortArray == null) {
-                    if(state.arrayElementSize > 1) {
-                        state.code("// long-index array")
-                        state.code("mul ${state.currentRegToAsm()} = ${state.currentRegToAsm()}, #${state.arrayElementSize}")
-                        state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()}")
-                    } else {
-                        state.code("// short-index array")
-                        state.code("let ${state.varToAsm(prevReg)} = ${state.currentRegToAsm()}")
+                    when {
+                        state.arrayElementSize > 1 -> {
+                            state.code("// long index, multi-byte per element array")
+                            state.code("mul ${state.currentRegToAsm()} = ${state.currentRegToAsm()}, #${state.arrayElementSize}")
+                            state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()}")
+                        }
+                        else -> {
+                            state.code("// long index, single byte per element array")
+                            state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()}")
+                        }
                     }
                 } else {
-                    state.code("// costam do short tablicy")
+                    state.code("// fast array")
+                    state.code("let ${state.varToAsm(prevReg)} = ${state.currentRegToAsm()}")
                 }
 
                 if(state.currentShortArray == null) {
