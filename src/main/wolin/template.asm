@@ -489,8 +489,7 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // - pobierz dane z arrStart,SP0
 // - zapisz je w SP2
 let SP(?dst)[ubyte] = ?arrStart[ptr], SP(?srcSP)[ubyte] -> """
-    lda {srcSP},x
-    tay
+    ldy {srcSP},x
     lda {arrStart},y
     sta {dst},x"""
 
