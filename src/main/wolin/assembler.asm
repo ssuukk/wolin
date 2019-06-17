@@ -17,7 +17,7 @@ alloc SP<__wolin_reg1>, #2 // For assignment left side
 alloc SP<__wolin_reg2>, #2 // for value that gets assigned to left side
 alloc SP<__wolin_reg3>, #2 // arr_deref
 // LEWA strona array access, czyli co to za zmienna
-let SP(0)<__wolin_reg3>[ptr] = __wolin_pl_qus_wolin_test_twoBytesBigArray<pl.qus.wolin.test.twoBytesBigArray>[ptr] // simple id from var
+let SP(0)<__wolin_reg3>[ptr] = 5000[ptr] // simple id from fixed array var
 // switchType to:uword by type from pl.qus.wolin.test.twoBytesBigArray
 // PRAWA strona array access, czyli indeks w nawiasach
 alloc SP<__wolin_reg4>, #2 // For calculating index
@@ -55,8 +55,6 @@ ret
 // ****************************************
 label __wolin_indirect_jsr
 goto 65535[adr]
-label __wolin_pl_qus_wolin_test_twoBytesBigArray
-alloc 0[ptr]  // pl.qus.wolin.test.twoBytesBigArray
 label __wolin_pl_qus_wolin_test_oneByteSmallArray
 alloc 0[ptr]  // pl.qus.wolin.test.oneByteSmallArray
 label __wolin_pl_qus_wolin_test_oneByteBigArray

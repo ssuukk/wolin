@@ -494,7 +494,7 @@ let SP(?dstSP)[ubyte] = ?arrStart[ptr], SP(?srcSP)[ubyte] -> """
     sta {dstSP},x"""
 
 // kiedy juz optymizator bedzie dzialac, to powyzsze bedzie wygladac tak:
-let ?dstVar[ubyte] = ?arrStart[ptr], #(?idx) -> """
+let ?dstVar[ubyte] = ?arrStart[ptr], #?idx -> """
     ldy #{idx}
     lda {arrStart},y
     sta {dstVar}"""

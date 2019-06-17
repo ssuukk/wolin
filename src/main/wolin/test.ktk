@@ -4,7 +4,7 @@ var tlo: ubyte^53281
 var ramka: ubyte^53280
 
 var oneByteBigArray: ubyte[]
-var twoBytesBigArray: uword[]
+var twoBytesBigArray: uword[]^5000
 var oneByteSmallArray: ubyte[ubyte]
 
 var b: ubyte

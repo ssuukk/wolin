@@ -1158,9 +1158,16 @@ class WolinVisitor(
                         state.currentShortArray = zmienna
                     }
                     else {
-                        state.code(
-                            "let ${state.currentRegToAsm()} = ${state.varToAsm(zmienna)} // simple id from var"
-                        )
+                        if(zmienna.allocation == AllocType.FIXED && zmienna.type.array) {
+                            state.code(
+                                "let ${state.currentRegToAsm()} = ${zmienna.location}[ptr] // simple id from fixed array var"
+                            )
+                        }
+                        else {
+                            state.code(
+                                "let ${state.currentRegToAsm()} = ${state.varToAsm(zmienna)} // simple id from var"
+                            )
+                        }
                     }
 
 

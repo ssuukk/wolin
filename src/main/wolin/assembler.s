@@ -42,12 +42,12 @@ __wolin_pl_qus_wolin_test_main:
     dex
     dex
 
-; letSP(0)<__wolin_reg3>[ptr]=__wolin_pl_qus_wolin_test_twoBytesBigArray<pl.qus.wolin.test.twoBytesBigArray>[ptr]
+; letSP(0)<__wolin_reg3>[ptr]=5000[ptr]
 
 
-    lda #<__wolin_pl_qus_wolin_test_twoBytesBigArray
+    lda #<5000
     sta 0,x
-    lda #>__wolin_pl_qus_wolin_test_twoBytesBigArray
+    lda #>5000
     sta 0+1,x
 
 ; allocSP<__wolin_reg4>,#2
@@ -135,14 +135,6 @@ __wolin_indirect_jsr:
 ; goto65535[adr]
 
     jmp 65535
-
-; label__wolin_pl_qus_wolin_test_twoBytesBigArray
-
-__wolin_pl_qus_wolin_test_twoBytesBigArray:
-
-; alloc0[ptr]
-
-    .word 0
 
 ; label__wolin_pl_qus_wolin_test_oneByteSmallArray
 
