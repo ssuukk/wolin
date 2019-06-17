@@ -11,6 +11,7 @@ Currently supporting:
 - do...while
 - some introductory OO - classes with constructors and methods
 - variables at fixed memory locations like `var border: ubyte^53280`
+- variables fixed to CPU registers like `var maskInterrupts: bool^CPU.I`
 - functions at fixed memory locations with native arguments like `fun setLfs^0xffba(lfn: ubyte^CPU.A, channel: ubyte^CPU.Y, dev: ubyte^CPU.X)
 `
 

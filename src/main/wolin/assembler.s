@@ -45,8 +45,7 @@ __wolin_pl_qus_wolin_test_main:
 ; letSP(1)<__wolin_reg2>[ubyte]=pl.qus.wolin.test.oneByteSmallArray[ptr],SP(0)<__wolin_reg3>[ubyte]
 
 
-    lda 0,x
-    tay
+    ldy 0,x
     lda pl.qus.wolin.test.oneByteSmallArray,y
     sta 1,x
 
