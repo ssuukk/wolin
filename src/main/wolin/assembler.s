@@ -30,6 +30,14 @@ __wolin_pl_qus_wolin_test_main:
     dex
     dex
 
+; letSP(0)<__wolin_reg1>[uword]=__wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[ptr]
+
+
+    lda #<__wolin_pl_qus_wolin_test_c
+    sta 0,x
+    lda #>__wolin_pl_qus_wolin_test_c
+    sta 0+1,x
+
 ; allocSP<__wolin_reg2>,#2
 
 

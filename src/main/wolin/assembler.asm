@@ -10,6 +10,7 @@ goto __wolin_pl_qus_wolin_test_main[adr]
 label __wolin_pl_qus_wolin_test_main
 // lewa strona assignment
 alloc SP<__wolin_reg1>, #2 // For assignment left side
+let SP(0)<__wolin_reg1>[uword] = __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[ptr] // for assignment left side - TODO change SP(0)<__wolin_reg1>[uword] to ptr!
 // switchType to:uword by by znajdźSimpleIdW
 // setTopOregType to ptr
 // inferTopOregType __wolin_reg1 -> uword
@@ -36,6 +37,7 @@ free SP<__wolin_reg4>, #2 // For calculating index
 let SP(2)<__wolin_reg2>[uword] = SP(0)<__wolin_reg3>[ptr]
 free SP<__wolin_reg3>, #2 // arr_deref
 let __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword] = SP(0)<__wolin_reg2>[uword] // przez sprawdzacz typów
+// should be: let SP(2)<__wolin_reg1>[uword][ptr] = SP(0)<__wolin_reg2>[uword]
 free SP<__wolin_reg2>, #2 // for value that gets assigned to left side, type = ubyte
 free SP<__wolin_reg1>, #2 // For assignment left side
 // switchType to:unit by assignment

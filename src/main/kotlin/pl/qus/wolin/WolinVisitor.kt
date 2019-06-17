@@ -113,6 +113,8 @@ class WolinVisitor(
         //state.currentReg = zmienna
         state.assignLeftSideVar = zmienna
 
+        state.code("let ${state.currentRegToAsm()} = ${state.varToAsmNoType(zmienna)}[ptr] // for assignment left side - TODO change ${state.currentRegToAsm()} to ptr!")
+
         state.switchType(zmienna.type, "by znajdźSimpleIdW")
 
         return state
@@ -458,7 +460,7 @@ class WolinVisitor(
     fun processAssignment(ctx: ParseTree, leftFunction: () -> WolinStateObject, rightFunction: () -> WolinStateObject) {
 
         state.code("// lewa strona assignment") // TODO użyć tego rejestru zamiast assignLeftSideVar
-        state.allocReg("For assignment left side")
+        val leftSide = state.allocReg("For assignment left side")
 
         leftFunction()
         val destinationReg = state.assignLeftSideVar!!
@@ -483,6 +485,8 @@ class WolinVisitor(
         }
 
         checkTypeAndAddAssignment(ctx, destinationReg, tempSourceReg)
+
+        state.code("// should be: let ${state.varToAsm(leftSide)}[ptr] = ${state.varToAsm(tempSourceReg)}")
 
         state.freeReg("for value that gets assigned to left side, type = ${state.currentWolinType}")
 
