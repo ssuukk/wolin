@@ -26,8 +26,7 @@ Wolin generates assembler code for ca65 with memory config for Commodore 64, it 
 
 First the compiler translates Wolin code to intermediate virtual machine assembler that has the following syntax:
 
-Code:
-mnemonic destination[type] = arg1[type], arg2[type]
+```mnemonic destination[type] = arg1[type], arg2[type]```
 
 
 So for example "b++" becomes:
@@ -53,12 +52,12 @@ which in this case becomes:
 
 ```
     clc
-    lda pl.qus.wolin.test.main..b
+    lda pl_qus_wolin_test_main__b
     adc #1
-    sta pl.qus.wolin.test.main..b
-    lda pl.qus.wolin.test.main..b+1
+    sta pl_qus_wolin_test_main__b
+    lda pl_qus_wolin_test_main__b+1
     adc #0
-    sta pl.qus.wolin.test.main..b+1
+    sta pl_qus_wolin_test_main__b+1
 ```
 
 # Example code
