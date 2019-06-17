@@ -488,12 +488,16 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // - indeks znajduje się w SP0
 // - pobierz dane z arrStart,SP0
 // - zapisz je w SP2
-let SP(?dst)[ubyte] = ?arrStart[ptr], SP(?srcSP)[ubyte] -> """
+let SP(?dstSP)[ubyte] = ?arrStart[ptr], SP(?srcSP)[ubyte] -> """
     ldy {srcSP},x
     lda {arrStart},y
-    sta {dst},x"""
+    sta {dstSP},x"""
 
-
+// kiedy juz optymizator bedzie dzialac, to powyzsze bedzie wygladac tak:
+let ?dstVar[ubyte] = ?arrStart[ptr], #(?idx) -> """
+    ldy #{idx}
+    lda {arrStart},y
+    sta {dstVar}"""
 
 // let SP(2)<r.temp6>[ptr] = SP(0)<r.temp7>[word] // powinno znaczyć: ustaw zmienną pod adresem znajdującym się w SP(2) na wartość
 // czyli powinniśmy:

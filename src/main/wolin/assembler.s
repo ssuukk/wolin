@@ -24,48 +24,104 @@ __wolin_sp_top = 142 ; program stack top
 
 __wolin_pl_qus_wolin_test_main:
 
-; allocSP<__wolin_reg1>,#1
+; allocSP<__wolin_reg1>,#2
+
 
     dex
-
-; allocSP<__wolin_reg2>,#1
-
     dex
 
-; allocSP<__wolin_reg3>,#1
+; allocSP<__wolin_reg2>,#2
+
 
     dex
+    dex
 
-; letSP(0)<__wolin_reg3>[ubyte]=#5[ubyte]
+; allocSP<__wolin_reg3>,#2
+
+
+    dex
+    dex
+
+; letSP(0)<__wolin_reg3>[ptr]=__wolin_pl_qus_wolin_test_twoBytesBigArray<pl.qus.wolin.test.twoBytesBigArray>[ptr]
+
+
+    lda #<__wolin_pl_qus_wolin_test_twoBytesBigArray
+    sta 0,x
+    lda #>__wolin_pl_qus_wolin_test_twoBytesBigArray
+    sta 0+1,x
+
+; allocSP<__wolin_reg4>,#2
+
+
+    dex
+    dex
+
+; letSP(0)<__wolin_reg4>[uword]=#5[ubyte]
 
 
     lda #5
     sta 0,x
+    lda #0
+    sta 0+1,x
 
-; letSP(1)<__wolin_reg2>[ubyte]=pl.qus.wolin.test.oneByteSmallArray[ptr],SP(0)<__wolin_reg3>[ubyte]
+; mulSP(0)<__wolin_reg4>[uword]=SP(0)<__wolin_reg4>[uword],#2
+
+   asl 0,x
+
+; addSP(2)<__wolin_reg3>[ptr]=SP(2)<__wolin_reg3>[ptr],SP(0)<__wolin_reg4>[uword]
 
 
-    ldy 0,x
-    lda pl.qus.wolin.test.oneByteSmallArray,y
-    sta 1,x
+    clc
+    lda 2,x
+    adc 0,x
+    sta 2,x
+    lda 2+1,x
+    adc 0+1,x
+    sta 2+1,x
 
-; freeSP<__wolin_reg3>,#1
+; freeSP<__wolin_reg4>,#2
+
 
     inx
+    inx
 
-; let__wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte]=SP(0)<__wolin_reg2>[ubyte]
+; letSP(2)<__wolin_reg2>[uword]=SP(0)<__wolin_reg3>[ptr]
+
+
+    lda (0,x)
+    sta 2,x
+    inc 0,x
+    bne @skip
+    inc 0+1,x
+@skip:
+    lda (0,x)
+    sta 2+1,x
+
+; freeSP<__wolin_reg3>,#2
+
+
+    inx
+    inx
+
+; let__wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword]=SP(0)<__wolin_reg2>[uword]
 
 
     lda 0,x
-    sta __wolin_pl_qus_wolin_test_b
+    sta __wolin_pl_qus_wolin_test_c
+    lda 0+1,x
+    sta __wolin_pl_qus_wolin_test_c+1
 
 
-; freeSP<__wolin_reg2>,#1
+; freeSP<__wolin_reg2>,#2
+
 
     inx
+    inx
 
-; freeSP<__wolin_reg1>,#1
+; freeSP<__wolin_reg1>,#2
 
+
+    inx
     inx
 
 ; ret
@@ -83,6 +139,14 @@ __wolin_indirect_jsr:
 ; label__wolin_pl_qus_wolin_test_twoBytesBigArray
 
 __wolin_pl_qus_wolin_test_twoBytesBigArray:
+
+; alloc0[ptr]
+
+    .word 0
+
+; label__wolin_pl_qus_wolin_test_oneByteSmallArray
+
+__wolin_pl_qus_wolin_test_oneByteSmallArray:
 
 ; alloc0[ptr]
 
@@ -111,12 +175,4 @@ __wolin_pl_qus_wolin_test_b:
 ; alloc0[ubyte]
 
     .byte 0
-
-; label__wolin_pl_qus_wolin_test_oneByteSmallArray
-
-__wolin_pl_qus_wolin_test_oneByteSmallArray:
-
-; alloc0[ptr]
-
-    .word 0
 

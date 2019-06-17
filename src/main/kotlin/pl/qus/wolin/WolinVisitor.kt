@@ -725,15 +725,17 @@ class WolinVisitor(
                                         state.code("// non-fast array")
                                         state.code("let ${state.varToAsm(currEntReg)} = ${state.varToAsmNoType(state.currentReg)}[ptr]")
                                     }
-                                    state.currentShortArray!!.allocation == AllocType.FIXED -> {
-                                        state.code("// fixed fast array - warning - SP(0) cannot get optimized!!!")
-                                        state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}[ptr], ${state.currentRegToAsm()}")
-                                    }
-                                    state.currentShortArray!!.allocation == AllocType.NORMAL -> {
-                                        state.code("// allocated fast array - warning - SP(0) cannot get optimized!!!")
-                                        state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.name}[ptr], ${state.currentRegToAsm()}")
+                                    state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.NORMAL -> {
+                                            state.code("// allocated fast array")
+                                            state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.name}[ptr], ${state.currentRegToAsm()}")
                                         state.currentShortArray = null
                                     }
+                                    state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.FIXED -> {
+                                        state.code("// allocated fast array")
+                                        state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}[ptr], ${state.currentRegToAsm()}")
+                                        state.currentShortArray = null
+                                    }
+
                                     else -> throw Exception("Dereference of unknown array!")
                                 }
 
