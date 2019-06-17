@@ -109,6 +109,8 @@ class WolinVisitor(
 
         val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
 
+        // TODO - usunąć assignLeftSideVar
+        //state.currentReg = zmienna
         state.assignLeftSideVar = zmienna
 
         state.switchType(zmienna.type, "by znajdźSimpleIdW")
@@ -455,7 +457,7 @@ class WolinVisitor(
 
     fun processAssignment(ctx: ParseTree, leftFunction: () -> WolinStateObject, rightFunction: () -> WolinStateObject) {
 
-        state.code("// lewa strona assignment")
+        state.code("// lewa strona assignment") // TODO użyć tego rejestru zamiast assignLeftSideVar
         state.allocReg("For assignment left side")
 
         leftFunction()
