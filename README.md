@@ -64,3 +64,6 @@ which in this case becomes:
 
 See `wolin/working.ktk` in this repo.
 
+# Let's talk
+
+Criticise, discuss, watch progress here: http://forum.6502.org/viewtopic.php?f=2&t=5622

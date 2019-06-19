@@ -8,6 +8,28 @@ import java.io.*
 object Main {
     /*
 
+C64 - dostępna pamięć:
+
+2-143 - basic: SP (72 wordy)
+
+bajty do wykorzystania:
+146 - tape
+150 - tape
+155 - tape: ESP
+190 - tape
+192 - tape
+255 - free
+
+wordy do wykorzystania:
+176-177 - tape:
+178-179 - tape: EXCEPTION OBJECT
+251-252 - free: FSP
+253-254 - free: CATCH JUMP ADDRESS
+
+potencjalnie do wykorzystania:
+197-246 - edytor
+
+
 
 TRYBY ADRESOWANIA
 

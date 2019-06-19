@@ -13,8 +13,9 @@ var c: uword
 fun main() {
     //b = oneByteBigArray[5]
 
-    c = twoBytesBigArray[5]
+    //c = twoBytesBigArray[5]
 
+    twoBytesBigArray[5] = 69
     // BUG - da się przypisać element tablicy byte do worda!
     //b = oneByteSmallArray[5]
 

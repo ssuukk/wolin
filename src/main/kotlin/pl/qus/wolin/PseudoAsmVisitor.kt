@@ -152,6 +152,9 @@ let SP(?a)[uword] = SP(?b)[uword]
     }
 
     fun processParams(template: PseudoAsmParser.LiniaContext, data: PseudoAsmParser.LiniaContext): Boolean {
+//        val x = template.text
+//        print(x)
+//        print("=====")
         var mosAsm = template.assemblerBody(0)?.multiLineStringLiteral()?.multiLineStringContent(0)?.text!!
 
         state.pary

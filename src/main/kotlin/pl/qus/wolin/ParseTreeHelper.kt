@@ -69,3 +69,18 @@ fun ParseTree.traverseFilter(lista: MutableList<ParseTree>, filter: (ParseTree) 
 
     return lista
 }
+
+fun ParseTree.any(filter: (ParseTree) -> Boolean): Boolean {
+    return if(filter(this))
+        return true
+    else
+    when (this) {
+        is ParserRuleContext -> {
+            this.children.any {
+                it.any(filter)
+            }
+        }
+        else -> false
+    }
+}
+

@@ -101,23 +101,39 @@ class WolinVisitor(
 
     private fun znajdźSimpleIdW(lewaStrona: KotlinParser.DisjunctionContext): WolinStateObject {
         val wynik = mutableListOf<ParseTree>()
+
+        //println("lewa strona:${dump(lewaStrona,1)}")
+
         lewaStrona.traverseFilter(wynik) {
             it is KotlinParser.SimpleIdentifierContext
         }
 
-        val ctx = wynik.first() as KotlinParser.SimpleIdentifierContext
+        val isArray = lewaStrona.any {
+            it is KotlinParser.ArrayAccessContext
+        }
 
-        val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
+        if(isArray) {
+            state.code("// left side disjunction - prawie dobrze")
+            visitDisjunction(lewaStrona)
 
-        // TODO - usunąć assignLeftSideVar
-        //state.currentReg = zmienna
-        state.assignLeftSideVar = zmienna
+            state.assignLeftSideVar = state.currentReg
 
-        state.code("let ${state.currentRegToAsm()} = ${state.varToAsmNoType(zmienna)}[ptr] // for assignment left side - TODO change ${state.currentRegToAsm()} to ptr!")
+            return state
+        } else {
+            val ctx = wynik.first() as KotlinParser.SimpleIdentifierContext
 
-        state.switchType(zmienna.type, "by znajdźSimpleIdW")
+            val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
 
-        return state
+            // TODO - usunąć assignLeftSideVar
+            //state.currentReg = zmienna
+            state.assignLeftSideVar = zmienna
+
+            state.code("let ${state.currentRegToAsm()} = ${state.varToAsmNoType(zmienna)}[ptr] // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN - TODO change ${state.currentRegToAsm()} to ptr!")
+
+            state.switchType(zmienna.type, "by znajdźSimpleIdW")
+
+            return state
+        }
     }
 
 
@@ -486,7 +502,7 @@ class WolinVisitor(
 
         checkTypeAndAddAssignment(ctx, destinationReg, tempSourceReg)
 
-        state.code("// should be: let ${state.varToAsm(leftSide)}[ptr] = ${state.varToAsm(tempSourceReg)}")
+        state.code("// should be: let ${state.varToAsm(leftSide)}[ptr] = ${state.varToAsm(tempSourceReg)} // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN")
 
         state.freeReg("for value that gets assigned to left side, type = ${state.currentWolinType}")
 
@@ -1400,7 +1416,6 @@ class WolinVisitor(
     }
 
     override fun visitKotlinFile(ctx: KotlinParser.KotlinFileContext): WolinStateObject {
-
         // TODO: to powinno być includem dla c64
         if (state.exceptionsUsed) {
             state.code("setup SPE = 155[ubyte], 53247[uword] // exception stack pointer at 155 = 53247 (was: datasette something)")
@@ -1412,7 +1427,7 @@ class WolinVisitor(
             state.code("setup SPF = 251[ubyte], 40959[uword] // call stack pointer at 251 = 40959")
 
         if (state.spUsed)
-            state.code("setup SP = 142[ubyte] // register stack top = 142")
+            state.code("setup SP = 143[ubyte] // register stack top = 142")
 
         if (state.mainFunction != null) {
             state.code("// main function entry")

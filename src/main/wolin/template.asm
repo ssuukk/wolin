@@ -499,6 +499,8 @@ let ?dstVar[ubyte] = ?arrStart[ptr], #?idx -> """
     lda {arrStart},y
     sta {dstVar}"""
 
+//let SP(?dstSP)[ptr] = #?val[ubyte]
+
 // let SP(2)<r.temp6>[ptr] = SP(0)<r.temp7>[word] // powinno znaczyć: ustaw zmienną pod adresem znajdującym się w SP(2) na wartość
 // czyli powinniśmy:
 // lda #mlodszy
@@ -647,6 +649,8 @@ goto ?a[adr] -> """    jmp {a}"""
 goto ?a[ptr] -> """    jmp ({a})"""
 
 crash -> """    brk"""
+
+label ?a = ?b -> """{a} = {b}"""
 
 label ?a -> """{a}:"""
 

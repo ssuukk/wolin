@@ -24,19 +24,9 @@ __wolin_sp_top = 142 ; program stack top
 
 __wolin_pl_qus_wolin_test_main:
 
-; allocSP<__wolin_reg1>,#2
-
+; allocSP<__wolin_reg1>,#1
 
     dex
-    dex
-
-; letSP(0)<__wolin_reg1>[uword]=__wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[ptr]
-
-
-    lda #<__wolin_pl_qus_wolin_test_c
-    sta 0,x
-    lda #>__wolin_pl_qus_wolin_test_c
-    sta 0+1,x
 
 ; allocSP<__wolin_reg2>,#2
 
@@ -44,13 +34,7 @@ __wolin_pl_qus_wolin_test_main:
     dex
     dex
 
-; allocSP<__wolin_reg3>,#2
-
-
-    dex
-    dex
-
-; letSP(0)<__wolin_reg3>[ptr]=5000[ptr]
+; letSP(0)<__wolin_reg2>[ptr]=5000[ptr]
 
 
     lda #<5000
@@ -58,13 +42,13 @@ __wolin_pl_qus_wolin_test_main:
     lda #>5000
     sta 0+1,x
 
-; allocSP<__wolin_reg4>,#2
+; allocSP<__wolin_reg3>,#2
 
 
     dex
     dex
 
-; letSP(0)<__wolin_reg4>[uword]=#5[ubyte]
+; letSP(0)<__wolin_reg3>[uword]=#5[ubyte]
 
 
     lda #5
@@ -72,11 +56,7 @@ __wolin_pl_qus_wolin_test_main:
     lda #0
     sta 0+1,x
 
-; mulSP(0)<__wolin_reg4>[uword]=SP(0)<__wolin_reg4>[uword],#2
-
-   asl 0,x
-
-; addSP(2)<__wolin_reg3>[ptr]=SP(2)<__wolin_reg3>[ptr],SP(0)<__wolin_reg4>[uword]
+; addSP(2)<__wolin_reg2>[ptr]=SP(2)<__wolin_reg2>[ptr],SP(0)<__wolin_reg3>[uword]
 
 
     clc
@@ -87,38 +67,17 @@ __wolin_pl_qus_wolin_test_main:
     adc 0+1,x
     sta 2+1,x
 
-; freeSP<__wolin_reg4>,#2
-
-
-    inx
-    inx
-
-; letSP(2)<__wolin_reg2>[uword]=SP(0)<__wolin_reg3>[ptr]
-
-
-    lda (0,x)
-    sta 2,x
-    inc 0,x
-    bne @skip
-    inc 0+1,x
-@skip:
-    lda (0,x)
-    sta 2+1,x
-
 ; freeSP<__wolin_reg3>,#2
 
 
     inx
     inx
 
-; let__wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword]=SP(0)<__wolin_reg2>[uword]
+; letSP(2)<__wolin_reg1>[ubyte]=SP(0)<__wolin_reg2>[ptr]
 
 
-    lda 0,x
-    sta __wolin_pl_qus_wolin_test_c
-    lda 0+1,x
-    sta __wolin_pl_qus_wolin_test_c+1
-
+    lda (0,x)
+    sta 2,x
 
 ; freeSP<__wolin_reg2>,#2
 
@@ -126,10 +85,18 @@ __wolin_pl_qus_wolin_test_main:
     inx
     inx
 
-; freeSP<__wolin_reg1>,#2
+; letSP(1)<__wolin_reg1>[ubyte]=SP(0)<__wolin_reg4>[ubyte]
 
+
+    lda 0,x
+    sta 1,x
+
+; freeSP<__wolin_reg4>,#1
 
     inx
+
+; freeSP<__wolin_reg1>,#1
+
     inx
 
 ; ret
