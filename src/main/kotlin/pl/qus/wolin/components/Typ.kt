@@ -2,7 +2,7 @@ package pl.qus.wolin.components
 
 import pl.qus.wolin.WolinStateObject
 
-class Typ(val type: String, val nulable: Boolean) {
+class Typ(val type: String, val nulable: Boolean, var isPointer: Boolean = false) {
 
     var array: Boolean = false
     var shortIndex: Boolean = false
@@ -10,7 +10,6 @@ class Typ(val type: String, val nulable: Boolean) {
     companion object {
         val unit get() = Typ("unit", false)
         val bool get() = Typ("bool", false)
-        val ptr get() = Typ("ptr", false)
         val ubyte get() = Typ("ubyte", false)
         val uword get() = Typ("uword", false)
 
@@ -43,6 +42,7 @@ class Typ(val type: String, val nulable: Boolean) {
     val sizeOnStack: Int
         get() = when {
             array -> 2
+            isPointer -> 2
             type == "unit" -> 0
             type == "bool" -> 1
             type == "byte" -> 1
@@ -53,7 +53,7 @@ class Typ(val type: String, val nulable: Boolean) {
         }
 
     override fun equals(other: Any?): Boolean = if (other is Typ) {
-        other.type == this.type && other.nulable == this.nulable
+        other.type == this.type && other.nulable == this.nulable && other.isPointer == this.isPointer
     } else super.equals(other)
 
     override fun toString(): String = type + if (nulable) "?" else ""

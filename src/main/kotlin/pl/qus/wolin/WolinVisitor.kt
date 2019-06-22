@@ -53,7 +53,7 @@ class WolinVisitor(
 
                 when {
                     it.expression()?.assignmentOperator()?.size != 0 -> {
-                        val lewaStrona = it.expression()?.disjunction(0)
+                        val lewaStrona = it.expression()?.disjunction(0) // disjunction = or
                         val operator = it.expression()?.assignmentOperator(0)
                         val prawaStrona = it.expression()?.disjunction(1)
 
@@ -175,7 +175,7 @@ class WolinVisitor(
     override fun visitDisjunction(ctx: KotlinParser.DisjunctionContext): WolinStateObject {
         if (ctx.conjunction()?.size == 1)
             ctx.conjunction()?.firstOrNull()?.let {
-                visitConjunction(it)
+                visitConjunction(it) // conjunction = and*
             }
         else błędzik(ctx, "Conjunction size > 1")
 
@@ -245,7 +245,7 @@ class WolinVisitor(
                 state.freeReg("for comp right side, type =${state.currentWolinType}")
                 state.freeReg("for comp left side, type =${state.currentWolinType}")
 
-                state.setTopOregType(Typ.bool)
+                state.forceTopOregType(Typ.bool)
 
                 state.code("// koniec equality")
             }
@@ -482,7 +482,7 @@ class WolinVisitor(
         val destinationReg = state.assignLeftSideVar!!
         val destinationType = destinationReg.type
 
-        state.setTopOregType(Typ.ptr)
+        state.currentReg.type.isPointer = true
         state.inferTopOregType()
 
         state.code("// prawa strona assignment")
@@ -520,11 +520,15 @@ class WolinVisitor(
         val pierwszy = state.currentReg
 
         leftFunction()
+        // aby nie nadpisać spromowanego typu węższym
+        state.switchType(promoteType(state.currentWolinType, state.currentReg.type),"promotion")
+        state.inferTopOregType()
 
         state.code("// prawa strona")
 
         val drugi = state.allocReg("for right side")
         rightFunction()
+        state.inferTopOregType()
 
         state.code(
             "$oper ${state.varToAsm(pierwszy)} = ${state.varToAsm(pierwszy)}, ${state.varToAsm(
@@ -532,8 +536,18 @@ class WolinVisitor(
             )} // two sides"
         )
 
-        state.inferTopOregType()
         state.freeReg("for right side, type =${state.currentWolinType}")
+        state.switchType(promoteType(pierwszy.type, drugi.type),"promotion")
+        state.inferTopOregType()
+    }
+
+    fun promoteType(reg1: Typ, reg2: Typ): Typ {
+        return if(reg1.sizeOnStack < reg2.sizeOnStack) {
+            state.code("// had to promote resulting type to wider")
+            reg2
+        }
+        else
+            reg1
     }
 
     override fun visitTypeRHS(ctx: KotlinParser.TypeRHSContext): WolinStateObject {
@@ -790,9 +804,9 @@ class WolinVisitor(
                 visitExpression(ctx.expression(0))
 
                 if(state.currentShortArray == null)
-                    state.setTopOregType(Typ.uword) // typ indeksu
+                    state.forceTopOregType(Typ.uword) // typ indeksu
                 else
-                    state.setTopOregType(Typ.ubyte) // typ indeksu
+                    state.forceTopOregType(Typ.ubyte) // typ indeksu
 
 
                 // ARRAYCODE
@@ -999,7 +1013,7 @@ class WolinVisitor(
 
         state.code("label $condLabel")
 
-        state.setTopOregType(Typ.bool)
+        state.forceTopOregType(Typ.bool)
 
         visitExpression(ctx.expression())
 
@@ -1024,7 +1038,7 @@ class WolinVisitor(
 
         state.code("label $bodyLabel")
 
-        state.setTopOregType(Typ.bool)
+        state.forceTopOregType(Typ.bool)
 
         visitControlStructureBody(ctx.controlStructureBody())
 
@@ -1120,7 +1134,7 @@ class WolinVisitor(
 
     fun checkTypeAndAddAssignment(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna) {
         if(state.pass == Pass.TRANSLATION) {
-            val można = state.canBeAssigned(doJakiej.type, co.type) || doJakiej.type.type == "ptr" || co.type.type == "uword"
+            val można = state.canBeAssigned(doJakiej.type, co.type) || doJakiej.type.isPointer || co.type.type == "uword"
 
             if(można) {
                 state.code("let ${state.varToAsm(doJakiej)} = ${state.varToAsm(co)} // przez sprawdzacz typów")
@@ -1307,7 +1321,9 @@ class WolinVisitor(
 
         state.functiary.add(konstruktor)
 
-        val zwrotka = state.createAndRegisterVar("returnValue", AllocType.NORMAL, Typ.ptr, true, "SPF")
+        val typZwrotki = Typ(state.currentClass!!.name, false, true)
+
+        val zwrotka = state.createAndRegisterVar("returnValue", AllocType.NORMAL, typZwrotki, true, "SPF")
 
         val funkcjaAlloc = state.findProc("allocMem").apply {
             if(state.pass == Pass.TRANSLATION) {
@@ -1511,7 +1527,7 @@ class WolinVisitor(
             }
         }
 
-        state.switchType(reg.type, "guess number type")
+        //state.switchType(reg.type, "guess number type")
 
         return reg
     }
@@ -1546,7 +1562,7 @@ class WolinVisitor(
             błędzik(const, "Unknown literal")
         }
 
-        state.switchType(reg.type, "parse literal constant")
+        //state.switchType(reg.type, "parse literal constant")
     }
 
     fun błędzik(miejsce: ParseTree, teskt: String = "") {

@@ -3,20 +3,24 @@ package pl.qus.wolin
 var tlo: ubyte^53281
 var ramka: ubyte^53280
 
-var oneByteBigArray: ubyte[]
-var twoBytesBigArray: uword[]^5000
-var oneByteSmallArray: ubyte[ubyte]
+var oneByteLongArray: ubyte[]
+var twoBytesLongArray: uword[]^5000
+var fastArray: ubyte[ubyte]
 
 var b: ubyte
 var c: uword
+var w: ubyte
 
 fun main() {
-    //b = oneByteBigArray[5]
+    b = oneByteLongArray[5]
 
-    //c = twoBytesBigArray[5]
+    //b = 19
+    //c = 12000
 
-    twoBytesBigArray[5] = 69
+    //c = twoBytesLongArray[5]
+
+    //twoBytesBigArray[5] = 69
     // BUG - da się przypisać element tablicy byte do worda!
-    //b = oneByteSmallArray[5]
-
+    //b = fastArray[5] + 40000
+    //w = b * c
 }

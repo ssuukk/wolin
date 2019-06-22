@@ -24,6 +24,7 @@ class Zmienna(
 
     val typeForAsm: String
         get() = when {
+            type.isPointer -> "[ptr]"
             type.array -> "[ptr]"
             type.type.contains("->") -> "[ptr]"
             type.type == "bool" -> "[bool]"
@@ -42,7 +43,7 @@ class Zmienna(
         type.type == "word" -> "${intValue ?:0}"
         type.type == "uword" -> "${intValue ?:0}"
         type.type == "float" -> "$floatValue"
-        type.type == "ptr" -> "${intValue ?: 0}"
+        type.isPointer -> "${intValue ?: 0}"
         type.type.contains("->") -> "${intValue ?: 0}"
         else -> "65535"
     }

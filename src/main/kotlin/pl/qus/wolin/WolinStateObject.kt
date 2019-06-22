@@ -27,7 +27,6 @@ class WolinStateObject(val pass: Pass) {
 
     var mainFunction: Funkcja? = null
 
-    //var currentWolinType: String = "unit"
     var currentWolinType = Typ.unit
     var labelCounter = 0
     var loopCounter = 0
@@ -53,12 +52,6 @@ class WolinStateObject(val pass: Pass) {
     /*****************************************************************
     Generalny kod
      *****************************************************************/
-
-    fun switchType(newType: Typ, reason: String) {
-        currentWolinType = newType
-        code("// switchType to:$newType by $reason")
-    }
-
 
     fun code(kod: String) {
         if (codeOn && pass == Pass.TRANSLATION)
@@ -103,7 +96,8 @@ class WolinStateObject(val pass: Pass) {
                 this
             )
             fnType?.functionTypeParameters() != null -> {
-                val fnTypePars = fnType.functionTypeParameters().type().map { findQualifiedType(it.text) }.joinToString(",")
+                val fnTypePars =
+                    fnType.functionTypeParameters().type().map { findQualifiedType(it.text) }.joinToString(",")
 
                 //val fnTypePars = findQualifiedType(fnType.functionTypeParameters()!!.text)
                 val fnTypeRec = findQualifiedType(fnType.type()!!.text)
@@ -150,10 +144,10 @@ class WolinStateObject(val pass: Pass) {
         zmienna.type = type
 
         var pomiń = 0
-        if(basePackage.isNotEmpty()) pomiń = basePackage.length + 1
-        if(fileScopeSuffix.isNotEmpty()) pomiń+=fileScopeSuffix.length + 1
+        if (basePackage.isNotEmpty()) pomiń = basePackage.length + 1
+        if (fileScopeSuffix.isNotEmpty()) pomiń += fileScopeSuffix.length + 1
 
-        val bezSkopuPliku = if(zmienna.name.startsWith(basePackage)) zmienna.name.drop(pomiń) else zmienna.name
+        val bezSkopuPliku = if (zmienna.name.startsWith(basePackage)) zmienna.name.drop(pomiń) else zmienna.name
 
         if (!zmienna.immutable && zmienna.allocation == AllocType.LITERAL)
             throw Exception("var can't be const!")
@@ -179,7 +173,7 @@ class WolinStateObject(val pass: Pass) {
 
         toVariablary(zmienna)
 
-        if(zmienna.stack == "HEAP") {
+        if (zmienna.stack == "HEAP") {
             currentClass!!.toHeapAndVariablary(zmienna)
         }
 
@@ -199,10 +193,10 @@ class WolinStateObject(val pass: Pass) {
         zmienna.name = nameStitcher(name, argument)
 
         var pomiń = 0
-        if(basePackage.isNotEmpty()) pomiń = basePackage.length + 1
-        if(fileScopeSuffix.isNotEmpty()) pomiń+=fileScopeSuffix.length + 1
+        if (basePackage.isNotEmpty()) pomiń = basePackage.length + 1
+        if (fileScopeSuffix.isNotEmpty()) pomiń += fileScopeSuffix.length + 1
 
-        val bezSkopuPliku = if(zmienna.name.startsWith(basePackage)) zmienna.name.drop(pomiń) else zmienna.name
+        val bezSkopuPliku = if (zmienna.name.startsWith(basePackage)) zmienna.name.drop(pomiń) else zmienna.name
 
         if (!zmienna.immutable && zmienna.allocation == AllocType.LITERAL)
             throw Exception("var can't be const!")
@@ -211,7 +205,7 @@ class WolinStateObject(val pass: Pass) {
             zmienna.fileStatic = true
 
         toVariablary(zmienna)
-        if(zmienna.stack == "HEAP") {
+        if (zmienna.stack == "HEAP") {
             currentClass!!.toHeapAndVariablary(zmienna)
         }
 
@@ -235,7 +229,7 @@ class WolinStateObject(val pass: Pass) {
     }
 
     fun findClass(nazwa: String): Klasa {
-        if(classary.containsKey(nazwa))
+        if (classary.containsKey(nazwa))
             return classary[nazwa]!!
 
         var gdzieJesteśmy = nameStitcher("")
@@ -278,7 +272,7 @@ class WolinStateObject(val pass: Pass) {
             }
 
 
-            if(zmienna == null) {
+            if (zmienna == null) {
                 val ostKropka = gdzieJesteśmy.lastIndexOf(".")
 
                 if (ostKropka == -1) {
@@ -571,21 +565,31 @@ class WolinStateObject(val pass: Pass) {
         dumpStack(operStack)
     }
 
-    fun setTopOregType(wolinType: Typ) {
+    fun currentRegToAsm(): String = varToAsm(currentReg)
+
+
+    /*****************************************************************
+    Bieżący typ
+     *****************************************************************/
+
+    fun forceTopOregType(wolinType: Typ) {
         operStack.peek().type = wolinType
-        code("// setTopOregType to $wolinType")
+        code("// forceTopOregType to $wolinType")
     }
 
     fun inferTopOregType() {
         operStack.peek().type = currentWolinType
-
         code("// inferTopOregType ${operStack.peek().name} -> $currentWolinType")
     }
 
-    fun currentRegToAsm(): String = varToAsm(currentReg)
+    fun switchType(newType: Typ, reason: String) {
+        currentWolinType = newType
+        code("// switchType to:$newType by $reason")
+    }
+
 
     /*****************************************************************
-      Związane z typami
+    Związane z typami
      *****************************************************************/
 
     fun findQualifiedType(typeName: String): String {
@@ -612,17 +616,32 @@ class WolinStateObject(val pass: Pass) {
         }
     }
 
-    fun canBeAssigned(doJakiej: Typ, co: Typ): Boolean =
-        if (doJakiej.type.contains(".") && co.type=="ptr")
-            true
-        else if (co.type.contains(".")) {
-            val doTegoKlasa = classary[doJakiej.type] ?: throw Exception("Unknown class $doJakiej (=$co)")
-            val tenKlasa = classary[co.type] ?: throw Exception("Unknown class $co ($doJakiej=)")
+    fun canBeAssigned(doJakiej: Typ, co: Typ): Boolean {
 
-            doJakiej.type == co.type || doTegoKlasa.hasChild(tenKlasa.name)
-        } else if (doJakiej.nulable && doJakiej.type == co.type)
-            true
-        else !doJakiej.nulable && doJakiej.type == co.type && !co.nulable
+        val typyZgodne = doJakiej.type == co.type ||
+                if (co.type.contains(".")) {
+                    val doTegoKlasa = classary[doJakiej.type] ?: throw Exception("Unknown class $doJakiej (=$co)")
+                    val tenKlasa = classary[co.type] ?: throw Exception("Unknown class $co ($doJakiej=)")
+
+                    doJakiej.type == co.type || doTegoKlasa.hasChild(tenKlasa.name)
+                } else
+                    false
+
+        return when {
+            // typy identyczne?
+            typyZgodne -> {
+                // pointer do zmiennej lub zmienna do pointera
+                if (co.isPointer || doJakiej.isPointer)
+                    true
+                // docelowa nullowalna? No to ok!
+                else if (doJakiej.nulable)
+                    true
+                // docelowa nienullowalna, no to musimy sprawdzić
+                else !doJakiej.nulable
+            }
+            else -> false
+        }
+    }
 
     fun nameStitcher(name: String, argument: Boolean = false): String {
         return nameStitcher(name, currentFunction?.fullName, argument)
