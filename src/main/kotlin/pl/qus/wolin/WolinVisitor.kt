@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
 import pl.qus.wolin.components.*
 import pl.qus.wolin.exception.FunctionNotFound
+import pl.qus.wolin.exception.RegTypeMismatchException
 import pl.qus.wolin.exception.TypeMismatchException
 import java.lang.Exception
 
@@ -83,7 +84,12 @@ class WolinVisitor(
                     state.code("let ${state.varToAsm(retVal)} = ${state.currentRegToAsm()} // LAMBDA return assignment")
                 }
 
-                state.freeReg("for block level expression ${it.text.replace("\n", "\\n")}, type = ${state.currentWolinType}")
+                state.freeReg(
+                    "for block level expression ${it.text.replace(
+                        "\n",
+                        "\\n"
+                    )}, type = ${state.currentWolinType}"
+                )
             }
             it.declaration() != null -> it.declaration()?.let {
                 state.allocReg("for declaration ${it.text.replace("\n", "\\n")}")
@@ -112,11 +118,20 @@ class WolinVisitor(
             it is KotlinParser.ArrayAccessContext
         }
 
-        if(isArray) {
-            state.code("// left side disjunction - prawie dobrze")
+        if (isArray) {
+            val ctx = wynik.first() as KotlinParser.SimpleIdentifierContext
+
+            state.rem(" left side disjunction - prawie dobrze")
             visitDisjunction(lewaStrona)
 
             state.assignLeftSideVar = state.currentReg
+
+            state.nonTrivialAssign = true
+
+            val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
+
+
+            state.code("let ${state.currentRegToAsm()} = ${state.varToAsmNoType(zmienna)}[ptr] // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN - TODO change ${state.currentRegToAsm()} to ptr!")
 
             return state
         } else {
@@ -128,7 +143,6 @@ class WolinVisitor(
             //state.currentReg = zmienna
             state.assignLeftSideVar = zmienna
 
-            state.code("let ${state.currentRegToAsm()} = ${state.varToAsmNoType(zmienna)}[ptr] // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN - TODO change ${state.currentRegToAsm()} to ptr!")
 
             state.switchType(zmienna.type, "by znajdźSimpleIdW")
 
@@ -154,7 +168,8 @@ class WolinVisitor(
             ctx.assignmentOperator().size == 1 -> {
                 when {
                     ctx.assignmentOperator().first().ASSIGNMENT() != null -> {
-                        processAssignment(ctx, { znajdźSimpleIdW(ctx.disjunction(0)) /*visitDisjunction(ctx.disjunction(0)) */},
+                        processAssignment(ctx,
+                            { znajdźSimpleIdW(ctx.disjunction(0)) /*visitDisjunction(ctx.disjunction(0)) */ },
                             { visitDisjunction(ctx.disjunction(1)) })
                     }
                     else -> błędzik(ctx, "Unknown assignment operator")
@@ -173,11 +188,19 @@ class WolinVisitor(
 
 
     override fun visitDisjunction(ctx: KotlinParser.DisjunctionContext): WolinStateObject {
+        // nie ma or
         if (ctx.conjunction()?.size == 1)
             ctx.conjunction()?.firstOrNull()?.let {
                 visitConjunction(it) // conjunction = and*
             }
-        else błędzik(ctx, "Conjunction size > 1")
+        else {
+            processTypePreservingOp(
+                { visitConjunction(ctx.conjunction(0)) },
+                { visitConjunction(ctx.conjunction(1)) },
+                simpleResultFunction("or", Typ.bool),
+                "or operation"
+            )
+        }
 
         return state
     }
@@ -185,14 +208,16 @@ class WolinVisitor(
     override fun visitConjunction(ctx: KotlinParser.ConjunctionContext): WolinStateObject {
         if (ctx.equalityComparison()?.size == 1)
             ctx.equalityComparison()?.firstOrNull()?.let {
-
-
                 visitEqualityComparison(it)
-
-
             }
-        else błędzik(ctx, "Equality size > 1")
-
+        else {
+            processTypePreservingOp(
+                { visitEqualityComparison(ctx.equalityComparison(0)) },
+                { visitEqualityComparison(ctx.equalityComparison(1)) },
+                simpleResultFunction("and", Typ.bool),
+                "and operation"
+            )
+        }
         return state
     }
 
@@ -203,10 +228,6 @@ class WolinVisitor(
             }
             ctx.equalityOperation().size > 1 -> błędzik(ctx, "equality op size > 1")
             ctx.equalityOperation().size == 1 -> {
-                val lewa = ctx.comparison(0)
-                val prawa = ctx.comparison(1)
-
-                state.code("// początek equality - lewa noga")
 
                 val oper = when (ctx.equalityOperation(0).text) {
                     "==" -> "evaleq"
@@ -218,36 +239,22 @@ class WolinVisitor(
                     else -> "unknown eq"
                 }
 
-                val wynik = state.currentReg
+                processTypeChangingOp(
+                    { visitComparison(ctx.comparison(0)) },
+                    { visitComparison(ctx.comparison(1)) },
+                    {
+                        akt, lewy, prawy ->
 
-                state.code("// lewa strona com")
+                        state.code(
+                            "$oper ${state.varToAsm(akt)} = ${state.varToAsm(lewy)}, ${state.varToAsm(
+                                prawy
+                            )} // two sides"
+                        )
 
-                val pierwszy = state.allocReg("for comp left side") // nie dostaje właściwego typu!!!
-
-                visitComparison(lewa)
-
-                state.inferTopOregType()
-
-                state.code("// prawa strona")
-
-                val drugi = state.allocReg("for comp right side")
-
-                visitComparison(prawa)
-
-                state.inferTopOregType()
-
-                state.code(
-                    "$oper ${state.varToAsm(wynik)} = ${state.varToAsm(pierwszy)}, ${state.varToAsm(
-                        drugi
-                    )} // two sides"
-                )
-
-                state.freeReg("for comp right side, type =${state.currentWolinType}")
-                state.freeReg("for comp left side, type =${state.currentWolinType}")
-
-                state.forceTopOregType(Typ.bool)
-
-                state.code("// koniec equality")
+                        Typ.bool
+                    },
+                    "equality check: $oper"
+                    )
             }
             else -> błędzik(ctx, "Unknown eq comparison")
         }
@@ -265,13 +272,13 @@ class WolinVisitor(
                     oper.GE() != null -> {
                         val wynik = state.currentReg
 
-                        state.code("//=================================")
+                        state.rem("=================================")
                         val lewa = state.allocReg("for GE left calculation")
-                        state.code("// lewy namedInfix: co?")
+                        state.rem(" lewy namedInfix: co?")
                         visitNamedInfix(ctx.namedInfix(0))
                         state.inferTopOregType()
 
-                        state.code("// prawy namedInfix: od czego?")
+                        state.rem(" prawy namedInfix: od czego?")
                         val prawa = state.allocReg("for GE right calculation")
                         visitNamedInfix(ctx.namedInfix(1))
                         state.inferTopOregType()
@@ -279,18 +286,18 @@ class WolinVisitor(
                         state.code("evalgteq ${state.varToAsm(wynik)} = ${state.varToAsm(lewa)}, ${state.varToAsm(prawa)}")
                         state.freeReg("for GE right calculation")
                         state.freeReg("for GE left calculation")
-                        state.code("//=================================")
+                        state.rem("=================================")
                     }
-                    oper.LE() != null  -> {
+                    oper.LE() != null -> {
                         val wynik = state.currentReg
 
-                        state.code("//=================================")
+                        state.rem("=================================")
                         val lewa = state.allocReg("for LE left calculation")
-                        state.code("// lewy namedInfix: co?")
+                        state.rem(" lewy namedInfix: co?")
                         visitNamedInfix(ctx.namedInfix(0))
                         state.inferTopOregType()
 
-                        state.code("// prawy namedInfix: od czego?")
+                        state.rem(" prawy namedInfix: od czego?")
                         val prawa = state.allocReg("for LE right calculation")
                         visitNamedInfix(ctx.namedInfix(1))
                         state.inferTopOregType()
@@ -298,18 +305,18 @@ class WolinVisitor(
                         state.code("evalgteq ${state.varToAsm(wynik)} = ${state.varToAsm(prawa)}, ${state.varToAsm(lewa)}")
                         state.freeReg("for LE right calculation")
                         state.freeReg("for LE left calculation")
-                        state.code("//=================================")
+                        state.rem("=================================")
                     }
-                    oper.LANGLE() != null  -> {
+                    oper.LANGLE() != null -> {
                         val wynik = state.currentReg
 
-                        state.code("//=================================")
+                        state.rem("=================================")
                         val lewa = state.allocReg("for LNAGLE left calculation")
-                        state.code("// lewy namedInfix: co?")
+                        state.rem(" lewy namedInfix: co?")
                         visitNamedInfix(ctx.namedInfix(0))
                         state.inferTopOregType()
 
-                        state.code("// prawy namedInfix: od czego?")
+                        state.rem(" prawy namedInfix: od czego?")
                         val prawa = state.allocReg("for LNAGLE right calculation")
                         visitNamedInfix(ctx.namedInfix(1))
                         state.inferTopOregType()
@@ -317,18 +324,18 @@ class WolinVisitor(
                         state.code("evalless ${state.varToAsm(wynik)} = ${state.varToAsm(lewa)}, ${state.varToAsm(prawa)}")
                         state.freeReg("for LNAGLE right calculation")
                         state.freeReg("for LNAGLE left calculation")
-                        state.code("//=================================")
+                        state.rem("=================================")
                     }
-                    oper.RANGLE() != null  -> {
+                    oper.RANGLE() != null -> {
                         val wynik = state.currentReg
 
-                        state.code("//=================================")
+                        state.rem("=================================")
                         val lewa = state.allocReg("for RNAGLE left calculation")
-                        state.code("// lewy namedInfix: co?")
+                        state.rem(" lewy namedInfix: co?")
                         visitNamedInfix(ctx.namedInfix(0))
                         state.inferTopOregType()
 
-                        state.code("// prawy namedInfix: od czego?")
+                        state.rem(" prawy namedInfix: od czego?")
                         val prawa = state.allocReg("for RNAGLE right calculation")
                         visitNamedInfix(ctx.namedInfix(1))
                         state.inferTopOregType()
@@ -336,7 +343,7 @@ class WolinVisitor(
                         state.code("evalless ${state.varToAsm(wynik)} = ${state.varToAsm(prawa)}, ${state.varToAsm(lewa)}")
                         state.freeReg("for RNAGLE right calculation")
                         state.freeReg("for RNAGLE left calculation")
-                        state.code("//=================================")
+                        state.rem("=================================")
                     }
                     else ->
                         błędzik(ctx, "Unknown comparison 2")
@@ -352,7 +359,7 @@ class WolinVisitor(
     override fun visitEqualityOperation(ctx: KotlinParser.EqualityOperationContext): WolinStateObject {
         println("")
 
-        state.code("// tu porównanie")
+        state.rem(" tu porównanie")
 
         return state
     }
@@ -408,12 +415,22 @@ class WolinVisitor(
     override fun visitAdditiveExpression(ctx: KotlinParser.AdditiveExpressionContext): WolinStateObject {
         when {
             ctx.additiveOperator().size > 0 -> {
-                processTwoSides(
-                    { visitMultiplicativeExpression(ctx.multiplicativeExpression(0)) },
-                    { visitMultiplicativeExpression(ctx.multiplicativeExpression(1)) },
-                    "add"
-                )
-                ctx.multiplicativeExpression(0)
+
+                try {
+                    processTypePreservingOp(
+                        { visitMultiplicativeExpression(ctx.multiplicativeExpression(0)) },
+                        { visitMultiplicativeExpression(ctx.multiplicativeExpression(1)) },
+                        simpleResultFunction("add"),
+                        "adding operator"
+                    )
+                } catch (ex: RegTypeMismatchException) {
+                    błędzik(
+                        ctx,
+                        "Type mismatch: ${ctx.multiplicativeExpression(0).text} can't be added to ${ctx.multiplicativeExpression(
+                            1
+                        ).text}"
+                    )
+                }
             }
             ctx.multiplicativeExpression().size == 1 -> ctx.multiplicativeExpression()?.firstOrNull()?.let {
                 visitMultiplicativeExpression(it)
@@ -429,24 +446,27 @@ class WolinVisitor(
                 val op = ctx.multiplicativeOperation(0)
                 when {
                     op?.MULT() != null -> {
-                        processTwoSides(
+                        processTypePreservingOp(
                             { visitPrefixUnaryExpression(ctx.typeRHS(0).prefixUnaryExpression(0)) },
                             { visitPrefixUnaryExpression(ctx.typeRHS(1).prefixUnaryExpression(0)) },
-                            "mul"
+                            simpleResultFunction("mul"),
+                            "multiplication"
                         )
                     }
                     op?.DIV() != null -> {
-                        processTwoSides(
+                        processTypePreservingOp(
                             { visitPrefixUnaryExpression(ctx.typeRHS(0).prefixUnaryExpression(0)) },
                             { visitPrefixUnaryExpression(ctx.typeRHS(1).prefixUnaryExpression(0)) },
-                            "div"
+                            simpleResultFunction("div"),
+                            "division"
                         )
                     }
                     op?.MOD() != null -> {
-                        processTwoSides(
+                        processTypePreservingOp(
                             { visitPrefixUnaryExpression(ctx.typeRHS(0).prefixUnaryExpression(0)) },
                             { visitPrefixUnaryExpression(ctx.typeRHS(1).prefixUnaryExpression(0)) },
-                            "mod"
+                            simpleResultFunction("mod"),
+                            "modulo"
                         )
                     }
                     else -> błędzik(ctx, "Unknown multiplicative op")
@@ -475,17 +495,17 @@ class WolinVisitor(
 
     fun processAssignment(ctx: ParseTree, leftFunction: () -> WolinStateObject, rightFunction: () -> WolinStateObject) {
 
-        state.code("// lewa strona assignment") // TODO użyć tego rejestru zamiast assignLeftSideVar
+        state.rem(" lewa strona assignment") // TODO użyć tego rejestru zamiast assignLeftSideVar
         val leftSide = state.allocReg("For assignment left side")
 
         leftFunction()
         val destinationReg = state.assignLeftSideVar!!
         val destinationType = destinationReg.type
 
-        state.currentReg.type.isPointer = true
-        state.inferTopOregType()
+        //state.currentReg.type.isPointer = true
+        //state.inferTopOregType()
 
-        state.code("// prawa strona assignment")
+        state.rem(" prawa strona assignment")
 
         val tempSourceReg = state.allocReg("for value that gets assigned to left side")
         rightFunction()
@@ -502,53 +522,54 @@ class WolinVisitor(
 
         checkTypeAndAddAssignment(ctx, destinationReg, tempSourceReg)
 
-        state.code("// should be: let ${state.varToAsm(leftSide)}[ptr] = ${state.varToAsm(tempSourceReg)} // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN")
-
+        if (state.nonTrivialAssign) {
+            state.code("let ${state.varToAsm(leftSide)}[ptr] = ${state.varToAsm(tempSourceReg)} // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN")
+            state.nonTrivialAssign = false
+        }
         state.freeReg("for value that gets assigned to left side, type = ${state.currentWolinType}")
 
         state.freeReg("For assignment left side")
 
     }
 
-    private fun processTwoSides(
-        leftFunction: () -> WolinStateObject,
-        rightFunction: () -> WolinStateObject,
-        oper: String
-    ) {
-        state.code("// lewa strona")
+//    private fun processTwoSides(
+//        leftFunction: () -> WolinStateObject,
+//        rightFunction: () -> WolinStateObject,
+//        oper: String
+//    ) {
+//        state.rem(" lewa strona")
+//
+//        val pierwszy = state.currentReg
+//
+//        leftFunction()
+//        // aby nie nadpisać spromowanego typu węższym
+//        state.switchType(promoteType(state.currentWolinType, state.currentReg.type), "promotion")
+//        state.inferTopOregType()
+//
+//        state.rem(" prawa strona")
+//
+//        val drugi = state.allocReg("for right side")
+//        rightFunction()
+//        state.inferTopOregType()
+//
+//        state.code(
+//            "$oper ${state.varToAsm(pierwszy)} = ${state.varToAsm(pierwszy)}, ${state.varToAsm(
+//                drugi
+//            )} // two sides"
+//        )
+//
+//        state.freeReg("for right side, type =${state.currentWolinType}")
+//        state.switchType(promoteType(pierwszy.type, drugi.type), "promotion")
+//        state.inferTopOregType()
+//    }
 
-        val pierwszy = state.currentReg
-
-        leftFunction()
-        // aby nie nadpisać spromowanego typu węższym
-        state.switchType(promoteType(state.currentWolinType, state.currentReg.type),"promotion")
-        state.inferTopOregType()
-
-        state.code("// prawa strona")
-
-        val drugi = state.allocReg("for right side")
-        rightFunction()
-        state.inferTopOregType()
-
-        state.code(
-            "$oper ${state.varToAsm(pierwszy)} = ${state.varToAsm(pierwszy)}, ${state.varToAsm(
-                drugi
-            )} // two sides"
-        )
-
-        state.freeReg("for right side, type =${state.currentWolinType}")
-        state.switchType(promoteType(pierwszy.type, drugi.type),"promotion")
-        state.inferTopOregType()
-    }
-
-    fun promoteType(reg1: Typ, reg2: Typ): Typ {
-        return if(reg1.sizeOnStack < reg2.sizeOnStack) {
-            state.code("// had to promote resulting type to wider")
-            reg2
-        }
-        else
-            reg1
-    }
+//    fun promoteType(reg1: Typ, reg2: Typ): Typ {
+//        return if (reg1.sizeOnStack < reg2.sizeOnStack) {
+//            state.rem(" had to promote resulting type to wider")
+//            reg2
+//        } else
+//            reg1
+//    }
 
     override fun visitTypeRHS(ctx: KotlinParser.TypeRHSContext): WolinStateObject {
         when {
@@ -598,8 +619,6 @@ class WolinVisitor(
                         val callSuffix = postfixUnaryOperation.callSuffix()
                         val arguments = callSuffix.valueArguments()
 
-
-
                         val prototyp = try {
                             val klasa = state.findClass(procName)
                             // TODO - tymczasowo dodać do funkcjarium konstruktor bez parametrów przy rejestrowaniu klasy
@@ -622,12 +641,12 @@ class WolinVisitor(
 
                         state.fnCallAllocRetAndArgs(prototyp)
 
-                        if(prototyp.arguments.any { it.allocation == AllocType.FIXED && it.location == "CPU.X" }) {
+                        if (prototyp.arguments.any { it.allocation == AllocType.FIXED && it.location == "CPU.X" }) {
                             state.code("save CPU.X // save SP, as X is used by native call argument")
                         }
 
                         arguments.valueArgument()?.forEachIndexed { i, it ->
-                            state.code("// obsługa argumentu $i wywołania $procName")
+                            state.rem(" obsługa argumentu $i wywołania $procName")
                             state.allocReg("for call argument $i", prototyp.arguments[i].type)
 
                             // w valueArgumentContext jest ExpressionContext
@@ -638,7 +657,7 @@ class WolinVisitor(
                                 state.code(
                                     "let ${prototyp.arguments[i].location}${prototyp.arguments[i].typeForAsm} = ${state.currentRegToAsm()}"
                                 )
-                                if(prototyp.arguments[i].location?.startsWith("CPU.") == true)
+                                if (prototyp.arguments[i].location?.startsWith("CPU.") == true)
                                     state.code("save ${prototyp.arguments[i].location}")
                             } else {
                                 val found = state.findStackVector(state.callStack, prototyp.arguments[i].name)
@@ -653,17 +672,17 @@ class WolinVisitor(
 
                         state.switchType(prototyp.type, "function type 2")
 
-                        (prototyp.arguments.size-1 downTo 0).forEach {
+                        (prototyp.arguments.size - 1 downTo 0).forEach {
                             val arg = prototyp.arguments[it]
 
-                            if(arg.allocation == AllocType.FIXED && arg.location?.startsWith("CPU.") == true) {
+                            if (arg.allocation == AllocType.FIXED && arg.location?.startsWith("CPU.") == true) {
                                 state.code("restore ${arg.location} // fill register for call")
                             }
                         }
 
                         state.code(state.getFunctionCallCode(procName))
 
-                        if(prototyp.arguments.any { it.allocation == AllocType.FIXED && it.location == "CPU.X" }) {
+                        if (prototyp.arguments.any { it.allocation == AllocType.FIXED && it.location == "CPU.X" }) {
                             state.code("restore CPU.X // restore SP, as X is used by native call")
                         }
 
@@ -676,7 +695,7 @@ class WolinVisitor(
 
                         state.code("free SPF <${prototyp.type.type}>, #${prototyp.type.sizeOnStack}")
 
-                        if(state.currentClass!=null)
+                        if (state.currentClass != null)
                             state.code("setup HEAP = this")
 
                     }
@@ -712,16 +731,16 @@ class WolinVisitor(
                         when {
                             prawo.memberAccessOperator() != null -> {
 
-                                state.code("// lewa strona deref")
+                                state.rem(" lewa strona deref")
                                 visitAtomicExpression(lewo)
-                                state.code("// sprawdzic, czy aktualny typ to klasa")
-                                state.code("// jesli tak, to na gorze heapu jest uniqid klasy")
+                                state.rem(" sprawdzic, czy aktualny typ to klasa")
+                                state.rem(" jesli tak, to na gorze heapu jest uniqid klasy")
 
                                 // TODO tu podstawiamy pod aktualny rejestr instancje jakiejś klasy
                                 // ale nie wiemy co to za klasa,  bo to już tylko ptr
                                 // więc nie wiemy jakie ma metody ten ptr!
 
-                                state.code("// prawa strona deref")
+                                state.rem(" prawa strona deref")
                                 //visitPostfixUnaryOperation(poKropce)
                                 //błędzik(ctx,"nie wiem jak dereferncić")
 
@@ -734,7 +753,7 @@ class WolinVisitor(
                                     state.code("beq costam[bool] = #0, jakis_label[adr]")
                                 }
 
-                                state.code("// postfix unary w dereferencji")
+                                state.rem(" postfix unary w dereferencji")
                                 //visitPostfixUnaryExpression(costam)
                             }
                             prawo.arrayAccess() != null -> {
@@ -749,25 +768,25 @@ class WolinVisitor(
                                 state.codeOn = true
 
                                 state.allocReg("arr_deref", state.currentWolinType)
-                                state.code("// LEWA strona array access, czyli co to za zmienna")
+                                state.rem(" LEWA strona array access, czyli co to za zmienna")
                                 visitAtomicExpression(lewo)
-                                state.code("// PRAWA strona array access, czyli indeks w nawiasach")
+                                state.rem(" PRAWA strona array access, czyli indeks w nawiasach")
                                 visitArrayAccess(prawo.arrayAccess())
 
-                                state.code("// kod obsługi tablicy")
+                                state.rem(" kod obsługi tablicy")
 
                                 when {
                                     state.currentShortArray == null -> {
-                                        state.code("// non-fast array")
+                                        state.rem(" non-fast array")
                                         state.code("let ${state.varToAsm(currEntReg)} = ${state.varToAsmNoType(state.currentReg)}[ptr]")
                                     }
                                     state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.NORMAL -> {
-                                            state.code("// allocated fast array")
-                                            state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.name}[ptr], ${state.currentRegToAsm()}")
+                                        state.rem(" allocated fast array")
+                                        state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.name}[ptr], ${state.currentRegToAsm()}")
                                         state.currentShortArray = null
                                     }
                                     state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.FIXED -> {
-                                        state.code("// allocated fast array")
+                                        state.rem(" allocated fast array")
                                         state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}[ptr], ${state.currentRegToAsm()}")
                                         state.currentShortArray = null
                                     }
@@ -797,28 +816,28 @@ class WolinVisitor(
 
                 // ARRAYCODE
 
-                if(state.currentShortArray == null) {
-                    state.allocReg("For calculating index",state.currentWolinType)
+                if (state.currentShortArray == null) {
+                    state.allocReg("For calculating index", state.currentWolinType)
                 }
 
                 visitExpression(ctx.expression(0))
 
-                if(state.currentShortArray == null)
+                if (state.currentShortArray == null)
                     state.forceTopOregType(Typ.uword) // typ indeksu
                 else
                     state.forceTopOregType(Typ.ubyte) // typ indeksu
 
 
                 // ARRAYCODE
-                if(state.currentShortArray == null) {
+                if (state.currentShortArray == null) {
                     when {
                         state.arrayElementSize > 1 -> {
-                            state.code("// long index, multi-byte per element array")
+                            state.rem(" long index, multi-byte per element array")
                             state.code("mul ${state.currentRegToAsm()} = ${state.currentRegToAsm()}, #${state.arrayElementSize}")
                             state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()}")
                         }
                         else -> {
-                            state.code("// long index, single byte per element array")
+                            state.rem(" long index, single byte per element array")
                             state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()}")
                         }
                     }
@@ -826,13 +845,13 @@ class WolinVisitor(
                     state.freeReg("For calculating index")
 
                 } else {
-                    state.code("// fast array - no additional op")
+                    state.rem(" fast array - no additional op")
                     //state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()}")
                 }
 
-                state.code("// after index")
+                state.rem(" after index")
 
-                state.code("//dereference value at topRegister")
+                state.rem("dereference value at topRegister")
             }
             else -> błędzik(ctx, "wrong number of expressions for array deref")
         }
@@ -854,19 +873,19 @@ class WolinVisitor(
 //    }
 
     override fun visitValueArgument(ctx: KotlinParser.ValueArgumentContext): WolinStateObject {
-        state.code("//Prze visit vALUE")
+        state.rem("Prze visit vALUE")
 
         when {
             ctx.ASSIGNMENT() != null -> błędzik(ctx, "Nie wiem jak obsłużyć assignment v value argument")
             ctx.MULT() != null -> błędzik(ctx, "Nie wiem jak obsłużyć mult v value argument")
             ctx.simpleIdentifier() != null -> błędzik(ctx, "Nie wiem jak obsłużyć simpleId v value argument")
             ctx.expression() != null -> {
-                state.code("// obliczenia dla parametru ${ctx.expression().text}")
+                state.rem(" obliczenia dla parametru ${ctx.expression().text}")
                 visitExpression(ctx.expression())
             }
         }
 
-        state.code("//po visit value")
+        state.rem("po visit value")
 
         return state
     }
@@ -903,13 +922,13 @@ class WolinVisitor(
 
     override fun visitThisExpression(ctx: KotlinParser.ThisExpressionContext): WolinStateObject {
         when {
-            ctx.LabelReference() != null -> błędzik(ctx,"Don't know how to process this@xxxx")
+            ctx.LabelReference() != null -> błędzik(ctx, "Don't know how to process this@xxxx")
             ctx.THIS() != null -> {
                 val zmienna = state.findVarInVariablaryWithDescoping("this")
 
                 state.allocReg("for statement this")
 
-                checkTypeAndAddAssignment(ctx,state.currentReg, zmienna)
+                checkTypeAndAddAssignment(ctx, state.currentReg, zmienna)
 
             }
             else -> błędzik(ctx, "Uknown this reference!")
@@ -933,7 +952,7 @@ class WolinVisitor(
 
         state.currentFunction = nowaFunkcja
 
-        parametryLambdy.lambdaParameter()?.forEachIndexed {index, it ->
+        parametryLambdy.lambdaParameter()?.forEachIndexed { index, it ->
             when {
                 it.multiVariableDeclaration() != null -> błędzik(ctx, "Nie wiem jak obsłużyć multiVarDecl w lambdzie")
                 it.variableDeclaration() != null -> {
@@ -941,16 +960,16 @@ class WolinVisitor(
                     val typ = decl.type()
                     val id = decl.simpleIdentifier().text
 
-                    val arg = if(typ == null) {
+                    val arg = if (typ == null) {
                         // TODO - parametr lambdy może być podany bez typu, w takim wypadku musimy go sobie pobrać
                         // z typu zmiennej, do której jest przypisywana ta lambda (assignLeftSideVar)
 
-                        if(state.assignLeftSideVar != null) {
+                        if (state.assignLeftSideVar != null) {
                             val funkcja = state.lambdaTypeToFunction(state.assignLeftSideVar!!)
                             val interred = funkcja.arguments[index]
                             state.createAndRegisterVar(id, AllocType.NORMAL, interred.type, true, "SPF")
                         } else {
-                            błędzik(ctx,"Can't infer type of lambda!")
+                            błędzik(ctx, "Can't infer type of lambda!")
                             throw Exception()
                         }
                     } else {
@@ -1074,9 +1093,9 @@ class WolinVisitor(
         when {
             body.size == 1 -> {
                 state.code("bne ${state.currentRegToAsm()} = #1[bool], $elseLabel<label_po_if>[uword]")
-                state.code("// body dla true")
+                state.rem(" body dla true")
                 visitControlStructureBody(body[0])
-                state.code("// label po if")
+                state.rem(" label po if")
                 state.code("label $elseLabel")
 
             }
@@ -1084,10 +1103,10 @@ class WolinVisitor(
                 //val elseLabel = labelMaker("elseExpression",state.labelCounter)
 
                 state.code("bne ${state.currentRegToAsm()} = #1[bool], $elseLabel<label_DO_else>[uword]")
-                state.code("// body dla true")
+                state.rem(" body dla true")
                 visitControlStructureBody(body[0])
                 state.code("label $elseLabel")
-                state.code("// body dla false/else")
+                state.rem(" body dla false/else")
                 visitControlStructureBody(body[1])
             }
             else -> {
@@ -1108,7 +1127,7 @@ class WolinVisitor(
 
         state.exceptionsUsed = true
 
-        state.code("// try")
+        state.rem(" try")
         state.code("alloc SP<catch_addr>, #2 // catch block entry point")
         state.code("let SP(0)[uword] = ${labelMaker("catch_block_start", state.labelCounter)}[uword]")
         state.code("call __wolin_create_exception_entry[adr]")
@@ -1118,13 +1137,13 @@ class WolinVisitor(
         state.code("free SPE, #5 // remove exception table entry")
         state.code("goto ${labelMaker("after_catch_block_end", state.labelCounter)}[adr]")
         state.code("")
-        state.code("// catch")
+        state.rem(" catch")
         state.code("label ${labelMaker("catch_block_start", state.labelCounter)}")
 
         visitBlock(catchNode.block())
 
         state.code("")
-        state.code("// catch end")
+        state.rem(" catch end")
         state.code("label ${labelMaker("after_catch_block_end", state.labelCounter)}")
 
         state.labelCounter++
@@ -1133,10 +1152,11 @@ class WolinVisitor(
     }
 
     fun checkTypeAndAddAssignment(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna) {
-        if(state.pass == Pass.TRANSLATION) {
-            val można = state.canBeAssigned(doJakiej.type, co.type) || doJakiej.type.isPointer || co.type.type == "uword"
+        if (state.pass == Pass.TRANSLATION) {
+            val można =
+                state.canBeAssigned(doJakiej.type, co.type) || doJakiej.type.isPointer || co.type.type == "uword"
 
-            if(można) {
+            if (można) {
                 state.code("let ${state.varToAsm(doJakiej)} = ${state.varToAsm(co)} // przez sprawdzacz typów")
             } else {
                 błędzik(ctx, "Nie można przypisać ${co.type} do zmiennej typu ${doJakiej.type}")
@@ -1189,22 +1209,19 @@ class WolinVisitor(
                 val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
 
 
-                    if(zmienna.type.shortIndex && zmienna.type.elementOccupiesOneByte) {
-                        //state.code("// short - musimy tylko zapamiętać zmienną $zmienna")
-                        state.currentShortArray = zmienna
+                if (zmienna.type.shortIndex && zmienna.type.elementOccupiesOneByte) {
+                    state.currentShortArray = zmienna
+                } else {
+                    if (zmienna.allocation == AllocType.FIXED && zmienna.type.array) {
+                        state.code(
+                            "let ${state.currentRegToAsm()} = ${zmienna.location}[ptr] // simple id from fixed array var"
+                        )
+                    } else {
+                        state.code(
+                            "let ${state.currentRegToAsm()} = ${state.varToAsm(zmienna)} // simple id from var"
+                        )
                     }
-                    else {
-                        if(zmienna.allocation == AllocType.FIXED && zmienna.type.array) {
-                            state.code(
-                                "let ${state.currentRegToAsm()} = ${zmienna.location}[ptr] // simple id from fixed array var"
-                            )
-                        }
-                        else {
-                            state.code(
-                                "let ${state.currentRegToAsm()} = ${state.varToAsm(zmienna)} // simple id from var"
-                            )
-                        }
-                    }
+                }
 
 
 //                state.code(
@@ -1247,10 +1264,16 @@ class WolinVisitor(
 
         nowaFunkcja.type = zwrotka.type
 
-        if(state.currentClass != null) {
-            val thisArg = state.createAndRegisterVar("this", AllocType.NORMAL, Typ.byName(state.currentClass!!.name, state), true, "SPF")
+        if (state.currentClass != null) {
+            val thisArg = state.createAndRegisterVar(
+                "this",
+                AllocType.NORMAL,
+                Typ.byName(state.currentClass!!.name, state),
+                true,
+                "SPF"
+            )
             state.currentFunction?.arguments?.add(thisArg)
-       }
+        }
 
         ctx.functionValueParameters()?.functionValueParameter()?.forEach {
             visitFunctionValueParameter(it)
@@ -1276,7 +1299,7 @@ class WolinVisitor(
 
         state.fnDeclAllocStackAndRet(state.currentFunction!!)
 
-        if(state.currentClass!=null)
+        if (state.currentClass != null)
             state.code("setup HEAP = this")
 
         body?.let {
@@ -1326,14 +1349,14 @@ class WolinVisitor(
         val zwrotka = state.createAndRegisterVar("returnValue", AllocType.NORMAL, typZwrotki, true, "SPF")
 
         val funkcjaAlloc = state.findProc("allocMem").apply {
-            if(state.pass == Pass.TRANSLATION) {
+            if (state.pass == Pass.TRANSLATION) {
                 val zKlasarium = state.findClass(state.currentClass!!.name)
                 this.arguments[0].intValue = state.getStackSize(zKlasarium.heap).toLong()
                 this.arguments[1].intValue = 1
             }
         }
 
-        state.allocReg("for returning this",funkcjaAlloc.type)
+        state.allocReg("for returning this", funkcjaAlloc.type)
 
         state.switchType(funkcjaAlloc.type, "function type 1")
         state.inferTopOregType()
@@ -1341,7 +1364,7 @@ class WolinVisitor(
 
         easeyCall(ctx, funkcjaAlloc, state.currentReg)
 
-        state.code("// tutaj kod na przepisanie z powyższego rejestru do zwrotki konstruktora")
+        state.rem(" tutaj kod na przepisanie z powyższego rejestru do zwrotki konstruktora")
         checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg)
 
         state.code("ret")
@@ -1419,7 +1442,7 @@ class WolinVisitor(
         if (ctx.variableDeclaration().type() == null)
             błędzik(ctx, "Variable $name has no type!")
 
-        val stack = if(state.currentClass != null) "HEAP" else ""
+        val stack = if (state.currentClass != null) "HEAP" else ""
 
         val zmienna = state.createAndRegisterVar(name, ctx.variableDeclaration().type(), ctx, false, stack)
 
@@ -1446,7 +1469,7 @@ class WolinVisitor(
             state.code("setup SP = 143[ubyte] // register stack top = 142")
 
         if (state.mainFunction != null) {
-            state.code("// main function entry")
+            state.rem(" main function entry")
             state.code("goto ${state.mainFunction!!.labelName}[adr]")
         }
 
@@ -1478,7 +1501,7 @@ class WolinVisitor(
             state.code("free SP, #2 //catch_addr")
             state.code("let SPE(2)[ubyte] = SPC[ubyte] // aktualny stos CPU, dwa odejmiemy od niego, jeśli będzie exception")
             state.code("let SPE(3)[ubyte] = SP[ubyte] // aktualny stos wolina")
-            state.code("// TODO - sprawdzić czy jego też trzeba zmniejszyć, bo catch jest wewnątrz allokacji dla statementu!")
+            state.rem(" TODO - sprawdzić czy jego też trzeba zmniejszyć, bo catch jest wewnątrz allokacji dla statementu!")
             state.code("ret")
 
             state.code("")
@@ -1501,7 +1524,7 @@ class WolinVisitor(
     }
 
     override fun visitLiteralConstant(ctx: KotlinParser.LiteralConstantContext): WolinStateObject {
-        state.code("/// ***** VISIT LITERAL CONSTANT")
+        state.rem("***** VISIT LITERAL CONSTANT")
         return state
     }
 
@@ -1572,7 +1595,6 @@ class WolinVisitor(
         throw Exception("$teskt at $linia in:\"" + miejsce.text + "\"\n" + dump(miejsce, 0))
     }
 
-
     fun appendLambdas() {
 
         state.code(
@@ -1621,14 +1643,14 @@ class WolinVisitor(
 
 
     fun easeyCall(ctx: ParseTree, funkcjaAlloc: Funkcja, destReg: Zmienna) {
-        state.code("// otwarcie stosu na wywolanie ${funkcjaAlloc.fullName}")
+        state.rem(" otwarcie stosu na wywolanie ${funkcjaAlloc.fullName}")
         state.fnCallAllocRetAndArgs(funkcjaAlloc)
 
-        state.code("// tu podajemy argumenty dla ${funkcjaAlloc.fullName}")
+        state.rem(" tu podajemy argumenty dla ${funkcjaAlloc.fullName}")
         // wypełnić argumenty
 
         funkcjaAlloc.arguments.forEach {
-            state.code("// let ${it.name} = #${it.immediateValue}")
+            state.rem(" let ${it.name} = #${it.immediateValue}")
 
             val found = state.findStackVector(state.callStack, it.name)
 
@@ -1643,7 +1665,7 @@ class WolinVisitor(
             }
         }
 
-        state.code("// po argumentach dla ${funkcjaAlloc.fullName}")
+        state.rem(" po argumentach dla ${funkcjaAlloc.fullName}")
         state.code("call ${funkcjaAlloc.labelName}[adr]")
 
         state.fnCallReleaseArgs(funkcjaAlloc)
@@ -1654,8 +1676,89 @@ class WolinVisitor(
 
         state.code("free SPF <${funkcjaAlloc.type.type}>, #${funkcjaAlloc.type.sizeOnStack} // free return value of ${funkcjaAlloc.fullName} from call stack")
     }
-}
 
+    fun processTypeChangingOp(
+        leftFoot: () -> Unit,
+        rightFoot: () -> Unit,
+        oper: (Zmienna, Zmienna, Zmienna) -> Typ,
+        comment: String = "processBinaryOp"
+    ) {
+        val result = state.currentReg
+
+//        0. utworzyć nowy lewy
+        val leftReg = state.allocReg("LEFT $comment")
+//        1. wykonać lewą stronę na nowym
+        leftFoot()
+        state.assignTopOperType()
+
+//        2. utworzyć nowy prawy
+        val rightReg = state.allocReg("RIGHT $comment")
+//        3. wykonać prawą stronę
+        rightFoot()
+        state.assignTopOperType()
+
+//        4. wykonać operację top = top oper nowy
+        val resultType = oper(result, leftReg, rightReg)
+
+//        5. usunąć oba
+        state.freeReg("RIGHT $comment")
+        state.freeReg("LEFT $comment")
+
+//        6. ustawić typ wyniku całej operacji
+        state.currentWolinType = resultType
+        state.assignTopOperType()
+    }
+
+
+    fun processTypePreservingOp(
+        leftFoot: () -> Unit,
+        rightFoot: () -> Unit,
+        oper: (Zmienna, Zmienna) -> Typ,
+        comment: String = "processBinaryOp"
+    ) {
+//        1. wykonać lewą stronę na top
+        val leftReg = state.currentReg
+        leftFoot()
+        state.assignTopOperType()
+
+//        2. utworzyć nowy rejestr
+        val rightReg = state.allocReg("RIGHT $comment")
+//        3. wykonać prawą stronę
+        rightFoot()
+        state.assignTopOperType()
+
+//        4. wykonać operację top = top oper nowy
+        val resultType = oper(leftReg, rightReg)
+//        5. usunąć prawy
+        state.freeReg("RIGHT $comment")
+//        6. ustawić typ wyniku całej operacji
+        state.currentWolinType = resultType
+
+        state.assignTopOperType()
+    }
+
+
+
+    fun simpleResultFunction(op: String, ret: Typ): (Zmienna, Zmienna) -> Typ {
+        return { left, right ->
+
+            state.code("$op ${state.varToAsm(left)} = ${state.varToAsm(left)}, ${state.varToAsm(right)}")
+
+            ret
+        }
+    }
+
+    fun simpleResultFunction(op: String): (Zmienna, Zmienna) -> Typ {
+        return { left, right ->
+
+            state.code("$op ${state.varToAsm(left)} = ${state.varToAsm(left)}, ${state.varToAsm(right)}")
+
+            state.currentWolinType
+        }
+    }
+
+
+}
 
 
 fun labelMaker(name: String, count: Int): String = "__wolin_lab_${name}_$count"

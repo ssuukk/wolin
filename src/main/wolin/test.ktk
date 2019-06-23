@@ -9,10 +9,14 @@ var fastArray: ubyte[ubyte]
 
 var b: ubyte
 var c: uword
+var d: uword
 var w: ubyte
+var bo: bool
+var x: bool
+var y: bool
 
 fun main() {
-    b = oneByteLongArray[5]
+    //b = oneByteLongArray[5]
 
     //b = 19
     //c = 12000
@@ -23,4 +27,13 @@ fun main() {
     // BUG - da się przypisać element tablicy byte do worda!
     //b = fastArray[5] + 40000
     //w = b * c
+
+    //bo = b == 1 || c != 20
+
+    //bo = x && y
+
+    //c = c + d
+
+
+    x = b == 5
 }

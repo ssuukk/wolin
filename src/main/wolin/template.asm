@@ -123,6 +123,15 @@ let SP(?d)[bool] = #0[bool] -> """
     lda #0
     sta{d},x"""
 
+let SP(?d)[bool] = ?addr[bool] -> """
+    lda {addr}
+    sta {d},x"""
+
+let ?addr[bool] = SP(?s)[bool] -> """
+    lda {s},x
+    sta {addr}"""
+
+
 let SP(?d)[byte] = #?val[byte] -> """
     lda #{val}
     sta {d},x"""
@@ -328,6 +337,7 @@ let SP(?dest)[uword] = SPF(?src)[uword] -> """
     lda (__wolin_spf),y
     sta {dest}+1,x
 """
+
 
 //============================================
 // SPE, stos wyjątków, oparty na Y
@@ -777,6 +787,18 @@ restore CPU.A -> """
 //============================================
 // arytmetyka
 //============================================
+
+or SP(?d)[bool] = SP(?d)[bool], SP(?s)[bool] -> """
+    lda {s},x
+    ora {d},x
+    sta {d},x
+"""
+
+and SP(?d)[bool] = SP(?d)[bool], SP(?s)[bool] -> """
+    lda {s},x
+    and {d},x
+    sta {d},x
+"""
 
 mul SP(?d)[ubyte] = SP(?d)[ubyte], #1 -> """ """
 

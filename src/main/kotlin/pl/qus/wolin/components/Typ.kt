@@ -29,6 +29,10 @@ class Typ(val type: String, val nulable: Boolean, var isPointer: Boolean = false
 
     val isUnit get() = type == "unit"
 
+    val isClass get() = type.contains(".")
+
+    val isFunctional get() = type.contains("->")
+
     val elementOccupiesOneByte: Boolean
         get() = if(array) {
             when(type) {
@@ -56,5 +60,5 @@ class Typ(val type: String, val nulable: Boolean, var isPointer: Boolean = false
         other.type == this.type && other.nulable == this.nulable && other.isPointer == this.isPointer
     } else super.equals(other)
 
-    override fun toString(): String = type + if (nulable) "?" else ""
+    override fun toString(): String = type + if (nulable) "?" else "" + if (isPointer) "*" else ""
 }

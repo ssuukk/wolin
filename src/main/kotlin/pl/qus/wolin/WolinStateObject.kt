@@ -2,6 +2,7 @@ package pl.qus.wolin
 
 import pl.qus.wolin.components.*
 import pl.qus.wolin.exception.FunctionNotFound
+import pl.qus.wolin.exception.RegTypeMismatchException
 import java.lang.Exception
 import java.util.*
 
@@ -12,8 +13,11 @@ class WolinStateObject(val pass: Pass) {
 
     val stackDumpOn = false
     var codeOn = true
+    var commentOn = true
     var assignLeftSideVar: Zmienna? = null
     var arrayElementSize: Int = 0
+
+    var nonTrivialAssign = false
 
     var variablary = hashMapOf<String, Zmienna>()
     val functiary = mutableListOf<Funkcja>()
@@ -56,6 +60,12 @@ class WolinStateObject(val pass: Pass) {
     fun code(kod: String) {
         if (codeOn && pass == Pass.TRANSLATION)
             tekstProgramu += "$kod\n"
+    }
+
+    fun rem(c: String) {
+        if (commentOn && pass == Pass.TRANSLATION)
+            tekstProgramu += "// $c\n"
+
     }
 
     fun dumpCode() = tekstProgramu
@@ -582,6 +592,15 @@ class WolinStateObject(val pass: Pass) {
         code("// inferTopOregType ${operStack.peek().name} -> $currentWolinType")
     }
 
+    fun assignTopOperType() {
+        val top = operStack.peek()
+
+        if(top.type.isUnit)
+            top.type = currentWolinType
+        else if(top.type != currentWolinType)
+            throw RegTypeMismatchException("Attempt to reassign $currentWolinType to $top")
+    }
+
     fun switchType(newType: Typ, reason: String) {
         currentWolinType = newType
         code("// switchType to:$newType by $reason")
@@ -593,15 +612,10 @@ class WolinStateObject(val pass: Pass) {
      *****************************************************************/
 
     fun findQualifiedType(typeName: String): String {
-        // sprawdzić czy już nie jest kwalifikowany
-
-        if (typeName.contains("->") && !typeName.contains(".")) println("Possibly unqualified types in lambda type")
-
         val fromClasses = classary.values.firstOrNull {
             it.name.endsWith(".$typeName")
         }
 
-        // lub lambda
         return when {
             typeName == "byte" -> "byte"
             typeName == "ubyte" -> "ubyte"
@@ -609,8 +623,7 @@ class WolinStateObject(val pass: Pass) {
             typeName == "uword" -> "uword"
             typeName == "bool" -> "bool"
             typeName == "float" -> "float"
-            typeName.contains(".") -> typeName
-            typeName.contains("->") /*&& typeName.contains(".")*/ -> typeName
+            typeName.contains("->") -> typeName
             fromClasses != null -> fromClasses.name
             else -> throw Exception("Can't find type $typeName")
         }
@@ -619,7 +632,7 @@ class WolinStateObject(val pass: Pass) {
     fun canBeAssigned(doJakiej: Typ, co: Typ): Boolean {
 
         val typyZgodne = doJakiej.type == co.type ||
-                if (co.type.contains(".")) {
+                if (co.isClass) {
                     val doTegoKlasa = classary[doJakiej.type] ?: throw Exception("Unknown class $doJakiej (=$co)")
                     val tenKlasa = classary[co.type] ?: throw Exception("Unknown class $co ($doJakiej=)")
 

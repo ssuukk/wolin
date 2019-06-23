@@ -26,7 +26,7 @@ class Zmienna(
         get() = when {
             type.isPointer -> "[ptr]"
             type.array -> "[ptr]"
-            type.type.contains("->") -> "[ptr]"
+            type.isFunctional -> "[ptr]"
             type.type == "bool" -> "[bool]"
             type.type == "byte" -> "[byte]"
             type.type == "ubyte" -> "[ubyte]"
@@ -44,7 +44,7 @@ class Zmienna(
         type.type == "uword" -> "${intValue ?:0}"
         type.type == "float" -> "$floatValue"
         type.isPointer -> "${intValue ?: 0}"
-        type.type.contains("->") -> "${intValue ?: 0}"
+        type.isFunctional -> "${intValue ?: 0}"
         else -> "65535"
     }
 }
