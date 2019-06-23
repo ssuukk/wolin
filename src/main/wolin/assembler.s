@@ -48,15 +48,15 @@ __wolin_pl_qus_wolin_test_main:
     lda #5
     sta 0,x
 
-; evaleqSP(2)<__wolin_reg2>[bool]=SP(1)<__wolin_reg3>[ubyte],SP(0)<__wolin_reg4>[ubyte]
+; evallessSP(2)<__wolin_reg2>[bool]=SP(1)<__wolin_reg3>[ubyte],SP(0)<__wolin_reg4>[ubyte]
 
 
-    lda #1 // rowne
+    lda #1 // mniejsze
     sta 2,x
     lda 1,x
     cmp 0,x
-    beq @__wolin_eq_label_cont
-    lda #0 // jednak rozne
+    bcc @__wolin_eq_label_cont
+    lda #0 // jednak wieksze
     sta 2,x
 @__wolin_eq_label_cont:
 

@@ -242,8 +242,7 @@ class WolinVisitor(
                 processTypeChangingOp(
                     { visitComparison(ctx.comparison(0)) },
                     { visitComparison(ctx.comparison(1)) },
-                    {
-                        akt, lewy, prawy ->
+                    { akt, lewy, prawy ->
 
                         state.code(
                             "$oper ${state.varToAsm(akt)} = ${state.varToAsm(lewy)}, ${state.varToAsm(
@@ -254,7 +253,7 @@ class WolinVisitor(
                         Typ.bool
                     },
                     "equality check: $oper"
-                    )
+                )
             }
             else -> błędzik(ctx, "Unknown eq comparison")
         }
@@ -270,80 +269,58 @@ class WolinVisitor(
 
                 when {
                     oper.GE() != null -> {
-                        val wynik = state.currentReg
-
-                        state.rem("=================================")
-                        val lewa = state.allocReg("for GE left calculation")
-                        state.rem(" lewy namedInfix: co?")
-                        visitNamedInfix(ctx.namedInfix(0))
-                        state.inferTopOregType()
-
-                        state.rem(" prawy namedInfix: od czego?")
-                        val prawa = state.allocReg("for GE right calculation")
-                        visitNamedInfix(ctx.namedInfix(1))
-                        state.inferTopOregType()
-
-                        state.code("evalgteq ${state.varToAsm(wynik)} = ${state.varToAsm(lewa)}, ${state.varToAsm(prawa)}")
-                        state.freeReg("for GE right calculation")
-                        state.freeReg("for GE left calculation")
-                        state.rem("=================================")
+                        processTypeChangingOp(
+                            { visitNamedInfix(ctx.namedInfix(0)) },
+                            { visitNamedInfix(ctx.namedInfix(1)) },
+                            {
+                                wynik, lewa, prawa ->
+                                state.code("evalgteq ${state.varToAsm(wynik)} = ${state.varToAsm(lewa)}, ${state.varToAsm(prawa)}")
+                                Typ.bool
+                            },
+                            "for >="
+                        )
                     }
                     oper.LE() != null -> {
-                        val wynik = state.currentReg
-
-                        state.rem("=================================")
-                        val lewa = state.allocReg("for LE left calculation")
-                        state.rem(" lewy namedInfix: co?")
-                        visitNamedInfix(ctx.namedInfix(0))
-                        state.inferTopOregType()
-
-                        state.rem(" prawy namedInfix: od czego?")
-                        val prawa = state.allocReg("for LE right calculation")
-                        visitNamedInfix(ctx.namedInfix(1))
-                        state.inferTopOregType()
-
-                        state.code("evalgteq ${state.varToAsm(wynik)} = ${state.varToAsm(prawa)}, ${state.varToAsm(lewa)}")
-                        state.freeReg("for LE right calculation")
-                        state.freeReg("for LE left calculation")
-                        state.rem("=================================")
+                        processTypeChangingOp(
+                            { visitNamedInfix(ctx.namedInfix(0)) },
+                            { visitNamedInfix(ctx.namedInfix(1)) },
+                            {
+                                    wynik, lewa, prawa ->
+                                state.code("evalgteq ${state.varToAsm(wynik)} = ${state.varToAsm(prawa)}, ${state.varToAsm(lewa)}")
+                                Typ.bool
+                            },
+                            "for <="
+                        )
                     }
                     oper.LANGLE() != null -> {
-                        val wynik = state.currentReg
-
-                        state.rem("=================================")
-                        val lewa = state.allocReg("for LNAGLE left calculation")
-                        state.rem(" lewy namedInfix: co?")
-                        visitNamedInfix(ctx.namedInfix(0))
-                        state.inferTopOregType()
-
-                        state.rem(" prawy namedInfix: od czego?")
-                        val prawa = state.allocReg("for LNAGLE right calculation")
-                        visitNamedInfix(ctx.namedInfix(1))
-                        state.inferTopOregType()
-
-                        state.code("evalless ${state.varToAsm(wynik)} = ${state.varToAsm(lewa)}, ${state.varToAsm(prawa)}")
-                        state.freeReg("for LNAGLE right calculation")
-                        state.freeReg("for LNAGLE left calculation")
-                        state.rem("=================================")
+                        processTypeChangingOp(
+                            { visitNamedInfix(ctx.namedInfix(0)) },
+                            { visitNamedInfix(ctx.namedInfix(1)) },
+                            { wynik, lewa, prawa ->
+                                state.code(
+                                    "evalless ${state.varToAsm(wynik)} = ${state.varToAsm(lewa)}, ${state.varToAsm(
+                                        prawa
+                                    )}"
+                                )
+                                Typ.bool
+                            },
+                            "for <"
+                        )
                     }
                     oper.RANGLE() != null -> {
-                        val wynik = state.currentReg
-
-                        state.rem("=================================")
-                        val lewa = state.allocReg("for RNAGLE left calculation")
-                        state.rem(" lewy namedInfix: co?")
-                        visitNamedInfix(ctx.namedInfix(0))
-                        state.inferTopOregType()
-
-                        state.rem(" prawy namedInfix: od czego?")
-                        val prawa = state.allocReg("for RNAGLE right calculation")
-                        visitNamedInfix(ctx.namedInfix(1))
-                        state.inferTopOregType()
-
-                        state.code("evalless ${state.varToAsm(wynik)} = ${state.varToAsm(prawa)}, ${state.varToAsm(lewa)}")
-                        state.freeReg("for RNAGLE right calculation")
-                        state.freeReg("for RNAGLE left calculation")
-                        state.rem("=================================")
+                        processTypeChangingOp(
+                            { visitNamedInfix(ctx.namedInfix(0)) },
+                            { visitNamedInfix(ctx.namedInfix(1)) },
+                            { wynik, lewa, prawa ->
+                                state.code(
+                                    "evalless ${state.varToAsm(wynik)} = ${state.varToAsm(prawa)}, ${state.varToAsm(
+                                        lewa
+                                    )}"
+                                )
+                                Typ.bool
+                            },
+                            "for >"
+                        )
                     }
                     else ->
                         błędzik(ctx, "Unknown comparison 2")
@@ -531,45 +508,6 @@ class WolinVisitor(
         state.freeReg("For assignment left side")
 
     }
-
-//    private fun processTwoSides(
-//        leftFunction: () -> WolinStateObject,
-//        rightFunction: () -> WolinStateObject,
-//        oper: String
-//    ) {
-//        state.rem(" lewa strona")
-//
-//        val pierwszy = state.currentReg
-//
-//        leftFunction()
-//        // aby nie nadpisać spromowanego typu węższym
-//        state.switchType(promoteType(state.currentWolinType, state.currentReg.type), "promotion")
-//        state.inferTopOregType()
-//
-//        state.rem(" prawa strona")
-//
-//        val drugi = state.allocReg("for right side")
-//        rightFunction()
-//        state.inferTopOregType()
-//
-//        state.code(
-//            "$oper ${state.varToAsm(pierwszy)} = ${state.varToAsm(pierwszy)}, ${state.varToAsm(
-//                drugi
-//            )} // two sides"
-//        )
-//
-//        state.freeReg("for right side, type =${state.currentWolinType}")
-//        state.switchType(promoteType(pierwszy.type, drugi.type), "promotion")
-//        state.inferTopOregType()
-//    }
-
-//    fun promoteType(reg1: Typ, reg2: Typ): Typ {
-//        return if (reg1.sizeOnStack < reg2.sizeOnStack) {
-//            state.rem(" had to promote resulting type to wider")
-//            reg2
-//        } else
-//            reg1
-//    }
 
     override fun visitTypeRHS(ctx: KotlinParser.TypeRHSContext): WolinStateObject {
         when {
@@ -1736,7 +1674,6 @@ class WolinVisitor(
 
         state.assignTopOperType()
     }
-
 
 
     fun simpleResultFunction(op: String, ret: Typ): (Zmienna, Zmienna) -> Typ {

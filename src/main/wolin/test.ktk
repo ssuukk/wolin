@@ -35,5 +35,5 @@ fun main() {
     //c = c + d
 
 
-    x = b == 5
+    x = b < 5
 }
