@@ -12,7 +12,7 @@ class Zmienna(
 )
 
 {
-    var intValue: Long? = null
+    var intValue: Long = 0L
     var stringValue: String = ""
     var floatValue: Float = 0f
 
@@ -38,13 +38,13 @@ class Zmienna(
 
     val immediateValue: String get() = when {
         type.type == "bool" -> if(intValue == 0L) "0" else "1"
-        type.type == "byte" -> "${intValue ?:0}"
-        type.type == "ubyte" -> "${intValue ?:0}"
-        type.type == "word" -> "${intValue ?:0}"
-        type.type == "uword" -> "${intValue ?:0}"
+        type.type == "byte" -> "$intValue"
+        type.type == "ubyte" -> "$intValue"
+        type.type == "word" -> "$intValue"
+        type.type == "uword" -> "$intValue"
         type.type == "float" -> "$floatValue"
-        type.isPointer -> "${intValue ?: 0}"
-        type.isFunctional -> "${intValue ?: 0}"
+        type.isPointer -> "$intValue"
+        type.isFunctional -> "$intValue"
         else -> "65535"
     }
 }

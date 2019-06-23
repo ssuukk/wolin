@@ -500,7 +500,7 @@ class WolinVisitor(
         checkTypeAndAddAssignment(ctx, destinationReg, tempSourceReg)
 
         if (state.nonTrivialAssign) {
-            state.code("let ${state.varToAsm(leftSide)}[ptr] = ${state.varToAsm(tempSourceReg)} // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN")
+            state.code("let ${state.varToAsm(leftSide)} = ${state.varToAsm(tempSourceReg)} // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN")
             state.nonTrivialAssign = false
         }
         state.freeReg("for value that gets assigned to left side, type = ${state.currentWolinType}")
@@ -1193,7 +1193,7 @@ class WolinVisitor(
             parseLiteralConstant(lokacjaAdres, it)
         }
 
-        nowaFunkcja.location = lokacjaAdres.intValue?.toInt()
+        nowaFunkcja.location = lokacjaAdres.intValue.toInt()
         nowaFunkcja.fullName = state.nameStitcher(name)
 
         state.currentFunction = nowaFunkcja
@@ -1219,8 +1219,8 @@ class WolinVisitor(
 
         val body = ctx.functionBody()
 
-        if (body != null && nowaFunkcja.location != null)
-            throw Exception("Fixed address function with a body!")
+        if (body != null && nowaFunkcja.location != 0)
+            throw Exception("Fixed address function ${nowaFunkcja.fullName} with a body!")
 
         state.code(
             "\n" + """// ****************************************
@@ -1619,30 +1619,18 @@ class WolinVisitor(
         leftFoot: () -> Unit,
         rightFoot: () -> Unit,
         oper: (Zmienna, Zmienna, Zmienna) -> Typ,
-        comment: String = "processBinaryOp"
+        comment: String = "processTypeChangingOp"
     ) {
         val result = state.currentReg
-
-//        0. utworzyć nowy lewy
         val leftReg = state.allocReg("LEFT $comment")
-//        1. wykonać lewą stronę na nowym
         leftFoot()
         state.assignTopOperType()
-
-//        2. utworzyć nowy prawy
         val rightReg = state.allocReg("RIGHT $comment")
-//        3. wykonać prawą stronę
         rightFoot()
         state.assignTopOperType()
-
-//        4. wykonać operację top = top oper nowy
         val resultType = oper(result, leftReg, rightReg)
-
-//        5. usunąć oba
         state.freeReg("RIGHT $comment")
         state.freeReg("LEFT $comment")
-
-//        6. ustawić typ wyniku całej operacji
         state.currentWolinType = resultType
         state.assignTopOperType()
     }
@@ -1652,26 +1640,17 @@ class WolinVisitor(
         leftFoot: () -> Unit,
         rightFoot: () -> Unit,
         oper: (Zmienna, Zmienna) -> Typ,
-        comment: String = "processBinaryOp"
+        comment: String = "processTypePreservingOp"
     ) {
-//        1. wykonać lewą stronę na top
         val leftReg = state.currentReg
         leftFoot()
         state.assignTopOperType()
-
-//        2. utworzyć nowy rejestr
         val rightReg = state.allocReg("RIGHT $comment")
-//        3. wykonać prawą stronę
         rightFoot()
         state.assignTopOperType()
-
-//        4. wykonać operację top = top oper nowy
         val resultType = oper(leftReg, rightReg)
-//        5. usunąć prawy
         state.freeReg("RIGHT $comment")
-//        6. ustawić typ wyniku całej operacji
         state.currentWolinType = resultType
-
         state.assignTopOperType()
     }
 

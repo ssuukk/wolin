@@ -684,7 +684,7 @@ class WolinStateObject(val pass: Pass) {
         }
 
         val call = when {
-            proc.location != null -> "call ${proc.location}[adr] // ${proc.fullName}\n"
+            proc.location != 0 -> "call ${proc.location}[adr] // ${proc.fullName}\n"
             lambda -> "call ${proc.labelName}[ptr] // lambda call\n"
             else -> "call ${proc.labelName}[adr]\n"
         }

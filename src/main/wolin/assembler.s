@@ -28,55 +28,49 @@ __wolin_pl_qus_wolin_test_main:
 
     dex
 
-; allocSP<__wolin_reg3>,#1
-
-    dex
-
-; letSP(0)<__wolin_reg3>[ubyte]=__wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte]
-
-
-    lda __wolin_pl_qus_wolin_test_b
-    sta 0,x
-
-; allocSP<__wolin_reg4>,#1
-
-    dex
-
-; letSP(0)<__wolin_reg4>[ubyte]=#5[ubyte]
+; letSP(0)<__wolin_reg2>[ubyte]=#5[ubyte]
 
 
     lda #5
     sta 0,x
 
-; evallessSP(2)<__wolin_reg2>[bool]=SP(1)<__wolin_reg3>[ubyte],SP(0)<__wolin_reg4>[ubyte]
+; letSP(1)<__wolin_reg1>[ptr]=pl.qus.wolin.test.fastArray[ptr],SP(0)<__wolin_reg2>[ubyte]
 
 
-    lda #1 // mniejsze
-    sta 2,x
-    lda 1,x
-    cmp 0,x
-    bcc @__wolin_eq_label_cont
-    lda #0 // jednak wieksze
-    sta 2,x
-@__wolin_eq_label_cont:
-
-; freeSP<__wolin_reg4>,#1
-
-    inx
-
-; freeSP<__wolin_reg3>,#1
-
-    inx
-
-; let__wolin_pl_qus_wolin_test_x<pl.qus.wolin.test.x>[bool]=SP(0)<__wolin_reg2>[bool]
-
-
-    lda 0,x
-    sta __wolin_pl_qus_wolin_test_x
+    lda #<pl.qus.wolin.test.fastArray
+    sta 1,x
+    lda #>pl.qus.wolin.test.fastArray
+    sta 1+1,x
 
 ; freeSP<__wolin_reg2>,#1
 
     inx
+
+; letSP(0)<__wolin_reg1>[ptr]=__wolin_pl_qus_wolin_test_fastArray<pl.qus.wolin.test.fastArray>[ptr]
+
+
+    lda #<__wolin_pl_qus_wolin_test_fastArray
+    sta 0,x
+    lda #>__wolin_pl_qus_wolin_test_fastArray
+    sta 0+1,x
+
+; letSP(0)<__wolin_reg1>[ptr]=SP(0)<__wolin_reg3>[ptr]
+
+
+    lda 0,x
+    sta 0,x
+    lda 0+1,x
+    sta 0+1,x
+
+
+; letSP(0)<__wolin_reg1>[ptr]=SP(0)<__wolin_reg3>[ptr]
+
+
+    lda 0,x
+    sta 0,x
+    lda 0+1,x
+    sta 0+1,x
+
 
 ; ret
 
@@ -89,38 +83,6 @@ __wolin_indirect_jsr:
 ; goto65535[adr]
 
     jmp 65535
-
-; label__wolin_pl_qus_wolin_test_bo
-
-__wolin_pl_qus_wolin_test_bo:
-
-; alloc1[bool]
-
-    .byte 1
-
-; label__wolin_pl_qus_wolin_test_w
-
-__wolin_pl_qus_wolin_test_w:
-
-; alloc0[ubyte]
-
-    .byte 0
-
-; label__wolin_pl_qus_wolin_test_y
-
-__wolin_pl_qus_wolin_test_y:
-
-; alloc1[bool]
-
-    .byte 1
-
-; label__wolin_pl_qus_wolin_test_x
-
-__wolin_pl_qus_wolin_test_x:
-
-; alloc1[bool]
-
-    .byte 1
 
 ; label__wolin_pl_qus_wolin_test_c
 

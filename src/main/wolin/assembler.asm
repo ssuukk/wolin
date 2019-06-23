@@ -9,19 +9,25 @@ goto __wolin_pl_qus_wolin_test_main[adr]
 // ****************************************
 label __wolin_pl_qus_wolin_test_main
 //  lewa strona assignment
-// switchType to:bool by by znajdźSimpleIdW
+//  left side disjunction - prawie dobrze
+alloc SP<__wolin_reg2>, #1 // arr_deref
+//  LEWA strona array access, czyli co to za zmienna
+// switchType to:ubyte by type from pl.qus.wolin.test.fastArray
+//  PRAWA strona array access, czyli indeks w nawiasach
+let SP(0)<__wolin_reg2>[ubyte] = #5[ubyte] // atomic ex
+// forceTopOregType to ubyte
+//  fast array - no additional op
+//  after index
+// dereference value at topRegister
+//  kod obsługi tablicy
+//  allocated fast array
+let SP(1)<__wolin_reg1>[ptr] = pl.qus.wolin.test.fastArray[ptr], SP(0)<__wolin_reg2>[ubyte]
+free SP<__wolin_reg2>, #1 // arr_deref
+let SP(0)<__wolin_reg1>[ptr] = __wolin_pl_qus_wolin_test_fastArray<pl.qus.wolin.test.fastArray>[ptr] // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN - TODO change SP(0)<__wolin_reg1>[ptr] to ptr!
 //  prawa strona assignment
-alloc SP<__wolin_reg2>, #1 // for value that gets assigned to left side
-alloc SP<__wolin_reg3>, #1 // LEFT for <
-let SP(0)<__wolin_reg3>[ubyte] = __wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte] // simple id from var
-// switchType to:ubyte by type from pl.qus.wolin.test.b
-alloc SP<__wolin_reg4>, #1 // RIGHT for <
-let SP(0)<__wolin_reg4>[ubyte] = #5[ubyte] // atomic ex
-evalless SP(2)<__wolin_reg2>[bool] = SP(1)<__wolin_reg3>[ubyte], SP(0)<__wolin_reg4>[ubyte]
-free SP<__wolin_reg4>, #1 // RIGHT for <
-free SP<__wolin_reg3>, #1 // LEFT for <
-let __wolin_pl_qus_wolin_test_x<pl.qus.wolin.test.x>[bool] = SP(0)<__wolin_reg2>[bool] // przez sprawdzacz typów
-free SP<__wolin_reg2>, #1 // for value that gets assigned to left side, type = bool
+let SP(0)<__wolin_reg3>[ptr] = #100[ubyte] // atomic ex
+let SP(0)<__wolin_reg1>[ptr] = SP(0)<__wolin_reg3>[ptr] // przez sprawdzacz typów
+let SP(0)<__wolin_reg1>[ptr] = SP(0)<__wolin_reg3>[ptr] // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN
 // switchType to:unit by assignment
 // inferTopOregType __wolin_reg0 -> unit
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
@@ -39,14 +45,6 @@ ret
 // ****************************************
 label __wolin_indirect_jsr
 goto 65535[adr]
-label __wolin_pl_qus_wolin_test_bo
-alloc 1[bool]  // pl.qus.wolin.test.bo
-label __wolin_pl_qus_wolin_test_w
-alloc 0[ubyte]  // pl.qus.wolin.test.w
-label __wolin_pl_qus_wolin_test_y
-alloc 1[bool]  // pl.qus.wolin.test.y
-label __wolin_pl_qus_wolin_test_x
-alloc 1[bool]  // pl.qus.wolin.test.x
 label __wolin_pl_qus_wolin_test_c
 alloc 0[uword]  // pl.qus.wolin.test.c
 label __wolin_pl_qus_wolin_test_b
