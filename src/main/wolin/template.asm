@@ -790,14 +790,16 @@ restore CPU.A -> """
 
 or SP(?d)[bool] = SP(?d)[bool], SP(?s)[bool] -> """
     lda {s},x
-    ora {d},x
+    beq +
     sta {d},x
+:
 """
 
 and SP(?d)[bool] = SP(?d)[bool], SP(?s)[bool] -> """
     lda {s},x
-    and {d},x
+    bne +
     sta {d},x
+:
 """
 
 mul SP(?d)[ubyte] = SP(?d)[ubyte], #1 -> """ """
