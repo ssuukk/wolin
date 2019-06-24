@@ -463,30 +463,30 @@ evaleq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     sta {dest},x
     lda {left},x
     cmp {right},x
-    beq @__wolin_eq_label_cont
+    beq +
     lda #0 // jednak rozne
     sta {dest},x
-@__wolin_eq_label_cont:"""
+:"""
 
 evalless SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     lda #1 // mniejsze
     sta {dest},x
     lda {left},x
     cmp {right},x
-    bcc @__wolin_eq_label_cont
+    bcc +
     lda #0 // jednak wieksze
     sta {dest},x
-@__wolin_eq_label_cont:"""
+:"""
 
 evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     lda #1 // wieksze badz rowne
     sta {dest},x
     lda {left},x
     cmp {right},x
-    bcs @__wolin_eq_label_cont
+    bcs +
     lda #0 // jednak mniejsze
     sta {dest},x
-@__wolin_eq_label_cont:"""
+:"""
 
 //============================================
 // Wskaźniki
@@ -917,4 +917,3 @@ add SPE(?spedst)[ubyte] = SPE(?spesrc)[ubyte],#?val[ubyte] -> """
     ldy #{spedst}
     sta (__wolin_spe),y
 """
-
