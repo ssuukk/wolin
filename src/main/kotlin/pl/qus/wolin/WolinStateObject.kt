@@ -534,6 +534,9 @@ class WolinStateObject(val pass: Pass) {
     val currentReg get() = operStack.peek()
 
     fun allocReg(comment: String = "", type: Typ = Typ.unit): Zmienna {
+        if(stackVarCounter == 4){
+            print("tu!")
+        }
         val name = "__wolin_reg$stackVarCounter"
         val rejestr = variablary[name] ?: Zmienna(
             name,

@@ -9,25 +9,33 @@ goto __wolin_pl_qus_wolin_test_main[adr]
 // ****************************************
 label __wolin_pl_qus_wolin_test_main
 //  lewa strona assignment
+alloc SP<__wolin_reg1>, #2 // For assignment left side
 //  left side disjunction - prawie dobrze
-alloc SP<__wolin_reg2>, #1 // arr_deref
+alloc SP<__wolin_reg2>, #2 // arr_deref
 //  LEWA strona array access, czyli co to za zmienna
-// switchType to:ubyte by type from pl.qus.wolin.test.fastArray
+let SP(0)<__wolin_reg2>[ptr] = __wolin_pl_qus_wolin_test_twoBytesLongArray<pl.qus.wolin.test.twoBytesLongArray>[ptr] // simple id from var
+// switchType to:uword* by type from pl.qus.wolin.test.twoBytesLongArray
 //  PRAWA strona array access, czyli indeks w nawiasach
-let SP(0)<__wolin_reg2>[ubyte] = #5[ubyte] // atomic ex
-// forceTopOregType to ubyte
-//  fast array - no additional op
+alloc SP<__wolin_reg3>, #2 // For calculating index
+let SP(0)<__wolin_reg3>[uword] = #400[uword] // atomic ex
+// forceTopOregType to uword
+//  long index, multi-byte per element array
+mul SP(0)<__wolin_reg3>[uword] = SP(0)<__wolin_reg3>[uword], #2
+add SP(2)<__wolin_reg2>[ptr] = SP(2)<__wolin_reg2>[ptr], SP(0)<__wolin_reg3>[uword]
+free SP<__wolin_reg3>, #2 // For calculating index
 //  after index
 // dereference value at topRegister
 //  kod obsługi tablicy
-//  allocated fast array
-let SP(1)<__wolin_reg1>[ptr] = pl.qus.wolin.test.fastArray[ptr], SP(0)<__wolin_reg2>[ubyte]
-free SP<__wolin_reg2>, #1 // arr_deref
-let SP(0)<__wolin_reg1>[ptr] = __wolin_pl_qus_wolin_test_fastArray<pl.qus.wolin.test.fastArray>[ptr] // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN - TODO change SP(0)<__wolin_reg1>[ptr] to ptr!
+//  non-fast array
+let SP(2)<__wolin_reg1>[ptr] = SP(0)<__wolin_reg2>[ptr]
+free SP<__wolin_reg2>, #2 // arr_deref
+// inferTopOregType __wolin_reg1 -> uword*
 //  prawa strona assignment
-let SP(0)<__wolin_reg3>[ptr] = #100[ubyte] // atomic ex
-let SP(0)<__wolin_reg1>[ptr] = SP(0)<__wolin_reg3>[ptr] // przez sprawdzacz typów
-let SP(0)<__wolin_reg1>[ptr] = SP(0)<__wolin_reg3>[ptr] // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN
+alloc SP<__wolin_reg4>, #2 // for value that gets assigned to left side
+let SP(0)<__wolin_reg4>[uword] = #100[ubyte] // atomic ex
+let SP(2)<__wolin_reg1>[ptr] = SP(0)<__wolin_reg4>[uword] // przez sprawdzacz typów
+free SP<__wolin_reg4>, #2 // for value that gets assigned to left side, type = uword*
+free SP<__wolin_reg1>, #2 // For assignment left side
 // switchType to:unit by assignment
 // inferTopOregType __wolin_reg0 -> unit
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
@@ -45,6 +53,8 @@ ret
 // ****************************************
 label __wolin_indirect_jsr
 goto 65535[adr]
+label __wolin_pl_qus_wolin_test_twoBytesLongArray
+alloc 0[ptr]  // pl.qus.wolin.test.twoBytesLongArray
 label __wolin_pl_qus_wolin_test_c
 alloc 0[uword]  // pl.qus.wolin.test.c
 label __wolin_pl_qus_wolin_test_b

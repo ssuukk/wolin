@@ -131,7 +131,8 @@ class WolinVisitor(
             val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
 
 
-            state.code("let ${state.currentRegToAsm()} = ${state.varToAsmNoType(zmienna)}[ptr] // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN - TODO change ${state.currentRegToAsm()} to ptr!")
+            // to jest niepotrzebne!
+            //state.code("let ${state.currentRegToAsm()} = ${state.varToAsmNoType(zmienna)}[ptr] // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN - TODO change ${state.currentRegToAsm()} to ptr!")
 
             return state
         } else {
@@ -476,6 +477,8 @@ class WolinVisitor(
         val leftSide = state.allocReg("For assignment left side")
 
         leftFunction()
+        state.inferTopOregType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji!
+
         val destinationReg = state.assignLeftSideVar!!
         val destinationType = destinationReg.type
 
@@ -489,18 +492,20 @@ class WolinVisitor(
 
         //state.inferTopOregType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji!
 
-        tempSourceReg.type = destinationType
+        tempSourceReg.type = destinationType.arrayElementType // to ustawia źle aktualny typ...
+        tempSourceReg.type.isPointer = false // przy podstawieniu konkretnej wartości
+        tempSourceReg.type.array = false
 
-        val sourceReg = state.findVarInVariablaryWithDescoping(tempSourceReg.name)
-
-        if (!state.canBeAssigned(sourceReg.type, destinationReg.type) && state.pass == Pass.TRANSLATION) {
-            throw TypeMismatchException("Attempt to assign ${tempSourceReg.name}:${sourceReg.type} to variable of type ${destinationReg.name}:${destinationReg.type}")
-        }
+//        val sourceReg = state.findVarInVariablaryWithDescoping(tempSourceReg.name)
+//        if (!state.canBeAssigned(sourceReg.type, destinationReg.type) && state.pass == Pass.TRANSLATION) {
+//            throw TypeMismatchException("Attempt to assign ${tempSourceReg.name}:${sourceReg.type} to variable of type ${destinationReg.name}:${destinationReg.type}")
+//        }
 
         checkTypeAndAddAssignment(ctx, destinationReg, tempSourceReg)
 
         if (state.nonTrivialAssign) {
-            state.code("let ${state.varToAsm(leftSide)} = ${state.varToAsm(tempSourceReg)} // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN")
+            // też niepotrzebne
+            //state.code("let ${state.varToAsm(leftSide)} = ${state.varToAsm(tempSourceReg)} // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN")
             state.nonTrivialAssign = false
         }
         state.freeReg("for value that gets assigned to left side, type = ${state.currentWolinType}")
@@ -697,7 +702,7 @@ class WolinVisitor(
                             prawo.arrayAccess() != null -> {
                                 // ARRAYCODE
                                 val currEntReg = state.currentReg
-                                state.arrayElementSize = currEntReg.type.sizeOnStack
+                                state.arrayElementSize = currEntReg.type.arrayElementSize
 
                                 // jeśli indeks 8-bitowy i element nie robic tej allokacji
 
@@ -705,7 +710,9 @@ class WolinVisitor(
                                 visitAtomicExpression(lewo)
                                 state.codeOn = true
 
-                                state.allocReg("arr_deref", state.currentWolinType)
+                                state.allocReg("arr_deref", state.currentWolinType).apply {
+                                    type.isPointer = true
+                                }
                                 state.rem(" LEWA strona array access, czyli co to za zmienna")
                                 visitAtomicExpression(lewo)
                                 state.rem(" PRAWA strona array access, czyli indeks w nawiasach")
@@ -1160,11 +1167,6 @@ class WolinVisitor(
                         )
                     }
                 }
-
-
-//                state.code(
-//                    "let ${state.currentRegToAsm()} = ${state.varToAsm(zmienna)} // simple id from var"
-//                )
 
                 state.switchType(zmienna.type, "type from ${zmienna.name}")
             }

@@ -515,7 +515,7 @@ let ?dstVar[ubyte] = ?arrStart[ptr], #?idx -> """
 // czyli powinniśmy:
 // lda #mlodszy
 // ldy #0
-// sta (miejsce na stosie),Y
+// sta (miejsce na stosie),y
 // lda #starszy
 // iny
 // sta (miejsce na stosie),y
@@ -534,14 +534,32 @@ let SP(?dst)[ubyte] = SP(?src)[ptr] -> """
     lda ({src},x)
     sta {dst},x"""
 
+// zmienna pod adresem dst = wartość
+let SP(?dst)[ptr] = SP(?src)[ubyte] -> """
+    lda {src},x
+    sta ({dst},x)
+"""
+
+// zmienna pod adresem dst = wartość
+let SP(?dst)[ptr] = SP(?src)[uword] -> """
+    lda {src},x
+    sta ({dst},x)
+    inc {dst},x
+    bne +
+    inc {dst}+1,x
+:
+    lda {src}+1,x
+    sta ({dst},x)
+"""
+
 
 let SP(?dst)[uword] = SP(?src)[ptr] -> """
     lda ({src},x)
     sta {dst},x
     inc {src},x
-    bne @skip
+    bne +
     inc {src}+1,x
-@skip:
+:
     lda ({src},x)
     sta {dst}+1,x"""
 
@@ -631,6 +649,7 @@ let SP(?dst)[ptr] = ?adr[ptr] -> """
     lda #>{adr}
     sta {dst}+1,x"""
 
+
 //============================================
 // rozmaite funkcje
 //============================================
@@ -648,6 +667,7 @@ float ?label[uword] = ?val[?dummy] -> """
 ret -> """    rts"""
 
 call ?a[adr] -> """    jsr {a}"""
+
 call ?a[ptr] -> """
     lda {a}
     sta __wolin_indirect_jsr+1
@@ -656,6 +676,7 @@ call ?a[ptr] -> """
     jsr __wolin_indirect_jsr"""
 
 goto ?a[adr] -> """    jmp {a}"""
+
 goto ?a[ptr] -> """    jmp ({a})"""
 
 crash -> """    brk"""
@@ -690,20 +711,19 @@ throw SP(?s)[uword] -> """
 let SP(?dest)[bool] = CPU.Z[bool] -> """
     lda #1
     sta {dest},x
-    beq @skip
+    beq +
     lda #0
     sta {dest},x
-@skip
+:
 """
 
 let CPU.I[bool] = SP(?dest)[bool] -> """
     lda {dest},x
-    bne @seti   // dest != 0? goto skip
+    bne +      // dest != 0? goto skip
     cli         // dest == 0? I = 0
-    jmp @continue
-@seti:
-    sei         // I = 1
-@continue:
+    jmp ++
+:   sei         // I = 1
+:
 """
 
 let CPU.I[bool] = #1[bool] -> """
@@ -811,9 +831,11 @@ mul SP(?d)[uword] = SP(?d)[uword], #1 -> """ """
 div SP(?d)[ubyte] = SP(?d)[ubyte], #1 -> """ """
 
 div SP(?d)[ubyte] = SP(?d)[ubyte], #2 -> """   lsr {d},x"""
+
 div SP(?d)[ubyte] = SP(?d)[ubyte], #4 -> """
     lsr {d},x
     lsr {d},x"""
+
 div SP(?d)[ubyte] = SP(?d)[ubyte], #8 -> """
     lsr {d},x
     lsr {d},x

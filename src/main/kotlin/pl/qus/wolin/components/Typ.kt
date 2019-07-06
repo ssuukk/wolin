@@ -56,9 +56,23 @@ class Typ(val type: String, val nulable: Boolean, var isPointer: Boolean = false
             else -> 2
         }
 
+    val arrayElementSize: Int
+        get() = when (type) {
+            "unit" -> 0
+            "bool" -> 1
+            "byte" -> 1
+            "ubyte" -> 1
+            "float" -> 4 // http://6502.org/source/floats/wozfp1.txt
+            "" -> throw Exception("Empty type!!!")
+            else -> 2
+        }
+
     override fun equals(other: Any?): Boolean = if (other is Typ) {
         other.type == this.type && other.nulable == this.nulable && other.isPointer == this.isPointer
     } else super.equals(other)
 
     override fun toString(): String = type + if (nulable) "?" else "" + if (isPointer) "*" else ""
+
+    val arrayElementType: Typ
+        get() = Typ(type, nulable, isPointer)
 }
