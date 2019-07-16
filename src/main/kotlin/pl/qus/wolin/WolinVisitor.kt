@@ -5,7 +5,6 @@ import org.antlr.v4.runtime.tree.ParseTree
 import pl.qus.wolin.components.*
 import pl.qus.wolin.exception.FunctionNotFound
 import pl.qus.wolin.exception.RegTypeMismatchException
-import pl.qus.wolin.exception.TypeMismatchException
 import java.lang.Exception
 
 enum class Pass {
@@ -659,7 +658,30 @@ class WolinVisitor(
 
                                 parseLiteralConstant(state.currentReg, atomEx.literalConstant())
 
-                                state.code("let ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}${state.currentReg.typeForAsm}, #1[byte], add // literal const")
+                                state.code("add ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}${state.currentReg.typeForAsm}, #1[byte], add // literal const")
+                                //state.currentReg.type = "Ubyte"
+                            }
+                            else -> błędzik(atomEx, "Nie wiem jak obsłużyć")
+                        }
+                    }
+                    operator.DECR() != null -> {
+                        when {
+                            atomEx.simpleIdentifier() != null -> {
+                                val identifier = atomEx.simpleIdentifier()?.Identifier()?.text
+                                    ?: throw Exception("No identifier for --")
+                                val zmienna = state.findVarInVariablaryWithDescoping(identifier)
+                                state.code(
+                                    "sub ${state.varToAsm(zmienna)} = ${state.varToAsm(
+                                        zmienna
+                                    )}, #1[byte] // simple id"
+                                )
+                                state.switchType(zmienna.type, "-- operator")
+                            }
+                            atomEx.literalConstant() != null -> {
+
+                                parseLiteralConstant(state.currentReg, atomEx.literalConstant())
+
+                                state.code("sub ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}${state.currentReg.typeForAsm}, #1[byte], add // literal const")
                                 //state.currentReg.type = "Ubyte"
                             }
                             else -> błędzik(atomEx, "Nie wiem jak obsłużyć")
@@ -1018,8 +1040,87 @@ class WolinVisitor(
     override fun visitConditionalExpression(ctx: KotlinParser.ConditionalExpressionContext): WolinStateObject {
         when {
             ctx.ifExpression() != null -> visitIfExpression(ctx.ifExpression())
+            ctx.whenExpression() != null -> visitWhenExpression(ctx.whenExpression())
             //ctx.whenExpression() != null -> visitWhenExpression(ctx.whenExpression())
             else -> błędzik(ctx, "Unknown conditional")
+        }
+
+        return state
+    }
+
+    override fun visitWhenExpression(ctx: KotlinParser.WhenExpressionContext): WolinStateObject {
+        state.rem("When expression start")
+            if(ctx.expression() != null) {
+                visitExpression(ctx.expression())
+                state.simpleWhen = false
+            } else
+                state.simpleWhen = true
+
+        val resultReg = state.currentReg
+
+        val boolReg = state.allocReg("for condition result", Typ.bool)
+        val condReg = state.allocReg("for evaluating when condition")
+
+        if(ctx.whenEntry().size>0) {
+                ctx.whenEntry()?.forEach {
+                    state.rem("When condition")
+                    visitWhenEntry(it)
+                }
+            }
+        state.rem("When expression end")
+
+        state.code("label ${labelMaker("whenEndLabel",state.whenCounter++)}")
+
+        state.freeReg("for evaluating when condition")
+        state.freeReg("for condition result")
+
+        return state
+    }
+
+    override fun visitWhenEntry(ctx: KotlinParser.WhenEntryContext): WolinStateObject {
+        val kondycje = ctx.whenCondition()
+
+        val resultReg = state.regFromTop(2)
+
+        val boolReg = state.regFromTop(1)
+        val condReg = state.regFromTop(0)
+
+
+        state.rem("warunek")
+        val whenLabel = labelMaker("whenLabel", state.labelCounter++)
+        val nextLabel = labelMaker("whenLabel", state.labelCounter)
+
+        state.code("label $whenLabel")
+
+        kondycje?.firstOrNull()?.let {
+            visitWhenCondition(it)
+        }
+        state.inferTopOregType()
+
+        if(state.simpleWhen)
+            //state.code("evaleq ${state.varToAsm(boolReg)} = ${state.varToAsm(resultReg)}, ${state.varToAsm(condReg)}") // TODO tylko jeśłi to when z wyrażeniem!
+            state.code("bne ${state.varToAsm(resultReg)} = #1[bool], ${nextLabel}[adr]") // TODO lub whenEndLabel dla ostatniego
+        else {
+            state.code("evaleq ${state.varToAsm(boolReg)} = ${state.varToAsm(resultReg)}, ${state.varToAsm(condReg)}") // TODO tylko jeśłi to when z wyrażeniem!
+            state.code("bne ${state.varToAsm(boolReg)} = #1[bool], ${nextLabel}[adr]") // TODO lub whenEndLabel dla ostatniego
+        }
+
+        state.rem("when operacja")
+
+        val whenTrue = ctx.controlStructureBody()
+        if(whenTrue.block() != null) visitBlock(whenTrue.block())
+        else if(whenTrue.expression() != null) visitExpression(whenTrue.expression())
+
+        state.code("goto ${labelMaker("whenEndLabel",state.whenCounter)}[adr]") // TODO lub nic dla ostatniego
+
+        return state
+    }
+
+    override fun visitWhenCondition(ctx: KotlinParser.WhenConditionContext): WolinStateObject {
+        when {
+            ctx.expression() != null -> visitExpression(ctx.expression())
+            ctx.rangeTest() != null -> błędzik(ctx, "nie wiem, jak się robi range test we when")
+            ctx.typeTest() != null -> błędzik(ctx, "nie wiem, jak się robi type test")
         }
 
         return state

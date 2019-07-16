@@ -21,5 +21,10 @@ fun main() {
 
     // BUG - da się przypisać element tablicy byte do worda!
 
-    twoBytesLongArray[400] = 100
+    //c = twoBytesLongArray[1234] + 666
+
+    when(b) {
+        1 -> c++
+        2 -> c--
+    }
 }

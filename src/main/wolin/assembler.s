@@ -24,10 +24,14 @@ __wolin_sp_top = 143 ; program stack top
 
 __wolin_pl_qus_wolin_test_main:
 
-; allocSP<__wolin_reg1>,#2
+; allocSP<__wolin_reg0>,#2
 
 
     dex
+    dex
+
+; allocSP<__wolin_reg1>,#1
+
     dex
 
 ; allocSP<__wolin_reg2>,#2
@@ -36,57 +40,68 @@ __wolin_pl_qus_wolin_test_main:
     dex
     dex
 
-; letSP(0)<__wolin_reg2>[ptr]=__wolin_pl_qus_wolin_test_twoBytesLongArray<pl.qus.wolin.test.twoBytesLongArray>[ptr]
+; label__wolin_lab_whenLabel_0
+
+__wolin_lab_whenLabel_0:
+
+; letSP(0)<__wolin_reg2>[uword]=#1[ubyte]
 
 
-    lda #<__wolin_pl_qus_wolin_test_twoBytesLongArray
+    lda #1
     sta 0,x
-    lda #>__wolin_pl_qus_wolin_test_twoBytesLongArray
+    lda #0
     sta 0+1,x
 
-; allocSP<__wolin_reg3>,#2
+; bneSP(1)<__wolin_reg1>[bool]=#1[bool],__wolin_lab_whenLabel_1[adr]
 
 
-    dex
-    dex
+    lda 1,x
+    cmp #1
+    bne __wolin_lab_whenLabel_1
 
-; letSP(0)<__wolin_reg3>[uword]=#400[uword]
+; goto__wolin_lab_whenEndLabel_0[adr]
+
+    jmp __wolin_lab_whenEndLabel_0
+
+; label__wolin_lab_whenLabel_1
+
+__wolin_lab_whenLabel_1:
+
+; letSP(0)<__wolin_reg2>[ubyte]=#2[ubyte]
 
 
-    lda #<400
+    lda #2
     sta 0,x
-    lda #>400
-    sta 0+1,x
 
-; mulSP(0)<__wolin_reg3>[uword]=SP(0)<__wolin_reg3>[uword],#2
-
-   asl 0,x
-
-; addSP(2)<__wolin_reg2>[ptr]=SP(2)<__wolin_reg2>[ptr],SP(0)<__wolin_reg3>[uword]
+; evaleqSP(2)<__wolin_reg1>[bool]=SP(3)<__wolin_reg0>[uword],SP(0)<__wolin_reg2>[uword]
 
 
-    clc
+    lda #0 // rozne
+    sta 2,x
+    lda 3,x
+    cmp 0,x
+    bne +
+    lda 3+1
+    cmp 0+1
+    bne +
+    lda #1
+    sta 2,x
+:
+
+; bneSP(2)<__wolin_reg1>[bool]=#1[bool],__wolin_lab_whenLabel_2[adr]
+
+
     lda 2,x
-    adc 0,x
-    sta 2,x
-    lda 2+1,x
-    adc 0+1,x
-    sta 2+1,x
+    cmp #1
+    bne __wolin_lab_whenLabel_2
 
-; freeSP<__wolin_reg3>,#2
+; goto__wolin_lab_whenEndLabel_0[adr]
 
+    jmp __wolin_lab_whenEndLabel_0
 
-    inx
-    inx
+; label__wolin_lab_whenEndLabel_0
 
-; letSP(2)<__wolin_reg1>[ptr]=SP(0)<__wolin_reg2>[ptr]
-
-
-    lda 0,x
-    sta 2,x
-    lda 0+1,x
-    sta 2+1,x
-
+__wolin_lab_whenEndLabel_0:
 
 ; freeSP<__wolin_reg2>,#2
 
@@ -94,27 +109,11 @@ __wolin_pl_qus_wolin_test_main:
     inx
     inx
 
-; allocSP<__wolin_reg4>,#2
-
-
-    dex
-    dex
-
-; letSP(0)<__wolin_reg4>[uword]=#100[ubyte]
-
-
-    lda #100
-    sta 0,x
-    lda #0
-    sta 0+1,x
-
-; freeSP<__wolin_reg4>,#2
-
+; freeSP<__wolin_reg1>,#1
 
     inx
-    inx
 
-; freeSP<__wolin_reg1>,#2
+; freeSP<__wolin_reg0>,#2
 
 
     inx

@@ -71,6 +71,12 @@ class Typ(val type: String, val nulable: Boolean, var isPointer: Boolean = false
         other.type == this.type && other.nulable == this.nulable && other.isPointer == this.isPointer
     } else super.equals(other)
 
+    fun canBeAssigned(other: Any?): Boolean = if (other is Typ) {
+        other.type == this.type && other.nulable == this.nulable
+    } else super.equals(other)
+
+
+
     override fun toString(): String = type + if (nulable) "?" else "" + if (isPointer) "*" else ""
 
     val arrayElementType: Typ

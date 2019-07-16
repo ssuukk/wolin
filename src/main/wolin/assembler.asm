@@ -8,36 +8,40 @@ goto __wolin_pl_qus_wolin_test_main[adr]
 // funkcja: fun pl.qus.wolin.test.main():unit
 // ****************************************
 label __wolin_pl_qus_wolin_test_main
-//  lewa strona assignment
-alloc SP<__wolin_reg1>, #2 // For assignment left side
-//  left side disjunction - prawie dobrze
-alloc SP<__wolin_reg2>, #2 // arr_deref
-//  LEWA strona array access, czyli co to za zmienna
-let SP(0)<__wolin_reg2>[ptr] = __wolin_pl_qus_wolin_test_twoBytesLongArray<pl.qus.wolin.test.twoBytesLongArray>[ptr] // simple id from var
-// switchType to:uword* by type from pl.qus.wolin.test.twoBytesLongArray
-//  PRAWA strona array access, czyli indeks w nawiasach
-alloc SP<__wolin_reg3>, #2 // For calculating index
-let SP(0)<__wolin_reg3>[uword] = #400[uword] // atomic ex
-// forceTopOregType to uword
-//  long index, multi-byte per element array
-mul SP(0)<__wolin_reg3>[uword] = SP(0)<__wolin_reg3>[uword], #2
-add SP(2)<__wolin_reg2>[ptr] = SP(2)<__wolin_reg2>[ptr], SP(0)<__wolin_reg3>[uword]
-free SP<__wolin_reg3>, #2 // For calculating index
-//  after index
-// dereference value at topRegister
-//  kod obsługi tablicy
-//  non-fast array
-let SP(2)<__wolin_reg1>[ptr] = SP(0)<__wolin_reg2>[ptr]
-free SP<__wolin_reg2>, #2 // arr_deref
-// inferTopOregType __wolin_reg1 -> uword*
-//  prawa strona assignment
-alloc SP<__wolin_reg4>, #2 // for value that gets assigned to left side
-let SP(0)<__wolin_reg4>[uword] = #100[ubyte] // atomic ex
-let SP(2)<__wolin_reg1>[ptr] = SP(0)<__wolin_reg4>[uword] // przez sprawdzacz typów
-free SP<__wolin_reg4>, #2 // for value that gets assigned to left side, type = uword*
-free SP<__wolin_reg1>, #2 // For assignment left side
-// switchType to:unit by assignment
-// inferTopOregType __wolin_reg0 -> unit
+alloc SP<__wolin_reg0>, #2 // for block level expression when(b){\n1->c++\n2->c--\n}
+// When expression start
+let SP(0)<__wolin_reg0>[uword] = __wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte] // simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.test.b
+alloc SP<__wolin_reg1>, #1 // for condition result
+alloc SP<__wolin_reg2>, #2 // for evaluating when condition
+// When condition
+// warunek
+label __wolin_lab_whenLabel_0
+let SP(0)<__wolin_reg2>[uword] = #1[ubyte] // atomic ex
+// inferTopOregType __wolin_reg2 -> ubyte
+evaleq SP(1)<__wolin_reg1>[bool] = SP(2)<__wolin_reg0>[uword], SP(0)<__wolin_reg2>[ubyte]
+bne SP(1)<__wolin_reg1>[bool] = #1[bool], __wolin_lab_whenLabel_1[adr]
+// when operacja
+add __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword] = __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword], #1[byte] // simple id
+// switchType to:uword by ++ operator
+goto __wolin_lab_whenEndLabel_0[adr]
+// When condition
+// warunek
+label __wolin_lab_whenLabel_1
+let SP(0)<__wolin_reg2>[ubyte] = #2[ubyte] // atomic ex
+// inferTopOregType __wolin_reg2 -> uword
+evaleq SP(2)<__wolin_reg1>[bool] = SP(3)<__wolin_reg0>[uword], SP(0)<__wolin_reg2>[uword]
+bne SP(2)<__wolin_reg1>[bool] = #1[bool], __wolin_lab_whenLabel_2[adr]
+// when operacja
+sub __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword] = __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword], #1[byte] // simple id
+// switchType to:uword by -- operator
+goto __wolin_lab_whenEndLabel_0[adr]
+// When expression end
+label __wolin_lab_whenEndLabel_0
+free SP<__wolin_reg2>, #2 // for evaluating when condition
+free SP<__wolin_reg1>, #1 // for condition result
+// inferTopOregType __wolin_reg0 -> uword
+free SP<__wolin_reg0>, #2 // for block level expression when(b){\n1->c++\n2->c--\n}, type = uword
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 ret
 

@@ -448,12 +448,12 @@ bne SPE = ?value, ?dest -> """
     cmp #>{value}
     bne {dest}"""
 
-bne SP(?s)[bool] = #1[bool], ?dest[uword] -> """
+bne SP(?s)[bool] = #1[bool], ?dest[adr] -> """
     lda {s},x
     cmp #1
     bne {dest}"""
 
-beq SP(?s)[bool] = #1[bool], ?dest[uword] -> """
+beq SP(?s)[bool] = #1[bool], ?dest[adr] -> """
     lda {s},x
     cmp #1
     beq {dest}"""
@@ -467,6 +467,20 @@ evaleq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     lda #0 // jednak rozne
     sta {dest},x
 :"""
+
+evaleq SP(?dest)[bool] = SP(?left)[uword], SP(?right)[uword] -> """
+    lda #0 // rozne
+    sta {dest},x
+    lda {left},x
+    cmp {right},x
+    bne +
+    lda {left}+1
+    cmp {right}+1
+    bne +
+    lda #1
+    sta {dest},x
+:"""
+
 
 evalless SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     lda #1 // mniejsze

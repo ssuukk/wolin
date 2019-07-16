@@ -16,6 +16,8 @@ class WolinStateObject(val pass: Pass) {
     var commentOn = true
     var assignLeftSideVar: Zmienna? = null
     var arrayElementSize: Int = 0
+    var simpleWhen = true
+    var lastWhenEntry = false
 
     var nonTrivialAssign = false
 
@@ -35,6 +37,7 @@ class WolinStateObject(val pass: Pass) {
     var labelCounter = 0
     var loopCounter = 0
     var lambdaCounter = 0
+    var whenCounter = 0
     var stackVarCounter = 0
     var classCounter = 0
 
@@ -533,6 +536,8 @@ class WolinStateObject(val pass: Pass) {
      *****************************************************************/
     val currentReg get() = operStack.peek()
 
+    fun regFromTop(ile: Int): Zmienna = operStack.asReversed()[ile]
+
     fun allocReg(comment: String = "", type: Typ = Typ.unit): Zmienna {
         if(stackVarCounter == 4){
             print("tu!")
@@ -600,7 +605,7 @@ class WolinStateObject(val pass: Pass) {
 
         if(top.type.isUnit)
             top.type = currentWolinType
-        else if(top.type != currentWolinType)
+        else if(!top.type.canBeAssigned(currentWolinType))
             throw RegTypeMismatchException("Attempt to reassign $currentWolinType to $top")
     }
 
