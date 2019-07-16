@@ -99,6 +99,51 @@ __wolin_lab_whenLabel_1:
 
     jmp __wolin_lab_whenEndLabel_0
 
+; label__wolin_lab_whenLabel_2
+
+__wolin_lab_whenLabel_2:
+
+; allocSP<__wolin_reg3>,#2
+
+
+    dex
+    dex
+
+; allocSP<__wolin_reg4>,#2
+
+
+    dex
+    dex
+
+; letSP(0)<__wolin_reg4>[uword]=#0[ubyte]
+
+
+    lda #0
+    sta 0,x
+    lda #0
+    sta 0+1,x
+
+; let__wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword]=SP(0)<__wolin_reg4>[uword]
+
+
+    lda 0,x
+    sta __wolin_pl_qus_wolin_test_c
+    lda 0+1,x
+    sta __wolin_pl_qus_wolin_test_c+1
+
+
+; freeSP<__wolin_reg4>,#2
+
+
+    inx
+    inx
+
+; freeSP<__wolin_reg3>,#2
+
+
+    inx
+    inx
+
 ; label__wolin_lab_whenEndLabel_0
 
 __wolin_lab_whenEndLabel_0:

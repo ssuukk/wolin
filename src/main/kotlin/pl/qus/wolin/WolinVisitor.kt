@@ -272,9 +272,12 @@ class WolinVisitor(
                         processTypeChangingOp(
                             { visitNamedInfix(ctx.namedInfix(0)) },
                             { visitNamedInfix(ctx.namedInfix(1)) },
-                            {
-                                wynik, lewa, prawa ->
-                                state.code("evalgteq ${state.varToAsm(wynik)} = ${state.varToAsm(lewa)}, ${state.varToAsm(prawa)}")
+                            { wynik, lewa, prawa ->
+                                state.code(
+                                    "evalgteq ${state.varToAsm(wynik)} = ${state.varToAsm(lewa)}, ${state.varToAsm(
+                                        prawa
+                                    )}"
+                                )
                                 Typ.bool
                             },
                             "for >="
@@ -284,9 +287,12 @@ class WolinVisitor(
                         processTypeChangingOp(
                             { visitNamedInfix(ctx.namedInfix(0)) },
                             { visitNamedInfix(ctx.namedInfix(1)) },
-                            {
-                                    wynik, lewa, prawa ->
-                                state.code("evalgteq ${state.varToAsm(wynik)} = ${state.varToAsm(prawa)}, ${state.varToAsm(lewa)}")
+                            { wynik, lewa, prawa ->
+                                state.code(
+                                    "evalgteq ${state.varToAsm(wynik)} = ${state.varToAsm(prawa)}, ${state.varToAsm(
+                                        lewa
+                                    )}"
+                                )
                                 Typ.bool
                             },
                             "for <="
@@ -1050,26 +1056,32 @@ class WolinVisitor(
 
     override fun visitWhenExpression(ctx: KotlinParser.WhenExpressionContext): WolinStateObject {
         state.rem("When expression start")
-            if(ctx.expression() != null) {
-                visitExpression(ctx.expression())
-                state.simpleWhen = false
-            } else
-                state.simpleWhen = true
+        if (ctx.expression() != null) {
+            visitExpression(ctx.expression())
+            state.simpleWhen = false
+        } else
+            state.simpleWhen = true
 
         val resultReg = state.currentReg
 
         val boolReg = state.allocReg("for condition result", Typ.bool)
         val condReg = state.allocReg("for evaluating when condition")
 
-        if(ctx.whenEntry().size>0) {
-                ctx.whenEntry()?.forEach {
-                    state.rem("When condition")
-                    visitWhenEntry(it)
-                }
+        if (ctx.whenEntry().size > 0) {
+            state.lastWhenEntry = false
+            ctx.whenEntry()?.dropLast(1)?.forEach {
+                state.rem("normal when condition")
+                visitWhenEntry(it)
             }
+            state.lastWhenEntry = true
+            ctx.whenEntry()?.last()?.let {
+                state.rem("last when condition")
+                visitWhenEntry(it)
+            }
+        }
         state.rem("When expression end")
 
-        state.code("label ${labelMaker("whenEndLabel",state.whenCounter++)}")
+        state.code("label ${labelMaker("whenEndLabel", state.whenCounter++)}")
 
         state.freeReg("for evaluating when condition")
         state.freeReg("for condition result")
@@ -1095,23 +1107,30 @@ class WolinVisitor(
         kondycje?.firstOrNull()?.let {
             visitWhenCondition(it)
         }
+
         state.inferTopOregType()
 
-        if(state.simpleWhen)
-            //state.code("evaleq ${state.varToAsm(boolReg)} = ${state.varToAsm(resultReg)}, ${state.varToAsm(condReg)}") // TODO tylko jeśłi to when z wyrażeniem!
+        if(ctx.ELSE() != null) {
+            state.rem("when else branch")
+        }
+        else if (state.simpleWhen)
             state.code("bne ${state.varToAsm(resultReg)} = #1[bool], ${nextLabel}[adr]") // TODO lub whenEndLabel dla ostatniego
         else {
             state.code("evaleq ${state.varToAsm(boolReg)} = ${state.varToAsm(resultReg)}, ${state.varToAsm(condReg)}") // TODO tylko jeśłi to when z wyrażeniem!
-            state.code("bne ${state.varToAsm(boolReg)} = #1[bool], ${nextLabel}[adr]") // TODO lub whenEndLabel dla ostatniego
+            if(state.lastWhenEntry)
+                state.code("bne ${state.varToAsm(boolReg)} = #1[bool], ${labelMaker("whenEndLabel", state.whenCounter)}[adr]") // TODO lub whenEndLabel dla ostatniego
+            else
+                state.code("bne ${state.varToAsm(boolReg)} = #1[bool], ${nextLabel}[adr]")
         }
 
         state.rem("when operacja")
 
         val whenTrue = ctx.controlStructureBody()
-        if(whenTrue.block() != null) visitBlock(whenTrue.block())
-        else if(whenTrue.expression() != null) visitExpression(whenTrue.expression())
+        if (whenTrue.block() != null) visitBlock(whenTrue.block())
+        else if (whenTrue.expression() != null) visitExpression(whenTrue.expression())
 
-        state.code("goto ${labelMaker("whenEndLabel",state.whenCounter)}[adr]") // TODO lub nic dla ostatniego
+        if(!state.lastWhenEntry)
+            state.code("goto ${labelMaker("whenEndLabel", state.whenCounter)}[adr]") // TODO lub nic dla ostatniego
 
         return state
     }

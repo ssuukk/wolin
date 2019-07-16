@@ -26,5 +26,6 @@ fun main() {
     when(b) {
         1 -> c++
         2 -> c--
+        else -> c =0 
     }
 }
