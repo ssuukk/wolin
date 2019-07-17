@@ -7,7 +7,7 @@ var oneByteLongArray: ubyte[]
 var twoBytesLongArray: uword[]//^5000
 var fastArray: ubyte[ubyte]
 
-var b: ubyte
+var b  = 2
 var c: uword
 var d: uword
 

@@ -42,7 +42,7 @@ class WolinStateObject(val pass: Pass) {
     var classCounter = 0
 
     var basePackage = ""
-    var fileScopeSuffix = ""
+    //var fileScopeSuffix = ""
     var currentScopeSuffix = ""
     var currentClass: Klasa? = null
     var currentFunction: Funkcja? = null
@@ -158,7 +158,7 @@ class WolinStateObject(val pass: Pass) {
 
         var pomiń = 0
         if (basePackage.isNotEmpty()) pomiń = basePackage.length + 1
-        if (fileScopeSuffix.isNotEmpty()) pomiń += fileScopeSuffix.length + 1
+        //if (fileScopeSuffix.isNotEmpty()) pomiń += fileScopeSuffix.length + 1
 
         val bezSkopuPliku = if (zmienna.name.startsWith(basePackage)) zmienna.name.drop(pomiń) else zmienna.name
 
@@ -207,7 +207,7 @@ class WolinStateObject(val pass: Pass) {
 
         var pomiń = 0
         if (basePackage.isNotEmpty()) pomiń = basePackage.length + 1
-        if (fileScopeSuffix.isNotEmpty()) pomiń += fileScopeSuffix.length + 1
+        //if (fileScopeSuffix.isNotEmpty()) pomiń += fileScopeSuffix.length + 1
 
         val bezSkopuPliku = if (zmienna.name.startsWith(basePackage)) zmienna.name.drop(pomiń) else zmienna.name
 
@@ -280,7 +280,8 @@ class WolinStateObject(val pass: Pass) {
 
             // aby znaleźć zmienną w scope pliku
             if (zmienna == null && gdzieJesteśmy == basePackage) {
-                val ind = "$gdzieJesteśmy.$fileScopeSuffix.$nazwa"
+                //val ind = "$gdzieJesteśmy.$fileScopeSuffix.$nazwa"
+                val ind = "$gdzieJesteśmy.$nazwa"
                 zmienna = variablary[ind]
             }
 
@@ -592,14 +593,14 @@ class WolinStateObject(val pass: Pass) {
         rem("FORCE TOP: $top -> $wolinType")
     }
 
-    fun inferTopOregType() {
-        val top = operStack.peek()
+//    fun inferTopOregType() {
+//        val top = operStack.peek()
+//
+//        top.type = currentWolinType
+//        rem("INFER TOP: $top -> $currentWolinType")
+//    }
 
-        top.type = currentWolinType
-        rem("INFER TOP: $top -> $currentWolinType")
-    }
-
-    fun assignTopOperType() {
+    fun inferTopOperType() {
         val top = operStack.peek()
 
         if(top.type == currentWolinType) {
@@ -676,7 +677,7 @@ class WolinStateObject(val pass: Pass) {
             when {
                 functionName != null -> "$functionName."
                 currentClass != null -> "${currentClass!!.name}."
-                else -> "$basePackage." + if (fileScopeSuffix.isNotBlank()) "$fileScopeSuffix." else ""
+                else -> "$basePackage." //+ if (fileScopeSuffix.isNotBlank()) "$fileScopeSuffix." else ""
             }
 
         if (!isArgument)
