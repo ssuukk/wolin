@@ -18,6 +18,8 @@ var src: ubyte
 var suma: (ubyte,ubyte)->ubyte
 
 var b: uword
+var c: uword
+var d: uword
 
 
 fun allocMem(size: uword, count: uword): uword {
@@ -92,7 +94,13 @@ class Dupa {
 
 var dupa: Dupa
 
-
+fun testWhen() {
+    when(b) {
+        1 -> c++
+        2 -> c--
+        else -> c =0
+    }
+}
 
 // aby dobrze działało wywołanie, taka musi być kolejność argumentów: A, Y, X
 
