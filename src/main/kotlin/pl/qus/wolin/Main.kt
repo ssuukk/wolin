@@ -91,7 +91,7 @@ https://www.atariarchives.org/roots/chapter_10.php
 
 		pl.qus.Dupa.a - ustawiamy tej zmiennej stos na "HEAP"
 
-	4) scope pliku
+	4) scope pliku - USUNIETY
 
 		pl.qus.a
 
@@ -385,6 +385,7 @@ http://www.zimmers.net/anonftp/pub/cbm/documents/chipdata/64doc
         translationVisitor.state.variablary = declarationVisitor.state.variablary
         translationVisitor.state.exceptionsUsed = declarationVisitor.state.exceptionsUsed
         translationVisitor.state.classary = declarationVisitor.state.classary
+        translationVisitor.state.functiary = declarationVisitor.state.functiary
 //            translationVisitor.state.strings = declarationVisitor.state.strings
 //            translationVisitor.state.floats = declarationVisitor.state.floats
 

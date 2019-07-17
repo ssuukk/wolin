@@ -1,5 +1,6 @@
 package pl.qus.wolin
 
+import org.antlr.v4.codegen.model.decl.Decl
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
 import pl.qus.wolin.components.*
@@ -1089,7 +1090,7 @@ class WolinVisitor(
         val condReg = state.allocReg("for evaluating when condition")
 
 
-        if(!state.simpleWhen)
+        if (!state.simpleWhen)
             condReg.type = state.currentWolinType
 
         if (ctx.whenEntry().size > 0) {
@@ -1111,7 +1112,7 @@ class WolinVisitor(
         state.freeReg("for evaluating when condition")
         state.freeReg("for condition result")
 
-        if(!state.simpleWhen)
+        if (!state.simpleWhen)
             state.freeReg()
 
         return state
@@ -1136,23 +1137,32 @@ class WolinVisitor(
             visitWhenCondition(it)
         }
 
-        if(state.simpleWhen)
+        if (state.simpleWhen)
             state.inferTopOperType()
 //        else
 //            state.forceTopOregType(resultReg.type)
 
-        if(ctx.ELSE() != null) {
+        if (ctx.ELSE() != null) {
             state.rem("when else branch")
-        }
-        else if (state.simpleWhen)
-            if(state.lastWhenEntry)
-                state.code("bne ${state.varToAsm(resultReg)} = #1[bool], ${labelMaker("whenEndLabel", state.whenCounter)}[adr]") // TODO lub whenEndLabel dla ostatniego
+        } else if (state.simpleWhen)
+            if (state.lastWhenEntry)
+                state.code(
+                    "bne ${state.varToAsm(resultReg)} = #1[bool], ${labelMaker(
+                        "whenEndLabel",
+                        state.whenCounter
+                    )}[adr]"
+                ) // TODO lub whenEndLabel dla ostatniego
             else
                 state.code("bne ${state.varToAsm(resultReg)} = #1[bool], ${nextLabel}[adr]") // TODO lub whenEndLabel dla ostatniego
         else {
             state.code("evaleq ${state.varToAsm(boolReg)} = ${state.varToAsm(resultReg)}, ${state.varToAsm(condReg)}") // TODO tylko jeśłi to when z wyrażeniem!
-            if(state.lastWhenEntry)
-                state.code("bne ${state.varToAsm(boolReg)} = #1[bool], ${labelMaker("whenEndLabel", state.whenCounter)}[adr]") // TODO lub whenEndLabel dla ostatniego
+            if (state.lastWhenEntry)
+                state.code(
+                    "bne ${state.varToAsm(boolReg)} = #1[bool], ${labelMaker(
+                        "whenEndLabel",
+                        state.whenCounter
+                    )}[adr]"
+                ) // TODO lub whenEndLabel dla ostatniego
             else
                 state.code("bne ${state.varToAsm(boolReg)} = #1[bool], ${nextLabel}[adr]")
         }
@@ -1163,7 +1173,7 @@ class WolinVisitor(
         if (whenTrue.block() != null) visitBlock(whenTrue.block())
         else if (whenTrue.expression() != null) visitExpression(whenTrue.expression())
 
-        if(!state.lastWhenEntry)
+        if (!state.lastWhenEntry)
             state.code("goto ${labelMaker("whenEndLabel", state.whenCounter)}[adr]") // TODO lub nic dla ostatniego
 
         return state
@@ -1334,8 +1344,7 @@ class WolinVisitor(
     }
 
     override fun visitFunctionDeclaration(ctx: KotlinParser.FunctionDeclarationContext): WolinStateObject {
-        val nowaFunkcja =
-            Funkcja()
+        val nowaFunkcja = Funkcja()
 
         val name = ctx.identifier()?.text ?: throw Exception("Brak nazwy funkcji")
 
@@ -1542,7 +1551,7 @@ class WolinVisitor(
             visitExpression(ctx.expression())
             state.inferTopOperType()
 
-            val zmienna = if(ctx.variableDeclaration().type() != null) {
+            val zmienna = if (ctx.variableDeclaration().type() != null) {
                 state.createAndRegisterVar(name, ctx.variableDeclaration().type(), ctx, false, stack)
             } else
                 state.createAndRegisterVar(name, AllocType.NORMAL, state.currentWolinType, false, stack)

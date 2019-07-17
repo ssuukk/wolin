@@ -22,7 +22,7 @@ class WolinStateObject(val pass: Pass) {
     var nonTrivialAssign = false
 
     var variablary = hashMapOf<String, Zmienna>()
-    val functiary = mutableListOf<Funkcja>()
+    var functiary = mutableListOf<Funkcja>()
     var classary = hashMapOf<String, Klasa>()
 
     val operStack = SpecStack("SP")
@@ -540,6 +540,16 @@ class WolinStateObject(val pass: Pass) {
 
     fun allocReg(comment: String = "", type: Typ = Typ.unit): Zmienna {
         val name = "__wolin_reg$stackVarCounter"
+
+        if(stackVarCounter == 10) {
+            println("tu!")
+        }
+
+        if(variablary[name] != null)
+            rem("Using already known $name")
+        else
+            rem("$name not yet in variablary")
+
         val rejestr = variablary[name] ?: Zmienna(
             name,
             allocation = AllocType.NORMAL,

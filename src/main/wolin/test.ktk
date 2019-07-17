@@ -28,4 +28,11 @@ fun main() {
         2 -> c--
         else -> c =0 
     }
+
+    sum(4,6)
 }
+
+fun sum(x: ubyte, y: ubyte): ubyte {
+    return x + y
+}
+

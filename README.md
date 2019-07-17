@@ -24,6 +24,7 @@ Wolin generates assembler code for ca65 with memory config for Commodore 64, it 
 - code optimizer
 - a lot of other language features
 - writing elements to all kinds of arrays
+- add a pass for gathering symbols so they can be used before they get declared
 
 # Architecture
 
