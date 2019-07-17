@@ -886,6 +886,18 @@ add ?dest[uword] = ?src[uword], #?val[uword] -> """
     sta {dest}+1
 """
 
+sub ?dest[uword] = ?src[uword], #?val[uword] -> """
+    sec
+    lda {src}
+    sbc #<{val}
+    sta {dest}
+    lda {src}+1
+    sbc #>{val}
+    sta {dest}+1
+"""
+
+
+
 add ?dest[word] = ?src[word], #?val[byte] -> """
     clc
     lda {src}

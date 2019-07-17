@@ -10,53 +10,53 @@ goto __wolin_pl_qus_wolin_test_main[adr]
 label __wolin_pl_qus_wolin_test_main
 alloc SP<__wolin_reg0>, #2 // for block level expression when(b){\n1->c++\n2->c--\nelse->c=0\n}
 // When expression start
-let SP(0)<__wolin_reg0>[uword] = __wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte] // simple id from var
+alloc SP<__wolin_reg1>, #1 // for when expression
+let SP(0)<__wolin_reg1>[ubyte] = __wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte] // simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.test.b
-alloc SP<__wolin_reg1>, #1 // for condition result
-alloc SP<__wolin_reg2>, #2 // for evaluating when condition
+// SAFE INFER TOP: __wolin_reg1: ubyte = 0 -> no change
+alloc SP<__wolin_reg2>, #1 // for condition result
+alloc SP<__wolin_reg3>, #1 // for evaluating when condition
 // normal when condition
 // warunek
 label __wolin_lab_whenLabel_0
-let SP(0)<__wolin_reg2>[uword] = #1[ubyte] // atomic ex
-// inferTopOregType __wolin_reg2 -> ubyte
-evaleq SP(1)<__wolin_reg1>[bool] = SP(2)<__wolin_reg0>[uword], SP(0)<__wolin_reg2>[ubyte]
-bne SP(1)<__wolin_reg1>[bool] = #1[bool], __wolin_lab_whenLabel_1[adr]
+let SP(0)<__wolin_reg3>[ubyte] = #1[ubyte] // atomic ex
+evaleq SP(1)<__wolin_reg2>[bool] = SP(2)<__wolin_reg1>[ubyte], SP(0)<__wolin_reg3>[ubyte]
+bne SP(1)<__wolin_reg2>[bool] = #1[bool], __wolin_lab_whenLabel_1[adr]
 // when operacja
-add __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword] = __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword], #1[byte] // simple id
+add __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword] = __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword], #1[uword] // simple id
 // switchType to:uword by ++ operator
 goto __wolin_lab_whenEndLabel_0[adr]
 // normal when condition
 // warunek
 label __wolin_lab_whenLabel_1
-let SP(0)<__wolin_reg2>[ubyte] = #2[ubyte] // atomic ex
-// inferTopOregType __wolin_reg2 -> uword
-evaleq SP(2)<__wolin_reg1>[bool] = SP(3)<__wolin_reg0>[uword], SP(0)<__wolin_reg2>[uword]
-bne SP(2)<__wolin_reg1>[bool] = #1[bool], __wolin_lab_whenLabel_2[adr]
+let SP(0)<__wolin_reg3>[ubyte] = #2[ubyte] // atomic ex
+evaleq SP(1)<__wolin_reg2>[bool] = SP(2)<__wolin_reg1>[ubyte], SP(0)<__wolin_reg3>[ubyte]
+bne SP(1)<__wolin_reg2>[bool] = #1[bool], __wolin_lab_whenLabel_2[adr]
 // when operacja
-sub __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword] = __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword], #1[byte] // simple id
+sub __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword] = __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword], #1[uword] // simple id
 // switchType to:uword by -- operator
 goto __wolin_lab_whenEndLabel_0[adr]
 // last when condition
 // warunek
 label __wolin_lab_whenLabel_2
-// inferTopOregType __wolin_reg2 -> uword
 // when else branch
 // when operacja
 //  lewa strona assignment
-alloc SP<__wolin_reg3>, #2 // For assignment left side
+alloc SP<__wolin_reg4>, #2 // For assignment left side
 // switchType to:uword by by znajdźSimpleIdW
-// inferTopOregType __wolin_reg3 -> uword
+// SAFE INFER TOP: __wolin_reg4: uword = 0 -> no change
 //  prawa strona assignment
-alloc SP<__wolin_reg4>, #2 // for value that gets assigned to left side
-let SP(0)<__wolin_reg4>[uword] = #0[ubyte] // atomic ex
-let __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword] = SP(0)<__wolin_reg4>[uword] // przez sprawdzacz typów
-free SP<__wolin_reg4>, #2 // for value that gets assigned to left side, type = uword
-free SP<__wolin_reg3>, #2 // For assignment left side
+alloc SP<__wolin_reg5>, #2 // for value that gets assigned to left side
+let SP(0)<__wolin_reg5>[uword] = #0[ubyte] // atomic ex
+let __wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword] = SP(0)<__wolin_reg5>[uword] // przez sprawdzacz typów
+free SP<__wolin_reg5>, #2 // for value that gets assigned to left side, type = uword
+free SP<__wolin_reg4>, #2 // For assignment left side
 // When expression end
 label __wolin_lab_whenEndLabel_0
-free SP<__wolin_reg2>, #2 // for evaluating when condition
-free SP<__wolin_reg1>, #1 // for condition result
-// inferTopOregType __wolin_reg0 -> uword
+free SP<__wolin_reg3>, #1 // for evaluating when condition
+free SP<__wolin_reg2>, #1 // for condition result
+free SP<__wolin_reg1>, #1
+// SAFE INFER TOP: __wolin_reg0: uword = 0 -> no change
 free SP<__wolin_reg0>, #2 // for block level expression when(b){\n1->c++\n2->c--\nelse->c=0\n}, type = uword
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 ret

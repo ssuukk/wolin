@@ -77,7 +77,7 @@ class WolinVisitor(
                     else -> błędzik(it, "Unknown block level expression")
                 }
 
-                state.inferTopOregType()
+                state.assignTopOperType()
 
                 if (retVal != null) {
                     state.code("let ${state.varToAsm(retVal)} = ${state.currentRegToAsm()} // LAMBDA return assignment")
@@ -95,7 +95,7 @@ class WolinVisitor(
 
                 visitDeclaration(it)
 
-                state.inferTopOregType()
+                state.assignTopOperType()
 
                 state.freeReg("for declaration ${it.text.replace("\n", "\\n")}")
             }
@@ -482,7 +482,7 @@ class WolinVisitor(
         val leftSide = state.allocReg("For assignment left side")
 
         leftFunction()
-        state.inferTopOregType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji!
+        state.assignTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji!
 
         val destinationReg = state.assignLeftSideVar!!
         val destinationType = destinationReg.type
@@ -585,7 +585,7 @@ class WolinVisitor(
                             błędzik(ctx, "Wrong number of arguments in function call $procName")
 
                         state.switchType(prototyp.type, "function type 1")
-                        state.inferTopOregType()
+                        state.assignTopOperType()
 
                         state.fnCallAllocRetAndArgs(prototyp)
 
@@ -656,7 +656,7 @@ class WolinVisitor(
                                 state.code(
                                     "add ${state.varToAsm(zmienna)} = ${state.varToAsm(
                                         zmienna
-                                    )}, #1[byte] // simple id"
+                                    )}, #1${zmienna.typeForAsm} // simple id"
                                 )
                                 state.switchType(zmienna.type, "++ operator")
                             }
@@ -664,7 +664,7 @@ class WolinVisitor(
 
                                 parseLiteralConstant(state.currentReg, atomEx.literalConstant())
 
-                                state.code("add ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}${state.currentReg.typeForAsm}, #1[byte], add // literal const")
+                                state.code("add ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}${state.currentReg.typeForAsm}, #1${state.currentReg.typeForAsm}, add // literal const")
                                 //state.currentReg.type = "Ubyte"
                             }
                             else -> błędzik(atomEx, "Nie wiem jak obsłużyć")
@@ -679,7 +679,7 @@ class WolinVisitor(
                                 state.code(
                                     "sub ${state.varToAsm(zmienna)} = ${state.varToAsm(
                                         zmienna
-                                    )}, #1[byte] // simple id"
+                                    )}, #1${zmienna.typeForAsm} // simple id"
                                 )
                                 state.switchType(zmienna.type, "-- operator")
                             }
@@ -687,7 +687,7 @@ class WolinVisitor(
 
                                 parseLiteralConstant(state.currentReg, atomEx.literalConstant())
 
-                                state.code("sub ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}${state.currentReg.typeForAsm}, #1[byte], add // literal const")
+                                state.code("sub ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}${state.currentReg.typeForAsm}, #1${state.currentReg.typeForAsm}, add // literal const")
                                 //state.currentReg.type = "Ubyte"
                             }
                             else -> błędzik(atomEx, "Nie wiem jak obsłużyć")
@@ -977,7 +977,7 @@ class WolinVisitor(
         val test = state.functionToLambdaType(nowaFunkcja)
 
         state.switchType(test, "lambda declaration")
-        state.inferTopOregType()
+        state.assignTopOperType()
 
         state.code("let ${state.currentRegToAsm()} = ${nowaFunkcja.labelName}[adr]")
 
@@ -1057,15 +1057,20 @@ class WolinVisitor(
     override fun visitWhenExpression(ctx: KotlinParser.WhenExpressionContext): WolinStateObject {
         state.rem("When expression start")
         if (ctx.expression() != null) {
-            visitExpression(ctx.expression())
+            val resultReg = state.allocReg("for when expression")
             state.simpleWhen = false
-        } else
+            visitExpression(ctx.expression())
+            state.assignTopOperType()
+        } else {
             state.simpleWhen = true
-
-        val resultReg = state.currentReg
+        }
 
         val boolReg = state.allocReg("for condition result", Typ.bool)
         val condReg = state.allocReg("for evaluating when condition")
+
+
+        if(!state.simpleWhen)
+            condReg.type = state.currentWolinType
 
         if (ctx.whenEntry().size > 0) {
             state.lastWhenEntry = false
@@ -1085,6 +1090,9 @@ class WolinVisitor(
 
         state.freeReg("for evaluating when condition")
         state.freeReg("for condition result")
+
+        if(!state.simpleWhen)
+            state.freeReg()
 
         return state
     }
@@ -1108,13 +1116,19 @@ class WolinVisitor(
             visitWhenCondition(it)
         }
 
-        state.inferTopOregType()
+        if(state.simpleWhen)
+            state.assignTopOperType()
+//        else
+//            state.forceTopOregType(resultReg.type)
 
         if(ctx.ELSE() != null) {
             state.rem("when else branch")
         }
         else if (state.simpleWhen)
-            state.code("bne ${state.varToAsm(resultReg)} = #1[bool], ${nextLabel}[adr]") // TODO lub whenEndLabel dla ostatniego
+            if(state.lastWhenEntry)
+                state.code("bne ${state.varToAsm(resultReg)} = #1[bool], ${labelMaker("whenEndLabel", state.whenCounter)}[adr]") // TODO lub whenEndLabel dla ostatniego
+            else
+                state.code("bne ${state.varToAsm(resultReg)} = #1[bool], ${nextLabel}[adr]") // TODO lub whenEndLabel dla ostatniego
         else {
             state.code("evaleq ${state.varToAsm(boolReg)} = ${state.varToAsm(resultReg)}, ${state.varToAsm(condReg)}") // TODO tylko jeśłi to when z wyrażeniem!
             if(state.lastWhenEntry)
@@ -1419,7 +1433,7 @@ class WolinVisitor(
         state.allocReg("for returning this", funkcjaAlloc.type)
 
         state.switchType(funkcjaAlloc.type, "function type 1")
-        state.inferTopOregType()
+        state.assignTopOperType()
         state.switchType(funkcjaAlloc.type, "function type 2")
 
         easeyCall(ctx, funkcjaAlloc, state.currentReg)

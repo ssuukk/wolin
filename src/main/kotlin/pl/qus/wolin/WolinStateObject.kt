@@ -353,7 +353,6 @@ class WolinStateObject(val pass: Pass) {
         }
     }
 
-
     fun findStackVector(stos: SpecStack, name: String): Pair<Int, Zmienna> {
         var vector = 0
 
@@ -539,9 +538,6 @@ class WolinStateObject(val pass: Pass) {
     fun regFromTop(ile: Int): Zmienna = operStack.asReversed()[ile]
 
     fun allocReg(comment: String = "", type: Typ = Typ.unit): Zmienna {
-        if(stackVarCounter == 4){
-            print("tu!")
-        }
         val name = "__wolin_reg$stackVarCounter"
         val rejestr = variablary[name] ?: Zmienna(
             name,
@@ -568,7 +564,6 @@ class WolinStateObject(val pass: Pass) {
         return rejestr
     }
 
-
     fun freeReg(comment: String = "") {
         val zmienna = operStack.peek()
 
@@ -591,21 +586,29 @@ class WolinStateObject(val pass: Pass) {
      *****************************************************************/
 
     fun forceTopOregType(wolinType: Typ) {
-        operStack.peek().type = wolinType
-        code("// forceTopOregType to $wolinType")
+        val top = operStack.peek()
+
+        top.type = wolinType
+        rem("FORCE TOP: $top -> $wolinType")
     }
 
     fun inferTopOregType() {
-        operStack.peek().type = currentWolinType
-        code("// inferTopOregType ${operStack.peek().name} -> $currentWolinType")
+        val top = operStack.peek()
+
+        top.type = currentWolinType
+        rem("INFER TOP: $top -> $currentWolinType")
     }
 
     fun assignTopOperType() {
         val top = operStack.peek()
 
-        if(top.type.isUnit)
+        if(top.type == currentWolinType) {
+            rem("SAFE INFER TOP: $top -> no change")
+        } else if (top.type.isUnit) {
             top.type = currentWolinType
-        else if(!top.type.canBeAssigned(currentWolinType))
+            rem("SAFE INFER TOP: $top -> $currentWolinType")
+        }
+        else if (!top.type.canBeAssigned(currentWolinType))
             throw RegTypeMismatchException("Attempt to reassign $currentWolinType to $top")
     }
 

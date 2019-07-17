@@ -34,30 +34,60 @@ __wolin_pl_qus_wolin_test_main:
 
     dex
 
-; allocSP<__wolin_reg2>,#2
+; letSP(0)<__wolin_reg1>[ubyte]=__wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte]
 
+
+    lda __wolin_pl_qus_wolin_test_b
+    sta 0,x
+
+; allocSP<__wolin_reg2>,#1
 
     dex
+
+; allocSP<__wolin_reg3>,#1
+
     dex
 
 ; label__wolin_lab_whenLabel_0
 
 __wolin_lab_whenLabel_0:
 
-; letSP(0)<__wolin_reg2>[uword]=#1[ubyte]
+; letSP(0)<__wolin_reg3>[ubyte]=#1[ubyte]
 
 
     lda #1
     sta 0,x
-    lda #0
-    sta 0+1,x
 
-; bneSP(1)<__wolin_reg1>[bool]=#1[bool],__wolin_lab_whenLabel_1[adr]
+; evaleqSP(1)<__wolin_reg2>[bool]=SP(2)<__wolin_reg1>[ubyte],SP(0)<__wolin_reg3>[ubyte]
+
+
+    lda #1 // rowne
+    sta 1,x
+    lda 2,x
+    cmp 0,x
+    beq +
+    lda #0 // jednak rozne
+    sta 1,x
+:
+
+; bneSP(1)<__wolin_reg2>[bool]=#1[bool],__wolin_lab_whenLabel_1[adr]
 
 
     lda 1,x
     cmp #1
     bne __wolin_lab_whenLabel_1
+
+; add__wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword]=__wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword],#1[uword]
+
+
+    clc
+    lda __wolin_pl_qus_wolin_test_c
+    adc #<1
+    sta __wolin_pl_qus_wolin_test_c
+    lda __wolin_pl_qus_wolin_test_c+1
+    adc #>1
+    sta __wolin_pl_qus_wolin_test_c+1
+
 
 ; goto__wolin_lab_whenEndLabel_0[adr]
 
@@ -67,33 +97,42 @@ __wolin_lab_whenLabel_0:
 
 __wolin_lab_whenLabel_1:
 
-; letSP(0)<__wolin_reg2>[ubyte]=#2[ubyte]
+; letSP(0)<__wolin_reg3>[ubyte]=#2[ubyte]
 
 
     lda #2
     sta 0,x
 
-; evaleqSP(2)<__wolin_reg1>[bool]=SP(3)<__wolin_reg0>[uword],SP(0)<__wolin_reg2>[uword]
+; evaleqSP(1)<__wolin_reg2>[bool]=SP(2)<__wolin_reg1>[ubyte],SP(0)<__wolin_reg3>[ubyte]
 
 
-    lda #0 // rozne
-    sta 2,x
-    lda 3,x
+    lda #1 // rowne
+    sta 1,x
+    lda 2,x
     cmp 0,x
-    bne +
-    lda 3+1
-    cmp 0+1
-    bne +
-    lda #1
-    sta 2,x
+    beq +
+    lda #0 // jednak rozne
+    sta 1,x
 :
 
-; bneSP(2)<__wolin_reg1>[bool]=#1[bool],__wolin_lab_whenLabel_2[adr]
+; bneSP(1)<__wolin_reg2>[bool]=#1[bool],__wolin_lab_whenLabel_2[adr]
 
 
-    lda 2,x
+    lda 1,x
     cmp #1
     bne __wolin_lab_whenLabel_2
+
+; sub__wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword]=__wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword],#1[uword]
+
+
+    sec
+    lda __wolin_pl_qus_wolin_test_c
+    sbc #<1
+    sta __wolin_pl_qus_wolin_test_c
+    lda __wolin_pl_qus_wolin_test_c+1
+    sbc #>1
+    sta __wolin_pl_qus_wolin_test_c+1
+
 
 ; goto__wolin_lab_whenEndLabel_0[adr]
 
@@ -103,19 +142,19 @@ __wolin_lab_whenLabel_1:
 
 __wolin_lab_whenLabel_2:
 
-; allocSP<__wolin_reg3>,#2
-
-
-    dex
-    dex
-
 ; allocSP<__wolin_reg4>,#2
 
 
     dex
     dex
 
-; letSP(0)<__wolin_reg4>[uword]=#0[ubyte]
+; allocSP<__wolin_reg5>,#2
+
+
+    dex
+    dex
+
+; letSP(0)<__wolin_reg5>[uword]=#0[ubyte]
 
 
     lda #0
@@ -123,7 +162,7 @@ __wolin_lab_whenLabel_2:
     lda #0
     sta 0+1,x
 
-; let__wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword]=SP(0)<__wolin_reg4>[uword]
+; let__wolin_pl_qus_wolin_test_c<pl.qus.wolin.test.c>[uword]=SP(0)<__wolin_reg5>[uword]
 
 
     lda 0,x
@@ -132,13 +171,13 @@ __wolin_lab_whenLabel_2:
     sta __wolin_pl_qus_wolin_test_c+1
 
 
+; freeSP<__wolin_reg5>,#2
+
+
+    inx
+    inx
+
 ; freeSP<__wolin_reg4>,#2
-
-
-    inx
-    inx
-
-; freeSP<__wolin_reg3>,#2
 
 
     inx
@@ -148,10 +187,12 @@ __wolin_lab_whenLabel_2:
 
 __wolin_lab_whenEndLabel_0:
 
-; freeSP<__wolin_reg2>,#2
-
+; freeSP<__wolin_reg3>,#1
 
     inx
+
+; freeSP<__wolin_reg2>,#1
+
     inx
 
 ; freeSP<__wolin_reg1>,#1
