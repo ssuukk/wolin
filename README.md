@@ -13,9 +13,9 @@ Currently supporting:
 - some introductory OO - classes with constructors and methods
 - variables at fixed memory locations like `var border: ubyte^53280`
 - variables fixed to CPU registers like `var maskInterrupts: bool^CPU.I`
-- functions at fixed memory locations with native arguments like `fun setLfs^0xffba(lfn: ubyte^CPU.A, channel: ubyte^CPU.Y, dev: ubyte^CPU.X)
+- functions at fixed memory locations with native arguments like `fun setLfs^0xffba(lfn: ubyte^CPU.A, channel: ubyte^CPU.Y, dev: ubyte^CPU.X)`
 - getting values from long / fast (1-byte index, 1-byte element) arrays
-`
+
 
 Wolin generates assembler code for ca65 with memory config for Commodore 64, it is very easy, though, to port it to other architectures via intermediate code to native code templates
 
