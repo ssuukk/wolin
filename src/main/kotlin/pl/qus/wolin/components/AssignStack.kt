@@ -2,13 +2,22 @@ package pl.qus.wolin.components
 
 import java.util.*
 
-class AssignStack : Stack<Triple<Zmienna, Zmienna, Boolean>>() {
-    val assignLeftSideVar: Zmienna
-        get() = peek().first
+class AssignEntry {
+    lateinit var left: Zmienna
+    lateinit var right: Zmienna
+    var isArray: Boolean = false
+}
 
-    val assignRightSideFinalVar: Zmienna
-        get() = peek().second
+class AssignStack : Stack<AssignEntry>() {
+    var assignLeftSideVar: Zmienna
+        get() = peek().left
+        set(value) { peek().left = value }
 
-    val arrayAssign: Boolean
-        get() = peek().third
+    var assignRightSideFinalVar: Zmienna
+        get() = peek().right
+        set(value) { peek().right = value }
+
+    var arrayAssign: Boolean
+        get() = peek().isArray
+        set(value) { peek().isArray = value }
 }

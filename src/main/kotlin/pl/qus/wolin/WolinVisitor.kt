@@ -117,15 +117,8 @@ class WolinVisitor(
             state.rem(" left side disjunction - prawie dobrze")
             visitDisjunction(lewaStrona)
 
-            state.assignLeftSideVar = state.currentReg
-
-            state.arrayAssign = true
-
-            val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
-
-
-            // to jest niepotrzebne!
-            //state.code("let ${state.currentRegToAsm()} = ${state.varToAsmNoType(zmienna)}[ptr] // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN - TODO change ${state.currentRegToAsm()} to ptr!")
+            state.assignStack.assignLeftSideVar = state.currentReg
+            state.assignStack.arrayAssign = true
 
             return state
         } else {
@@ -135,8 +128,7 @@ class WolinVisitor(
 
             // TODO - usunąć assignLeftSideVar
             //state.currentReg = zmienna
-            state.assignLeftSideVar = zmienna
-
+            state.assignStack.assignLeftSideVar = zmienna
 
             state.switchType(zmienna.type, "by znajdźSimpleIdW")
 
@@ -154,9 +146,9 @@ class WolinVisitor(
             statementProcessor(it)
         }
 
-        if(state.assignLeftSideVar != null && state.pass == Pass.TRANSLATION && !blockValue.type.isUnit) {
+        if(state.assignStack.isNotEmpty() && state.pass == Pass.TRANSLATION && !blockValue.type.isUnit) {
 //            state.code("// ${state.varToAsm(state.assignLeftSideVar!!)} = ${state.varToAsm(blockValue)} visitBlock")
-            checkTypeAndAddAssignment(ctx, state.assignLeftSideVar!!, blockValue)
+            checkTypeAndAddAssignment(ctx, state.assignStack.assignRightSideFinalVar, blockValue, "visit block")
         }
 
         state.freeReg(
@@ -486,13 +478,15 @@ class WolinVisitor(
 
     fun processAssignment(ctx: ParseTree, leftFunction: () -> WolinStateObject, rightFunction: () -> WolinStateObject) {
 
+        state.assignStack.push(AssignEntry())
+
         state.rem(" lewa strona assignment") // TODO użyć tego rejestru zamiast assignLeftSideVar
         val leftSide = state.allocReg("For assignment left side")
 
         leftFunction()
         state.inferTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji!
 
-        val destinationReg = state.assignLeftSideVar!!
+        val destinationReg = state.assignStack.assignLeftSideVar
         val destinationType = destinationReg.type
 
         //state.currentReg.type.isPointer = true
@@ -501,6 +495,7 @@ class WolinVisitor(
         state.rem(" prawa strona assignment")
 
         val tempSourceReg = state.allocReg("for value that gets assigned to left side")
+        state.assignStack.assignRightSideFinalVar = tempSourceReg
         rightFunction()
 
         //state.inferTopOregType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji!
@@ -514,17 +509,18 @@ class WolinVisitor(
 //            throw TypeMismatchException("Attempt to assign ${tempSourceReg.name}:${sourceReg.type} to variable of type ${destinationReg.name}:${destinationReg.type}")
 //        }
 
-        checkTypeAndAddAssignment(ctx, destinationReg, tempSourceReg)
+        checkTypeAndAddAssignment(ctx, destinationReg, tempSourceReg, "process assignment")
 
-        if (state.arrayAssign) {
+        if (state.assignStack.arrayAssign) {
             // też niepotrzebne
             //state.code("let ${state.varToAsm(leftSide)} = ${state.varToAsm(tempSourceReg)} // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN")
-            state.arrayAssign = false
+            state.assignStack.arrayAssign = false
         }
         state.freeReg("for value that gets assigned to left side, type = ${state.currentWolinType}")
 
         state.freeReg("For assignment left side")
 
+        state.assignStack.pop()
     }
 
     override fun visitTypeRHS(ctx: KotlinParser.TypeRHSContext): WolinStateObject {
@@ -927,7 +923,7 @@ class WolinVisitor(
 
                 state.allocReg("for statement this")
 
-                checkTypeAndAddAssignment(ctx, state.currentReg, zmienna)
+                checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "this expression")
 
             }
             else -> błędzik(ctx, "Uknown this reference!")
@@ -963,8 +959,8 @@ class WolinVisitor(
                         // TODO - parametr lambdy może być podany bez typu, w takim wypadku musimy go sobie pobrać
                         // z typu zmiennej, do której jest przypisywana ta lambda (assignLeftSideVar)
 
-                        if (state.assignLeftSideVar != null) {
-                            val funkcja = state.lambdaTypeToFunction(state.assignLeftSideVar!!)
+                        if (state.assignStack.isNotEmpty()) {
+                            val funkcja = state.lambdaTypeToFunction(state.assignStack.assignLeftSideVar)
                             val interred = funkcja.arguments[index]
                             state.createAndRegisterVar(id, AllocType.NORMAL, interred.type, true, "SPF")
                         } else {
@@ -1274,13 +1270,13 @@ class WolinVisitor(
         return state
     }
 
-    fun checkTypeAndAddAssignment(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna) {
+    fun checkTypeAndAddAssignment(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna, comment: String) {
         if (state.pass == Pass.TRANSLATION) {
             val można =
                 state.canBeAssigned(doJakiej.type, co.type) || doJakiej.type.isPointer || co.type.type == "uword"
 
             if (można) {
-                state.code("let ${state.varToAsm(doJakiej)} = ${state.varToAsm(co)} // przez sprawdzacz typów")
+                state.code("let ${state.varToAsm(doJakiej)} = ${state.varToAsm(co)} // przez sprawdzacz typow - $comment")
             } else {
                 błędzik(ctx, "Nie można przypisać ${co} do zmiennej typu ${doJakiej}")
             }
@@ -1296,7 +1292,7 @@ class WolinVisitor(
 
                 val zwrotka = state.callStack[0]
 
-                checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg)
+                checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "jump expression")
 
                 state.switchType(state.currentFunction!!.type, "return expression")
             }
@@ -1482,7 +1478,7 @@ class WolinVisitor(
         easeyCall(ctx, funkcjaAlloc, state.currentReg)
 
         state.rem(" tutaj kod na przepisanie z powyższego rejestru do zwrotki konstruktora")
-        checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg)
+        checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "konstruktor")
 
         state.code("ret")
 
@@ -1808,7 +1804,7 @@ class WolinVisitor(
 
         state.fnCallReleaseArgs(funkcjaAlloc)
 
-        checkTypeAndAddAssignment(ctx, destReg, state.callStack.peek())
+        checkTypeAndAddAssignment(ctx, destReg, state.callStack.peek(), "easey call")
 
         state.fnCallReleaseRet(funkcjaAlloc)
 

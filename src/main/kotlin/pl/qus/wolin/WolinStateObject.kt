@@ -49,9 +49,9 @@ class WolinStateObject(val pass: Pass) {
     val spfUsed get() = variablary.any { it.value.stack == "SPF" }
 
     // potencjalnie wymagające stosu
-    var assignLeftSideVar: Zmienna? = null
-    var assignRightSideFinalVar: Zmienna? = null
-    var arrayAssign = false
+//    var assignLeftSideVar: Zmienna? = null
+//    var assignRightSideFinalVar: Zmienna? = null
+//    var arrayAssign = false
 
     val assignStack = AssignStack()
 

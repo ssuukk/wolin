@@ -5,10 +5,10 @@ var c: uword
 var d: uword
 
 fun main() {
-    b = if(d == 0)
-        {6}
-        else
-        {9}
+    b = when(d) {
+        0 -> 6
+        else -> 9
+    }
 }
 
 
