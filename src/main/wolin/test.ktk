@@ -1,38 +1,14 @@
 package pl.qus.wolin
 
-var tlo: ubyte^53281
-var ramka: ubyte^53280
-
-var oneByteLongArray: ubyte[]
-var twoBytesLongArray: uword[]//^5000
-var fastArray: ubyte[ubyte]
-
 var b  = 2
 var c: uword
 var d: uword
 
 fun main() {
-    //b = oneByteLongArray[5]
-    //b = fastArray[100]
-    //b = 19
-    //c = 12000
-
-    //c = twoBytesLongArray[5]
-
-    // BUG - da się przypisać element tablicy byte do worda!
-
-    //c = twoBytesLongArray[1234] + 666
-
-    when(b) {
-        1 -> c++
-        2 -> c--
-        else -> c =0 
-    }
-
-    sum(4,6)
+    b = if(d == 0)
+        {6}
+        else
+        {9}
 }
 
-fun sum(x: ubyte, y: ubyte): ubyte {
-    return x + y
-}
 

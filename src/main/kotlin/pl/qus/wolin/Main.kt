@@ -161,6 +161,13 @@ allocSP,#1
 
 // daje allocSP,#2
 
+potem dla x mamy:
+
+TXA
+CLC
+ADC #n
+TAX
+
 4. wszystko po throw wyciąć aż do najbliższego labela
 
 throw SP(0)[uword] // nie martwimy sie o sotsy, bo te odtworzy obsluga wyjatku
@@ -295,7 +302,18 @@ ret
 
 TIPSY
 
-1.  An automatic compare-to-zero instruction is built into the following 65c02 instructions:  LDA, LDX, LDY, INC, INX, INY, DEC, DEX, DEY, INA, DEA, AND, ORA, EOR, ASL, LSR, ROL, ROR, PLA, PLX, PLY, SBC, ADC, TAX, TXA, TAY, TYA, and TSX.  This means that, for example, a CMP #0 after an LDA is redundant, a wasted instruction.  The only time a 65c02 (CMOS) needs a compare-to-zero instruction after one of these is if you want to compare a register that was not involved in the previous instruction; for example,
+1.  An automatic compare-to-zero instruction is built into the following 65c02 instructions:
+LDA, LDX, LDY,
+INC, INX, INY,
+DEC, DEX, DEY,
+INA, DEA,
+AND, ORA, EOR,
+ASL, LSR, ROL, ROR,
+PLA, PLX, PLY,
+SBC, ADC,
+TAX, TXA, TAY, TYA, and TSX.
+
+This means that, for example, a CMP #0 after an LDA is redundant, a wasted instruction.  The only time a 65c02 (CMOS) needs a compare-to-zero instruction after one of these is if you want to compare a register that was not involved in the previous instruction; for example,
 
 
         DEY
@@ -308,6 +326,10 @@ http://wilsonminesco.com/6502primer/PgmTips.html
 Fajny opis z illegalami u Bo:
 
 http://www.zimmers.net/anonftp/pub/cbm/documents/chipdata/64doc
+
+Makra do długich skoków itp:
+
+http://wilsonminesco.com/StructureMacros/
 
      */
 

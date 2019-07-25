@@ -62,11 +62,22 @@ alloc SP, #2 -> """
     dex
     dex"""
 
+alloc SP, #3 -> """
+    dex
+    dex
+    dex"""
+
 alloc SP, #4 -> """
     dex
     dex
     dex
     dex"""
+
+alloc SP, #?count -> """
+    txa
+    sec
+    sbc #{count}
+    tax"""
 
 free SP, #0 -> """ """
 
@@ -76,11 +87,22 @@ free SP, #2 -> """
     inx
     inx"""
 
+free SP, #3 -> """
+    inx
+    inx
+    inx"""
+
 free SP, #4 -> """
     inx
     inx
     inx
     inx"""
+
+free SP, #?count -> """
+    txa
+    clc
+    adc #{count}
+    tax"""
 
 // SP -> SP
 

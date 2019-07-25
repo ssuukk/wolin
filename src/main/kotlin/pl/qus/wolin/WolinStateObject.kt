@@ -14,12 +14,6 @@ class WolinStateObject(val pass: Pass) {
     val stackDumpOn = false
     var codeOn = true
     var commentOn = true
-    var assignLeftSideVar: Zmienna? = null
-    var arrayElementSize: Int = 0
-    var simpleWhen = true
-    var lastWhenEntry = false
-
-    var nonTrivialAssign = false
 
     var variablary = hashMapOf<String, Zmienna>()
     var functiary = mutableListOf<Funkcja>()
@@ -42,7 +36,6 @@ class WolinStateObject(val pass: Pass) {
     var classCounter = 0
 
     var basePackage = ""
-    //var fileScopeSuffix = ""
     var currentScopeSuffix = ""
     var currentClass: Klasa? = null
     var currentFunction: Funkcja? = null
@@ -54,6 +47,18 @@ class WolinStateObject(val pass: Pass) {
     val spUsed get() = variablary.any { it.value.stack == "SP" }
 
     val spfUsed get() = variablary.any { it.value.stack == "SPF" }
+
+    // potencjalnie wymagające stosu
+    var assignLeftSideVar: Zmienna? = null
+    var assignRightSideFinalVar: Zmienna? = null
+    var arrayAssign = false
+
+    val assignStack = AssignStack()
+
+    var arrayElementSize: Int = 0
+
+    var simpleWhen = true
+    var lastWhenEntry = false
 
 
     /*****************************************************************
@@ -587,6 +592,20 @@ class WolinStateObject(val pass: Pass) {
         operStack.pop()
 
         dumpStack(operStack)
+    }
+
+    fun freeRegNoPop(comment: String = "") {
+        val zmienna = operStack.peek()
+
+        if (!zmienna.type.isUnit && pass == Pass.TRANSLATION) {
+            var linia = "free SP<${zmienna.name}>, #${zmienna.type.sizeOnStack}"
+            if (comment.isNotBlank()) linia += " // $comment"
+            code(linia)
+        }
+    }
+
+    fun popPostNoPopFree() {
+        operStack.pop()
     }
 
     fun currentRegToAsm(): String = varToAsm(currentReg)

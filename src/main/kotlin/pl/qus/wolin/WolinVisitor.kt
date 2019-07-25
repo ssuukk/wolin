@@ -1,6 +1,5 @@
 package pl.qus.wolin
 
-import org.antlr.v4.codegen.model.decl.Decl
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
 import pl.qus.wolin.components.*
@@ -50,7 +49,6 @@ class WolinVisitor(
         when {
             // ========================================================
             it.blockLevelExpression() != null -> it.blockLevelExpression()?.let {
-                state.allocReg("for block level expression ${it.text.replace("\n", "\\n")}")
 
                 when {
                     it.expression()?.assignmentOperator()?.size != 0 -> {
@@ -81,15 +79,8 @@ class WolinVisitor(
                 state.inferTopOperType()
 
                 if (retVal != null) {
-                    state.code("let ${state.varToAsm(retVal)} = ${state.currentRegToAsm()} // LAMBDA return assignment")
+                    state.code("let ${state.varToAsm(retVal)} = ${state.currentRegToAsm()} // assign block 'return value' to target variable")
                 }
-
-                state.freeReg(
-                    "for block level expression ${it.text.replace(
-                        "\n",
-                        "\\n"
-                    )}, type = ${state.currentWolinType}"
-                )
             }
             // ========================================================
             it.declaration() != null -> it.declaration()?.let {
@@ -128,7 +119,7 @@ class WolinVisitor(
 
             state.assignLeftSideVar = state.currentReg
 
-            state.nonTrivialAssign = true
+            state.arrayAssign = true
 
             val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
 
@@ -157,9 +148,23 @@ class WolinVisitor(
     override fun visitBlock(ctx: KotlinParser.BlockContext): WolinStateObject {
         state.currentScopeSuffix += "."
 
+        val blockValue = state.allocReg("for block 'return value' ${ctx.text.replace("\n", "\\n")}")
+
         ctx.statements()?.statement()?.forEach {
             statementProcessor(it)
         }
+
+        if(state.assignLeftSideVar != null && state.pass == Pass.TRANSLATION && !blockValue.type.isUnit) {
+//            state.code("// ${state.varToAsm(state.assignLeftSideVar!!)} = ${state.varToAsm(blockValue)} visitBlock")
+            checkTypeAndAddAssignment(ctx, state.assignLeftSideVar!!, blockValue)
+        }
+
+        state.freeReg(
+            "for block 'return value' ${ctx.text.replace(
+                "\n",
+                "\\n"
+            )}, type = ${state.currentWolinType}"
+        )
 
         state.currentScopeSuffix = state.currentScopeSuffix.dropLast(1)
 
@@ -511,10 +516,10 @@ class WolinVisitor(
 
         checkTypeAndAddAssignment(ctx, destinationReg, tempSourceReg)
 
-        if (state.nonTrivialAssign) {
+        if (state.arrayAssign) {
             // też niepotrzebne
             //state.code("let ${state.varToAsm(leftSide)} = ${state.varToAsm(tempSourceReg)} // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN")
-            state.nonTrivialAssign = false
+            state.arrayAssign = false
         }
         state.freeReg("for value that gets assigned to left side, type = ${state.currentWolinType}")
 
@@ -1078,7 +1083,7 @@ class WolinVisitor(
     override fun visitWhenExpression(ctx: KotlinParser.WhenExpressionContext): WolinStateObject {
         state.rem("When expression start")
         if (ctx.expression() != null) {
-            val resultReg = state.allocReg("for when expression")
+            val resultReg = state.allocReg("for when top expression")
             state.simpleWhen = false
             visitExpression(ctx.expression())
             state.inferTopOperType()
@@ -1113,7 +1118,7 @@ class WolinVisitor(
         state.freeReg("for condition result")
 
         if (!state.simpleWhen)
-            state.freeReg()
+            state.freeReg("for when top expression")
 
         return state
     }
@@ -1193,11 +1198,15 @@ class WolinVisitor(
         val warunek = ctx.expression()
         val body = ctx.controlStructureBody()
 
-        state.allocReg("equality result", Typ.bool)
+        //val blockReturnValue = state.currentReg
+
+        //state.allocReg("if expression value result", Typ.ubyte)
+        state.allocReg("condition expression bool result", Typ.bool)
 
         visitExpression(warunek)
 
         val elseLabel = labelMaker("afterIfExpression", state.labelCounter)
+        val endIfLabel = labelMaker("afterWholeIf", state.labelCounter)
 
         when {
             body.size == 1 -> {
@@ -1214,6 +1223,7 @@ class WolinVisitor(
                 state.code("bne ${state.currentRegToAsm()} = #1[bool], $elseLabel<label_DO_else>[uword]")
                 state.rem(" body dla true")
                 visitControlStructureBody(body[0])
+                state.code("goto $endIfLabel")
                 state.code("label $elseLabel")
                 state.rem(" body dla false/else")
                 visitControlStructureBody(body[1])
@@ -1223,7 +1233,11 @@ class WolinVisitor(
             }
         }
 
-        state.freeReg("equality result")
+        state.code("label $endIfLabel")
+
+        //state.popPostNoPopFree()
+        state.freeReg("condition expression bool result")
+        //state.freeReg("if expression value result")
 
         state.labelCounter++
 
@@ -1268,7 +1282,7 @@ class WolinVisitor(
             if (można) {
                 state.code("let ${state.varToAsm(doJakiej)} = ${state.varToAsm(co)} // przez sprawdzacz typów")
             } else {
-                błędzik(ctx, "Nie można przypisać ${co.type} do zmiennej typu ${doJakiej.type}")
+                błędzik(ctx, "Nie można przypisać ${co} do zmiennej typu ${doJakiej}")
             }
         }
     }
@@ -1744,10 +1758,14 @@ class WolinVisitor(
 
             //state.allocReg("for lambda ${nowaFunkcja.name} return value",  nowaFunkcja.type?.type ?: "unit")
 
+            state.allocReg("for lambda 'return value' ${state.currentFunction?.fullName}")
+
             state.currentFunction!!.lambdaBody?.statement()?.forEach {
                 val zwrotka = state.callStack[0]
                 statementProcessor(it, zwrotka)
             }
+
+            state.freeReg("for lambda 'return value' ${state.currentFunction?.fullName}")
 
             state.switchType(state.currentFunction!!.type, "return expression")
 
