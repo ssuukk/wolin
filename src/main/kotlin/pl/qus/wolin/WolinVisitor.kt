@@ -1069,7 +1069,6 @@ class WolinVisitor(
         when {
             ctx.ifExpression() != null -> visitIfExpression(ctx.ifExpression())
             ctx.whenExpression() != null -> visitWhenExpression(ctx.whenExpression())
-            //ctx.whenExpression() != null -> visitWhenExpression(ctx.whenExpression())
             else -> błędzik(ctx, "Unknown conditional")
         }
 
@@ -1078,8 +1077,10 @@ class WolinVisitor(
 
     override fun visitWhenExpression(ctx: KotlinParser.WhenExpressionContext): WolinStateObject {
         state.rem("When expression start")
+
+
         if (ctx.expression() != null) {
-            val resultReg = state.allocReg("for when top expression")
+            val resultReg = state.allocReg("for evaluating when top expression")
             state.simpleWhen = false
             visitExpression(ctx.expression())
             state.inferTopOperType()
@@ -1087,12 +1088,19 @@ class WolinVisitor(
             state.simpleWhen = true
         }
 
-        val boolReg = state.allocReg("for condition result", Typ.bool)
-        val condReg = state.allocReg("for evaluating when condition")
+        val resultReg = state.allocReg("for bool result of each condition", Typ.bool)
+        //val condReg = state.allocReg("for evaluating each when branch condition") // TODO - dostaje zły typ!
+
+        val valueForAssign = state.allocReg("for value if when assigned")
+
+        if(state.assignStack.isNotEmpty())
+            valueForAssign.type = state.assignStack.assignLeftSideVar.type
 
 
-        if (!state.simpleWhen)
-            condReg.type = state.currentWolinType
+//        if (!state.simpleWhen)
+//            condReg.type = state.currentWolinType
+
+        // TODO - przy podstawieniu wymysić else!
 
         if (ctx.whenEntry().size > 0) {
             state.lastWhenEntry = false
@@ -1110,11 +1118,17 @@ class WolinVisitor(
 
         state.code("label ${labelMaker("whenEndLabel", state.whenCounter++)}")
 
-        state.freeReg("for evaluating when condition")
-        state.freeReg("for condition result")
+        if(state.assignStack.isNotEmpty())
+            checkTypeAndAddAssignment(ctx, state.assignStack.assignRightSideFinalVar, valueForAssign, "when assignment")
+
+        state.freeReg("for value if when assigned")
+
+        //state.freeReg("for evaluating each when branch condition")
+        state.freeReg("for bool result of each condition")
 
         if (!state.simpleWhen)
-            state.freeReg("for when top expression")
+            state.freeReg("for evaluating when top expression")
+
 
         return state
     }

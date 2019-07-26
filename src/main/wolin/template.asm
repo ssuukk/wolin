@@ -503,6 +503,17 @@ evaleq SP(?dest)[bool] = SP(?left)[uword], SP(?right)[uword] -> """
     sta {dest},x
 :"""
 
+evaleq SP(?dest)[bool] = SP(?left)[uword], SP(?right)[ubyte] -> """
+    lda #0 // rozne
+    sta {dest},x
+    lda {left}+1,x
+    bne +
+    lda {left},x
+    cmp {right},x
+    bne +
+    lda #1 // rowne
+    sta {dest},x
+:"""
 
 evalless SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     lda #1 // mniejsze
