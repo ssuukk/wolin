@@ -7,6 +7,28 @@
 // funkcje startowe
 //============================================
 
+setup HEADER -> """
+;**********************************************
+;*
+;* BASIC header
+;*
+;* compile with
+;* ca65.exe assembler.s
+;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg assembler.s
+;*
+;**********************************************
+            .org 2049
+            .export LOADADDR = *
+Bas10:      .word BasEnd ; 2049
+            .word 10     ; 2051
+            .byte 158 ; sys ;2053
+            .byte ' 2062' ; 2054
+            .byte 0 ; 2059
+BasEnd:     .word 0 ; 2060
+            .word 0 ; 2061
+            ;
+"""
+
 setup SPE = ?zp[ubyte], ?top[uword] -> """
 ; prepare exception stack
 __wolin_spe = {zp} ; exception stack ptr
@@ -492,7 +514,7 @@ evaleq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     sta {dest},x
     lda {left},x
     cmp {right},x
-    beq +
+    beq +:
     lda #0 ; jednak rozne
     sta {dest},x
 :"""
@@ -502,10 +524,10 @@ evaleq SP(?dest)[bool] = SP(?left)[uword], SP(?right)[uword] -> """
     sta {dest},x
     lda {left},x
     cmp {right},x
-    bne +
+    bne +:
     lda {left}+1
     cmp {right}+1
-    bne +
+    bne +:
     lda #1
     sta {dest},x
 :"""
@@ -514,10 +536,10 @@ evaleq SP(?dest)[bool] = SP(?left)[uword], SP(?right)[ubyte] -> """
     lda #0 ; rozne
     sta {dest},x
     lda {left}+1,x
-    bne +
+    bne :+
     lda {left},x
     cmp {right},x
-    bne +
+    bne :+
     lda #1 ; rowne
     sta {dest},x
 :"""
@@ -527,7 +549,7 @@ evalless SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     sta {dest},x
     lda {left},x
     cmp {right},x
-    bcc +
+    bcc :+
     lda #0 ; jednak wieksze
     sta {dest},x
 :"""
@@ -537,7 +559,7 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     sta {dest},x
     lda {left},x
     cmp {right},x
-    bcs +
+    bcs :+
     lda #0 ; jednak mniejsze
     sta {dest},x
 :"""
@@ -599,7 +621,7 @@ let SP(?dst)[ptr] = SP(?src)[uword] -> """
     lda {src},x
     sta ({dst},x)
     inc {dst},x
-    bne +
+    bne :+
     inc {dst}+1,x
 :
     lda {src}+1,x
@@ -611,7 +633,7 @@ let SP(?dst)[uword] = SP(?src)[ptr] -> """
     lda ({src},x)
     sta {dst},x
     inc {src},x
-    bne +
+    bne :+
     inc {src}+1,x
 :
     lda ({src},x)

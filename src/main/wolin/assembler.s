@@ -1,3 +1,27 @@
+; setupHEADER
+
+
+;**********************************************
+;*
+;* BASIC header
+;*
+;* compile with
+;* ca65.exe assembler.s
+;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg assembler.s
+;*
+;**********************************************
+            .org 2049
+            .export LOADADDR = *
+Bas10:      .word BasEnd ; 2049
+            .word 10     ; 2051
+            .byte 158 ; sys ;2053
+            .byte " 2062" ; 2054
+            .byte 0 ; 2059
+BasEnd:     .word 0 ; 2060
+            .word 0 ; 2061
+            ;
+
+
 ; setupSPF=251[ubyte],40959[uword]
 
 

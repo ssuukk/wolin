@@ -1603,6 +1603,9 @@ class WolinVisitor(
 
     override fun visitKotlinFile(ctx: KotlinParser.KotlinFileContext): WolinStateObject {
         // TODO: to powinno być includem dla c64
+
+        state.code("setup HEADER")
+
         if (state.exceptionsUsed) {
             state.code("setup SPE = 155[ubyte], 53247[uword] // exception stack pointer at 155 = 53247 (was: datasette something)")
             state.code("setup EXPTR = 178[ubyte] // ptr to Exception object when exception occurs (was: datasette buffer)")

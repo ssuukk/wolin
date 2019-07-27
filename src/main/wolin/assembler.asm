@@ -1,3 +1,4 @@
+setup HEADER
 setup SPF = 251[ubyte], 40959[uword] // call stack pointer at 251 = 40959
 setup SP = 143[ubyte] // register stack top = 142
 //  main function entry
@@ -41,7 +42,7 @@ free SP<__wolin_reg6>, #1 // RIGHT equality check: evaleq
 free SP<__wolin_reg5>, #2 // LEFT equality check: evaleq
 // SAFE INFER TOP: __wolin_reg4: bool = 0 -> no change
 // Using already known __wolin_reg7
-alloc SP<__wolin_reg7>, #1 // for value if when assigned
+alloc SP<__wolin_reg7>, #1 // for value when if assigned
 bne SP(1)<__wolin_reg4>[bool] = #1[bool], __wolin_lab_afterIfExpression_0<label_DO_else>[adr]
 //  body dla true
 // switchType to:ubyte by parse literal constant
@@ -53,7 +54,7 @@ label __wolin_lab_afterIfExpression_0
 let SP(0)<__wolin_reg7>[ubyte] = #9[ubyte] // atomic ex
 label __wolin_lab_afterWholeIf_0
 let SP(2)<__wolin_reg3>[ubyte] = SP(0)<__wolin_reg7>[ubyte] // przez sprawdzacz typow - assign if expression result
-free SP<__wolin_reg7>, #1 // for value if when assigned
+free SP<__wolin_reg7>, #1 // for value when if assigned
 free SP<__wolin_reg4>, #1 // condition expression bool result
 let __wolin_pl_qus_wolin_b<pl.qus.wolin.b>[ubyte] = SP(0)<__wolin_reg3>[ubyte] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg3>, #1 // for value that gets assigned to left side, type = ubyte
