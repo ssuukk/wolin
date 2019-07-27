@@ -53,13 +53,17 @@ __wolin_pl_qus_wolin_main:
 
     dex
 
-; allocSP<__wolin_reg4>,#2
+; allocSP<__wolin_reg4>,#1
+
+    dex
+
+; allocSP<__wolin_reg5>,#2
 
 
     dex
     dex
 
-; letSP(0)<__wolin_reg4>[uword]=__wolin_pl_qus_wolin_d<pl.qus.wolin.d>[uword]
+; letSP(0)<__wolin_reg5>[uword]=__wolin_pl_qus_wolin_d<pl.qus.wolin.d>[uword]
 
 
     lda #<__wolin_pl_qus_wolin_d
@@ -67,17 +71,9 @@ __wolin_pl_qus_wolin_main:
     lda #>__wolin_pl_qus_wolin_d
     sta 0+1,x
 
-; allocSP<__wolin_reg5>,#1
-
-    dex
-
 ; allocSP<__wolin_reg6>,#1
 
     dex
-
-; label__wolin_lab_whenLabel_0
-
-__wolin_lab_whenLabel_0:
 
 ; letSP(0)<__wolin_reg6>[ubyte]=#0[ubyte]
 
@@ -85,110 +81,76 @@ __wolin_lab_whenLabel_0:
     lda #0
     sta 0,x
 
-; evaleqSP(1)<__wolin_reg5>[bool]=SP(2)<__wolin_reg4>[uword],SP(0)<__wolin_reg6>[ubyte]
+; evaleqSP(3)<__wolin_reg4>[bool]=SP(1)<__wolin_reg5>[uword],SP(0)<__wolin_reg6>[ubyte]
 
 
     lda #0 // rozne
-    sta 1,x
-    lda 2+1,x
+    sta 3,x
+    lda 1+1,x
     bne +
-    lda 2,x
+    lda 1,x
     cmp 0,x
     bne +
     lda #1 // rowne
-    sta 1,x
+    sta 3,x
 :
-
-; bneSP(1)<__wolin_reg5>[bool]=#1[bool],__wolin_lab_whenLabel_1[adr]
-
-
-    lda 1,x
-    cmp #1
-    bne __wolin_lab_whenLabel_1
-
-; letSP(0)<__wolin_reg6>[ubyte]=#6[ubyte]
-
-
-    lda #6
-    sta 0,x
-
-; goto__wolin_lab_whenEndLabel_0[adr]
-
-    jmp __wolin_lab_whenEndLabel_0
-
-; label__wolin_lab_whenLabel_1
-
-__wolin_lab_whenLabel_1:
-
-; letSP(0)<__wolin_reg6>[ubyte]=#1[ubyte]
-
-
-    lda #1
-    sta 0,x
-
-; evaleqSP(1)<__wolin_reg5>[bool]=SP(2)<__wolin_reg4>[uword],SP(0)<__wolin_reg6>[ubyte]
-
-
-    lda #0 // rozne
-    sta 1,x
-    lda 2+1,x
-    bne +
-    lda 2,x
-    cmp 0,x
-    bne +
-    lda #1 // rowne
-    sta 1,x
-:
-
-; bneSP(1)<__wolin_reg5>[bool]=#1[bool],__wolin_lab_whenLabel_2[adr]
-
-
-    lda 1,x
-    cmp #1
-    bne __wolin_lab_whenLabel_2
-
-; letSP(0)<__wolin_reg6>[ubyte]=#7[ubyte]
-
-
-    lda #7
-    sta 0,x
-
-; goto__wolin_lab_whenEndLabel_0[adr]
-
-    jmp __wolin_lab_whenEndLabel_0
-
-; label__wolin_lab_whenLabel_2
-
-__wolin_lab_whenLabel_2:
-
-; letSP(0)<__wolin_reg6>[ubyte]=#9[ubyte]
-
-
-    lda #9
-    sta 0,x
-
-; label__wolin_lab_whenEndLabel_0
-
-__wolin_lab_whenEndLabel_0:
-
-; letSP(4)<__wolin_reg3>[ubyte]=SP(0)<__wolin_reg6>[ubyte]
-
-
-    lda 0,x
-    sta 4,x
 
 ; freeSP<__wolin_reg6>,#1
 
     inx
 
-; freeSP<__wolin_reg5>,#1
-
-    inx
-
-; freeSP<__wolin_reg4>,#2
+; freeSP<__wolin_reg5>,#2
 
 
     inx
+    inx
+
+; allocSP<__wolin_reg7>,#1
+
+    dex
+
+; bneSP(1)<__wolin_reg4>[bool]=#1[bool],__wolin_lab_afterIfExpression_0<label_DO_else>[adr]
+
+
+    lda 1,x
+    beq __wolin_lab_afterIfExpression_0
+
+; letSP(0)<__wolin_reg7>[ubyte]=#6[ubyte]
+
+
+    lda #6
+    sta 0,x
+
+; goto__wolin_lab_afterWholeIf_0[adr]
+
+    jmp __wolin_lab_afterWholeIf_0
+
+; label__wolin_lab_afterIfExpression_0
+
+__wolin_lab_afterIfExpression_0:
+
+; letSP(0)<__wolin_reg7>[ubyte]=#9[ubyte]
+
+
+    lda #9
+    sta 0,x
+
+; label__wolin_lab_afterWholeIf_0
+
+__wolin_lab_afterWholeIf_0:
+
+; letSP(2)<__wolin_reg3>[ubyte]=SP(0)<__wolin_reg7>[ubyte]
+
+
+    lda 0,x
+    sta 2,x
+
+; freeSP<__wolin_reg7>,#1
+
+    inx
+
+; freeSP<__wolin_reg4>,#1
+
     inx
 
 ; let__wolin_pl_qus_wolin_b<pl.qus.wolin.b>[ubyte]=SP(0)<__wolin_reg3>[ubyte]

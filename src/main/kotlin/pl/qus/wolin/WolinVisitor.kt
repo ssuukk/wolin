@@ -1208,19 +1208,22 @@ class WolinVisitor(
         val warunek = ctx.expression()
         val body = ctx.controlStructureBody()
 
-        //val blockReturnValue = state.currentReg
-
-        //state.allocReg("if expression value result", Typ.ubyte)
-        state.allocReg("condition expression bool result", Typ.bool)
+        val condBoolRes = state.allocReg("condition expression bool result", Typ.bool)
 
         visitExpression(warunek)
+
+        val valueForAssign = state.allocReg("for value when if assigned")
+
+        if(state.assignStack.isNotEmpty())
+            valueForAssign.type = state.assignStack.assignLeftSideVar.type
+
 
         val elseLabel = labelMaker("afterIfExpression", state.labelCounter)
         val endIfLabel = labelMaker("afterWholeIf", state.labelCounter)
 
         when {
             body.size == 1 -> {
-                state.code("bne ${state.currentRegToAsm()} = #1[bool], $elseLabel<label_po_if>[uword]")
+                state.code("bne ${state.varToAsm(condBoolRes)} = #1[bool], $elseLabel<label_po_if>[adr]")
                 state.rem(" body dla true")
                 visitControlStructureBody(body[0])
                 state.rem(" label po if")
@@ -1230,10 +1233,10 @@ class WolinVisitor(
             body.size == 2 -> {
                 //val elseLabel = labelMaker("elseExpression",state.labelCounter)
 
-                state.code("bne ${state.currentRegToAsm()} = #1[bool], $elseLabel<label_DO_else>[uword]")
+                state.code("bne ${state.varToAsm(condBoolRes)} = #1[bool], $elseLabel<label_DO_else>[adr]")
                 state.rem(" body dla true")
                 visitControlStructureBody(body[0])
-                state.code("goto $endIfLabel")
+                state.code("goto $endIfLabel[adr]")
                 state.code("label $elseLabel")
                 state.rem(" body dla false/else")
                 visitControlStructureBody(body[1])
@@ -1245,9 +1248,12 @@ class WolinVisitor(
 
         state.code("label $endIfLabel")
 
-        //state.popPostNoPopFree()
+        if(state.assignStack.isNotEmpty())
+            checkTypeAndAddAssignment(ctx, state.assignStack.assignRightSideFinalVar, valueForAssign, "assign if expression result")
+
+        state.freeReg("for value when if assigned")
+
         state.freeReg("condition expression bool result")
-        //state.freeReg("if expression value result")
 
         state.labelCounter++
 

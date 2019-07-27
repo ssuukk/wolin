@@ -472,13 +472,20 @@ bne SPE = ?value, ?dest -> """
 
 bne SP(?s)[bool] = #1[bool], ?dest[adr] -> """
     lda {s},x
-    cmp #1
-    bne {dest}"""
+    beq {dest}"""
 
 beq SP(?s)[bool] = #1[bool], ?dest[adr] -> """
     lda {s},x
-    cmp #1
+    bne {dest}"""
+
+bne SP(?s)[bool] = #0[bool], ?dest[adr] -> """
+    lda {s},x
+    bne {dest}"""
+
+beq SP(?s)[bool] = #0[bool], ?dest[adr] -> """
+    lda {s},x
     beq {dest}"""
+
 
 evaleq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     lda #1 // rowne

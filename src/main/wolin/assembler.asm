@@ -24,51 +24,37 @@ alloc SP<__wolin_reg2>, #1 // For assignment left side
 //  prawa strona assignment
 // Using already known __wolin_reg3
 alloc SP<__wolin_reg3>, #1 // for value that gets assigned to left side
-// When expression start
 // Using already known __wolin_reg4
-alloc SP<__wolin_reg4>, #2 // for evaluating when top expression
-let SP(0)<__wolin_reg4>[uword] = __wolin_pl_qus_wolin_d<pl.qus.wolin.d>[uword] // simple id from var
-// switchType to:uword by type from pl.qus.wolin.d
-// SAFE INFER TOP: __wolin_reg4: uword = 0 -> no change
+alloc SP<__wolin_reg4>, #1 // condition expression bool result
 // Using already known __wolin_reg5
-alloc SP<__wolin_reg5>, #1 // for bool result of each condition
+alloc SP<__wolin_reg5>, #2 // LEFT equality check: evaleq
+let SP(0)<__wolin_reg5>[uword] = __wolin_pl_qus_wolin_d<pl.qus.wolin.d>[uword] // simple id from var
+// switchType to:uword by type from pl.qus.wolin.d
+// SAFE INFER TOP: __wolin_reg5: uword = 0 -> no change
 // Using already known __wolin_reg6
-alloc SP<__wolin_reg6>, #1 // for value if when assigned
-// normal when condition
-// warunek
-label __wolin_lab_whenLabel_0
+alloc SP<__wolin_reg6>, #1 // RIGHT equality check: evaleq
 // switchType to:ubyte by parse literal constant
 let SP(0)<__wolin_reg6>[ubyte] = #0[ubyte] // atomic ex
-evaleq SP(1)<__wolin_reg5>[bool] = SP(2)<__wolin_reg4>[uword], SP(0)<__wolin_reg6>[ubyte]
-bne SP(1)<__wolin_reg5>[bool] = #1[bool], __wolin_lab_whenLabel_1[adr]
-// when operacja
+// SAFE INFER TOP: __wolin_reg6: ubyte = 0 -> no change
+evaleq SP(3)<__wolin_reg4>[bool] = SP(1)<__wolin_reg5>[uword], SP(0)<__wolin_reg6>[ubyte] // two sides
+free SP<__wolin_reg6>, #1 // RIGHT equality check: evaleq
+free SP<__wolin_reg5>, #2 // LEFT equality check: evaleq
+// SAFE INFER TOP: __wolin_reg4: bool = 0 -> no change
+// Using already known __wolin_reg7
+alloc SP<__wolin_reg7>, #1 // for value if when assigned
+bne SP(1)<__wolin_reg4>[bool] = #1[bool], __wolin_lab_afterIfExpression_0<label_DO_else>[adr]
+//  body dla true
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg6>[ubyte] = #6[ubyte] // atomic ex
-goto __wolin_lab_whenEndLabel_0[adr]
-// normal when condition
-// warunek
-label __wolin_lab_whenLabel_1
+let SP(0)<__wolin_reg7>[ubyte] = #6[ubyte] // atomic ex
+goto __wolin_lab_afterWholeIf_0[adr]
+label __wolin_lab_afterIfExpression_0
+//  body dla false/else
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg6>[ubyte] = #1[ubyte] // atomic ex
-evaleq SP(1)<__wolin_reg5>[bool] = SP(2)<__wolin_reg4>[uword], SP(0)<__wolin_reg6>[ubyte]
-bne SP(1)<__wolin_reg5>[bool] = #1[bool], __wolin_lab_whenLabel_2[adr]
-// when operacja
-// switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg6>[ubyte] = #7[ubyte] // atomic ex
-goto __wolin_lab_whenEndLabel_0[adr]
-// last when condition
-// warunek
-label __wolin_lab_whenLabel_2
-// when else branch
-// when operacja
-// switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg6>[ubyte] = #9[ubyte] // atomic ex
-// When expression end
-label __wolin_lab_whenEndLabel_0
-let SP(4)<__wolin_reg3>[ubyte] = SP(0)<__wolin_reg6>[ubyte] // przez sprawdzacz typow - when assignment
-free SP<__wolin_reg6>, #1 // for value if when assigned
-free SP<__wolin_reg5>, #1 // for bool result of each condition
-free SP<__wolin_reg4>, #2 // for evaluating when top expression
+let SP(0)<__wolin_reg7>[ubyte] = #9[ubyte] // atomic ex
+label __wolin_lab_afterWholeIf_0
+let SP(2)<__wolin_reg3>[ubyte] = SP(0)<__wolin_reg7>[ubyte] // przez sprawdzacz typow - assign if expression result
+free SP<__wolin_reg7>, #1 // for value if when assigned
+free SP<__wolin_reg4>, #1 // condition expression bool result
 let __wolin_pl_qus_wolin_b<pl.qus.wolin.b>[ubyte] = SP(0)<__wolin_reg3>[ubyte] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg3>, #1 // for value that gets assigned to left side, type = ubyte
 free SP<__wolin_reg2>, #1 // For assignment left side
