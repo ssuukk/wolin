@@ -488,17 +488,17 @@ beq SP(?s)[bool] = #0[bool], ?dest[adr] -> """
 
 
 evaleq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
-    lda #1 // rowne
+    lda #1 ; rowne
     sta {dest},x
     lda {left},x
     cmp {right},x
     beq +
-    lda #0 // jednak rozne
+    lda #0 ; jednak rozne
     sta {dest},x
 :"""
 
 evaleq SP(?dest)[bool] = SP(?left)[uword], SP(?right)[uword] -> """
-    lda #0 // rozne
+    lda #0 ; rozne
     sta {dest},x
     lda {left},x
     cmp {right},x
@@ -511,34 +511,34 @@ evaleq SP(?dest)[bool] = SP(?left)[uword], SP(?right)[uword] -> """
 :"""
 
 evaleq SP(?dest)[bool] = SP(?left)[uword], SP(?right)[ubyte] -> """
-    lda #0 // rozne
+    lda #0 ; rozne
     sta {dest},x
     lda {left}+1,x
     bne +
     lda {left},x
     cmp {right},x
     bne +
-    lda #1 // rowne
+    lda #1 ; rowne
     sta {dest},x
 :"""
 
 evalless SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
-    lda #1 // mniejsze
+    lda #1 ; mniejsze
     sta {dest},x
     lda {left},x
     cmp {right},x
     bcc +
-    lda #0 // jednak wieksze
+    lda #0 ; jednak wieksze
     sta {dest},x
 :"""
 
 evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
-    lda #1 // wieksze badz rowne
+    lda #1 ; wieksze badz rowne
     sta {dest},x
     lda {left},x
     cmp {right},x
     bcs +
-    lda #0 // jednak mniejsze
+    lda #0 ; jednak mniejsze
     sta {dest},x
 :"""
 
@@ -765,7 +765,7 @@ throw SP(?s)[uword] -> """
 let SP(?dest)[bool] = CPU.Z[bool] -> """
     lda #1
     sta {dest},x
-    beq +
+    beq :+
     lda #0
     sta {dest},x
 :
@@ -773,10 +773,10 @@ let SP(?dest)[bool] = CPU.Z[bool] -> """
 
 let CPU.I[bool] = SP(?dest)[bool] -> """
     lda {dest},x
-    bne +      // dest != 0? goto skip
-    cli         // dest == 0? I = 0
-    jmp ++
-:   sei         // I = 1
+    bne :+      ; dest != 0? goto skip
+    cli         ; dest == 0? I = 0
+    jmp :++
+:   sei         ; I = 1
 :
 """
 
@@ -804,33 +804,33 @@ let CPU.Y[ubyte] = SP(?s)[ubyte] -> """
 
 callasm CPU.A[ubyte] = #?v[ubyte] -> """
     lda #{v}
-    sta __kotlin_call_stub + 1
+    sta __kotlin_call_stub :+ 1
 """
 
 callasm CPU.X[ubyte] = #?v[ubyte] -> """
     lda #{v}
-    sta __kotlin_call_stub + 3
+    sta __kotlin_call_stub :+ 3
 """
 
 callasm CPU.Y[ubyte] = #?v[ubyte] -> """
     lda #{v}
-    sta __kotlin_call_stub + 5
+    sta __kotlin_call_stub :+ 5
 """
 
 callasm CPU.XY[adr] = ?v[adr] -> """
     lda #<{v}
-    sta __kotlin_call_stub + 3
+    sta __kotlin_call_stub :+ 3
     lda #>{v}
-    sta __kotlin_call_stub + 5
+    sta __kotlin_call_stub :+ 5
 """
 
 callasm ?adr[adr] -> """
     txa
     pha
     lda #<{adr}
-    sta __kotlin_call_stub + 7
+    sta __kotlin_call_stub :+ 7
     lda #>{adr}
-    sta __kotlin_call_stub + 8
+    sta __kotlin_call_stub :+ 8
     jsr __kotlin_call_stub
     pla
     tax
@@ -864,14 +864,14 @@ restore CPU.A -> """
 
 or SP(?d)[bool] = SP(?d)[bool], SP(?s)[bool] -> """
     lda {s},x
-    beq +
+    beq :+
     sta {d},x
 :
 """
 
 and SP(?d)[bool] = SP(?d)[bool], SP(?s)[bool] -> """
     lda {s},x
-    bne +
+    bne :+
     sta {d},x
 :
 """

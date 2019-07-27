@@ -84,14 +84,14 @@ __wolin_pl_qus_wolin_main:
 ; evaleqSP(3)<__wolin_reg4>[bool]=SP(1)<__wolin_reg5>[uword],SP(0)<__wolin_reg6>[ubyte]
 
 
-    lda #0 // rozne
+    lda #0 ; rozne
     sta 3,x
     lda 1+1,x
-    bne +
+    bne :+
     lda 1,x
     cmp 0,x
-    bne +
-    lda #1 // rowne
+    bne :+
+    lda #1 ; rowne
     sta 3,x
 :
 
