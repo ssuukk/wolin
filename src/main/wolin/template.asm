@@ -160,11 +160,11 @@ let SP(?d)[ubyte] = SP(?s)[ubyte] -> """
 
 let SP(?d)[bool] = #1[bool] -> """
     lda #1
-    sta{d},x"""
+    sta {d},x"""
 
 let SP(?d)[bool] = #0[bool] -> """
     lda #0
-    sta{d},x"""
+    sta {d},x"""
 
 let SP(?d)[bool] = ?addr[bool] -> """
     lda {addr}
@@ -931,10 +931,10 @@ div SP(?d)[ubyte] = SP(?d)[ubyte], #8 -> """
 
 div SP(?d)[word] = SP(?dzielna)[word],SP(?dzielnik)[word] -> """  jsr stack_div"""
 
-add ?dest[ubyte] = ?dest[ubyte], #1[byte] -> """
+add ?dest[ubyte] = ?dest[ubyte], #1[ubyte] -> """
     inc {dest}"""
 
-sub ?dest[ubyte] = ?dest[ubyte], #1[byte] -> """
+sub ?dest[ubyte] = ?dest[ubyte], #1[ubyte] -> """
     dec {dest}"""
 
 add ?dest[ubyte] = ?src[ubyte], #?val[byte] -> """

@@ -1025,19 +1025,21 @@ class WolinVisitor(
 
         val afterBodyLabel = labelMaker("loopEnd", state.loopCounter)
 
-        state.code("label $condLabel")
+        state.allocReg("for while condition", Typ.bool)
 
-        state.forceTopOregType(Typ.bool)
+        state.code("label $condLabel")
 
         visitExpression(ctx.expression())
 
-        state.code("bne ${state.currentRegToAsm()} = #1[bool], $afterBodyLabel<label_po_if>[uword]")
+        state.code("bne ${state.currentRegToAsm()} = #1[bool], $afterBodyLabel<label_po_if>[adr]")
 
         visitControlStructureBody(ctx.controlStructureBody())
 
         state.code("goto $condLabel[adr]")
 
         state.code("label $afterBodyLabel")
+
+        state.freeReg("for while condition")
 
         return state
     }

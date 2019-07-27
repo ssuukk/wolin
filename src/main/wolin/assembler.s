@@ -11,13 +11,13 @@
 ;**********************************************
             .org 2049
             .export LOADADDR = *
-Bas10:      .word BasEnd ; 2049
-            .word 10     ; 2051
-            .byte 158 ; sys ;2053
-            .byte ' 2064' ; 2054
-            .byte 0 ; 2059
-BasEnd:     .word 0 ; 2060
-            .word 0 ; 2061
+Bas10:      .word BasEnd
+            .word 10
+            .byte 158 ; sys
+            .byte " 2064"
+            .byte 0
+BasEnd:     .word 0
+            .word 0
             ;
 
 
@@ -70,126 +70,82 @@ __wolin_sp_top = 143 ; program stack top
 
 __wolin_pl_qus_wolin_main:
 
+; allocSP<__wolin_reg1>,#1
+
+    dex
+
 ; allocSP<__wolin_reg2>,#1
 
     dex
+
+; label__wolin_lab_loopStart_1
+
+__wolin_lab_loopStart_1:
 
 ; allocSP<__wolin_reg3>,#1
 
     dex
 
+; letSP(0)<__wolin_reg3>[ubyte]=53280[ubyte]
+
+
+    lda 53280
+    sta 0,x
+
 ; allocSP<__wolin_reg4>,#1
 
     dex
 
-; allocSP<__wolin_reg5>,#2
+; letSP(0)<__wolin_reg4>[ubyte]=#255[ubyte]
 
 
-    dex
-    dex
-
-; letSP(0)<__wolin_reg5>[uword]=__wolin_pl_qus_wolin_d<pl.qus.wolin.d>[uword]
-
-
-    lda #<__wolin_pl_qus_wolin_d
-    sta 0,x
-    lda #>__wolin_pl_qus_wolin_d
-    sta 0+1,x
-
-; allocSP<__wolin_reg6>,#1
-
-    dex
-
-; letSP(0)<__wolin_reg6>[ubyte]=#0[ubyte]
-
-
-    lda #0
+    lda #255
     sta 0,x
 
-; evaleqSP(3)<__wolin_reg4>[bool]=SP(1)<__wolin_reg5>[uword],SP(0)<__wolin_reg6>[ubyte]
+; evallessSP(2)<__wolin_reg2>[bool]=SP(1)<__wolin_reg3>[ubyte],SP(0)<__wolin_reg4>[ubyte]
 
 
-    lda #0 ; rozne
-    sta 3,x
-    lda 1+1,x
-    bne :+
+    lda #1 ; mniejsze
+    sta 2,x
     lda 1,x
     cmp 0,x
-    bne :+
-    lda #1 ; rowne
-    sta 3,x
-:
-
-; freeSP<__wolin_reg6>,#1
-
-    inx
-
-; freeSP<__wolin_reg5>,#2
-
-
-    inx
-    inx
-
-; allocSP<__wolin_reg7>,#1
-
-    dex
-
-; bneSP(1)<__wolin_reg4>[bool]=#1[bool],__wolin_lab_afterIfExpression_0<label_DO_else>[adr]
-
-
-    lda 1,x
-    beq __wolin_lab_afterIfExpression_0
-
-; letSP(0)<__wolin_reg7>[ubyte]=#6[ubyte]
-
-
-    lda #6
-    sta 0,x
-
-; goto__wolin_lab_afterWholeIf_0[adr]
-
-    jmp __wolin_lab_afterWholeIf_0
-
-; label__wolin_lab_afterIfExpression_0
-
-__wolin_lab_afterIfExpression_0:
-
-; letSP(0)<__wolin_reg7>[ubyte]=#9[ubyte]
-
-
-    lda #9
-    sta 0,x
-
-; label__wolin_lab_afterWholeIf_0
-
-__wolin_lab_afterWholeIf_0:
-
-; letSP(2)<__wolin_reg3>[ubyte]=SP(0)<__wolin_reg7>[ubyte]
-
-
-    lda 0,x
+    bcc :+
+    lda #0 ; jednak wieksze
     sta 2,x
-
-; freeSP<__wolin_reg7>,#1
-
-    inx
+:
 
 ; freeSP<__wolin_reg4>,#1
 
     inx
 
-; let53280[ubyte]=SP(0)<__wolin_reg3>[ubyte]
-
-
-    lda 0,x
-    sta 53280
-
-
 ; freeSP<__wolin_reg3>,#1
 
     inx
 
+; bneSP(0)<__wolin_reg2>[bool]=#1[bool],__wolin_lab_loopEnd_1<label_po_if>[adr]
+
+
+    lda 0,x
+    beq __wolin_lab_loopEnd_1
+
+; add53280[ubyte]=53280[ubyte],#1[ubyte]
+
+
+    inc 53280
+
+; goto__wolin_lab_loopStart_1[adr]
+
+    jmp __wolin_lab_loopStart_1
+
+; label__wolin_lab_loopEnd_1
+
+__wolin_lab_loopEnd_1:
+
 ; freeSP<__wolin_reg2>,#1
+
+    inx
+
+; freeSP<__wolin_reg1>,#1
 
     inx
 

@@ -7,7 +7,7 @@ goto __wolin_pl_qus_wolin_main[adr]
 alloc SP<__wolin_reg0>, #1 // for var init expression
 // switchType to:ubyte by parse literal constant
 let SP(0)<__wolin_reg0>[ubyte] = #0[ubyte] // atomic ex
-// SAFE INFER TOP: __wolin_reg0: ubyte = 0 -> no change
+// SAFE INFER TOP: __wolin_reg0: ubyte = 0 (for var init expression) -> no change
 let __wolin_pl_qus_wolin_d<pl.qus.wolin.d>[uword] = SP(0)<__wolin_reg0>[ubyte] // podstawic wynik inicjalizacji expression do zmiennej d
 free SP<__wolin_reg0>, #1 // for var init expression
 // switchType to:unit by function declaration
@@ -17,50 +17,32 @@ free SP<__wolin_reg0>, #1 // for var init expression
 // ****************************************
 label __wolin_pl_qus_wolin_main
 // Using already known __wolin_reg1
-//  lewa strona assignment
+alloc SP<__wolin_reg1>, #1 // for block 'return value' {\nwhile(border<255)border++\n}
 // Using already known __wolin_reg2
-alloc SP<__wolin_reg2>, #1 // For assignment left side
-// switchType to:ubyte by by znajdźSimpleIdW
-// SAFE INFER TOP: __wolin_reg2: ubyte = 0 -> no change
-//  prawa strona assignment
+alloc SP<__wolin_reg2>, #1 // for while condition
+label __wolin_lab_loopStart_1
 // Using already known __wolin_reg3
-alloc SP<__wolin_reg3>, #1 // for value that gets assigned to left side
+alloc SP<__wolin_reg3>, #1 // LEFT for <
+let SP(0)<__wolin_reg3>[ubyte] = 53280[ubyte] // simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.border
+// SAFE INFER TOP: __wolin_reg3: ubyte = 0 (LEFT for <) -> no change
 // Using already known __wolin_reg4
-alloc SP<__wolin_reg4>, #1 // condition expression bool result
-// Using already known __wolin_reg5
-alloc SP<__wolin_reg5>, #2 // LEFT equality check: evaleq
-let SP(0)<__wolin_reg5>[uword] = __wolin_pl_qus_wolin_d<pl.qus.wolin.d>[uword] // simple id from var
-// switchType to:uword by type from pl.qus.wolin.d
-// SAFE INFER TOP: __wolin_reg5: uword = 0 -> no change
-// Using already known __wolin_reg6
-alloc SP<__wolin_reg6>, #1 // RIGHT equality check: evaleq
+alloc SP<__wolin_reg4>, #1 // RIGHT for <
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg6>[ubyte] = #0[ubyte] // atomic ex
-// SAFE INFER TOP: __wolin_reg6: ubyte = 0 -> no change
-evaleq SP(3)<__wolin_reg4>[bool] = SP(1)<__wolin_reg5>[uword], SP(0)<__wolin_reg6>[ubyte] // two sides
-free SP<__wolin_reg6>, #1 // RIGHT equality check: evaleq
-free SP<__wolin_reg5>, #2 // LEFT equality check: evaleq
-// SAFE INFER TOP: __wolin_reg4: bool = 0 -> no change
-// Using already known __wolin_reg7
-alloc SP<__wolin_reg7>, #1 // for value when if assigned
-bne SP(1)<__wolin_reg4>[bool] = #1[bool], __wolin_lab_afterIfExpression_0<label_DO_else>[adr]
-//  body dla true
-// switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg7>[ubyte] = #6[ubyte] // atomic ex
-goto __wolin_lab_afterWholeIf_0[adr]
-label __wolin_lab_afterIfExpression_0
-//  body dla false/else
-// switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg7>[ubyte] = #9[ubyte] // atomic ex
-label __wolin_lab_afterWholeIf_0
-let SP(2)<__wolin_reg3>[ubyte] = SP(0)<__wolin_reg7>[ubyte] // przez sprawdzacz typow - assign if expression result
-free SP<__wolin_reg7>, #1 // for value when if assigned
-free SP<__wolin_reg4>, #1 // condition expression bool result
-let 53280[ubyte] = SP(0)<__wolin_reg3>[ubyte] // przez sprawdzacz typow - process assignment
-free SP<__wolin_reg3>, #1 // for value that gets assigned to left side, type = ubyte
-free SP<__wolin_reg2>, #1 // For assignment left side
-// switchType to:unit by assignment
-// SAFE INFER TOP: __wolin_reg1: unit = 65535 -> no change
+let SP(0)<__wolin_reg4>[ubyte] = #255[ubyte] // atomic ex
+// SAFE INFER TOP: __wolin_reg4: ubyte = 0 (RIGHT for <) -> no change
+evalless SP(2)<__wolin_reg2>[bool] = SP(1)<__wolin_reg3>[ubyte], SP(0)<__wolin_reg4>[ubyte]
+free SP<__wolin_reg4>, #1 // RIGHT for <
+free SP<__wolin_reg3>, #1 // LEFT for <
+// SAFE INFER TOP: __wolin_reg2: bool = 0 (for while condition) -> no change
+bne SP(0)<__wolin_reg2>[bool] = #1[bool], __wolin_lab_loopEnd_1<label_po_if>[adr]
+add 53280[ubyte] = 53280[ubyte], #1[ubyte] // simple id
+// switchType to:ubyte by ++ operator
+goto __wolin_lab_loopStart_1[adr]
+label __wolin_lab_loopEnd_1
+free SP<__wolin_reg2>, #1 // for while condition
+// SAFE INFER TOP: __wolin_reg1: ubyte = 0 (for block 'return value' {\nwhile(border<255)border++\n}) -> no change
+free SP<__wolin_reg1>, #1 // for block 'return value' {\nwhile(border<255)border++\n}, type = ubyte
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 ret
 

@@ -4,8 +4,7 @@ var border: ubyte^53280
 var d: uword = 0
 
 fun main() {
-    border = if(d == 0) 6
-    else 9
+    while (border < 255) border++
 }
 
 

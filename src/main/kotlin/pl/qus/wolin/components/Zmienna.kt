@@ -17,7 +17,7 @@ class Zmienna(
     var floatValue: Float = 0f
 
     override fun toString(): String {
-        return "$name: $type = $immediateValue"
+        return "$name: $type = $immediateValue ($comment)"
     }
 
     val labelName: String get() = "__wolin_${name.replace(".","_")}"
