@@ -1,11 +1,10 @@
 package pl.qus.wolin
 
-var b  = 2
-var c: uword
-var d: uword
+var border: ubyte^53280
+var d: uword = 0
 
 fun main() {
-    b = if(d == 0) 6
+    border = if(d == 0) 6
     else 9
 }
 

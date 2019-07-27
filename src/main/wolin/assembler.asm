@@ -6,9 +6,9 @@ goto __wolin_pl_qus_wolin_main[adr]
 // Using already known __wolin_reg0
 alloc SP<__wolin_reg0>, #1 // for var init expression
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg0>[ubyte] = #2[ubyte] // atomic ex
+let SP(0)<__wolin_reg0>[ubyte] = #0[ubyte] // atomic ex
 // SAFE INFER TOP: __wolin_reg0: ubyte = 0 -> no change
-let __wolin_pl_qus_wolin_b<pl.qus.wolin.b>[ubyte] = SP(0)<__wolin_reg0>[ubyte] // podstawic wynik inicjalizacji expression do zmiennej b
+let __wolin_pl_qus_wolin_d<pl.qus.wolin.d>[uword] = SP(0)<__wolin_reg0>[ubyte] // podstawic wynik inicjalizacji expression do zmiennej d
 free SP<__wolin_reg0>, #1 // for var init expression
 // switchType to:unit by function declaration
 
@@ -56,7 +56,7 @@ label __wolin_lab_afterWholeIf_0
 let SP(2)<__wolin_reg3>[ubyte] = SP(0)<__wolin_reg7>[ubyte] // przez sprawdzacz typow - assign if expression result
 free SP<__wolin_reg7>, #1 // for value when if assigned
 free SP<__wolin_reg4>, #1 // condition expression bool result
-let __wolin_pl_qus_wolin_b<pl.qus.wolin.b>[ubyte] = SP(0)<__wolin_reg3>[ubyte] // przez sprawdzacz typow - process assignment
+let 53280[ubyte] = SP(0)<__wolin_reg3>[ubyte] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg3>, #1 // for value that gets assigned to left side, type = ubyte
 free SP<__wolin_reg2>, #1 // For assignment left side
 // switchType to:unit by assignment
@@ -76,9 +76,5 @@ ret
 // ****************************************
 label __wolin_indirect_jsr
 goto 65535[adr]
-label __wolin_pl_qus_wolin_b
-alloc 0[ubyte]  // pl.qus.wolin.b
-label __wolin_pl_qus_wolin_c
-alloc 0[uword]  // pl.qus.wolin.c
 label __wolin_pl_qus_wolin_d
 alloc 0[uword]  // pl.qus.wolin.d

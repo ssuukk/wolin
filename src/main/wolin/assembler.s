@@ -5,8 +5,7 @@
 ;*
 ;* BASIC header
 ;*
-;* compile with
-;* ca65.exe assembler.s
+;* compile with:
 ;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg assembler.s
 ;*
 ;**********************************************
@@ -15,7 +14,7 @@
 Bas10:      .word BasEnd ; 2049
             .word 10     ; 2051
             .byte 158 ; sys ;2053
-            .byte " 2062" ; 2054
+            .byte ' 2064' ; 2054
             .byte 0 ; 2059
 BasEnd:     .word 0 ; 2060
             .word 0 ; 2061
@@ -48,17 +47,19 @@ __wolin_sp_top = 143 ; program stack top
 
     dex
 
-; letSP(0)<__wolin_reg0>[ubyte]=#2[ubyte]
+; letSP(0)<__wolin_reg0>[ubyte]=#0[ubyte]
 
 
-    lda #2
+    lda #0
     sta 0,x
 
-; let__wolin_pl_qus_wolin_b<pl.qus.wolin.b>[ubyte]=SP(0)<__wolin_reg0>[ubyte]
+; let__wolin_pl_qus_wolin_d<pl.qus.wolin.d>[uword]=SP(0)<__wolin_reg0>[ubyte]
 
 
     lda 0,x
-    sta __wolin_pl_qus_wolin_b
+    sta __wolin_pl_qus_wolin_d
+    lda #0
+    sta __wolin_pl_qus_wolin_d+1
 
 
 ; freeSP<__wolin_reg0>,#1
@@ -177,11 +178,11 @@ __wolin_lab_afterWholeIf_0:
 
     inx
 
-; let__wolin_pl_qus_wolin_b<pl.qus.wolin.b>[ubyte]=SP(0)<__wolin_reg3>[ubyte]
+; let53280[ubyte]=SP(0)<__wolin_reg3>[ubyte]
 
 
     lda 0,x
-    sta __wolin_pl_qus_wolin_b
+    sta 53280
 
 
 ; freeSP<__wolin_reg3>,#1
@@ -203,22 +204,6 @@ __wolin_indirect_jsr:
 ; goto65535[adr]
 
     jmp 65535
-
-; label__wolin_pl_qus_wolin_b
-
-__wolin_pl_qus_wolin_b:
-
-; alloc0[ubyte]
-
-    .byte 0
-
-; label__wolin_pl_qus_wolin_c
-
-__wolin_pl_qus_wolin_c:
-
-; alloc0[uword]
-
-    .word 0
 
 ; label__wolin_pl_qus_wolin_d
 

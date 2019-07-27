@@ -12,20 +12,19 @@ setup HEADER -> """
 ;*
 ;* BASIC header
 ;*
-;* compile with
-;* ca65.exe assembler.s
+;* compile with:
 ;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg assembler.s
 ;*
 ;**********************************************
             .org 2049
             .export LOADADDR = *
-Bas10:      .word BasEnd ; 2049
-            .word 10     ; 2051
-            .byte 158 ; sys ;2053
-            .byte ' 2062' ; 2054
-            .byte 0 ; 2059
-BasEnd:     .word 0 ; 2060
-            .word 0 ; 2061
+Bas10:      .word BasEnd
+            .word 10
+            .byte 158 ; sys
+            .byte ' 2064'
+            .byte 0
+BasEnd:     .word 0
+            .word 0
             ;
 """
 
@@ -275,6 +274,17 @@ let ?label[float] = SP(?s)[float] -> """
 """
 
 //============================================
+// SP - zmienna
+//============================================
+
+let ?dest[uword] = SP(?src)[ubyte] -> """
+    lda {src},x
+    sta {dest}
+    lda #0
+    sta {dest}+1
+"""
+
+//============================================
 // SPF, stos procedurowy, przy wejściu do procedur, oparty na Y
 //============================================
 
@@ -381,6 +391,7 @@ let SP(?dest)[uword] = SPF(?src)[uword] -> """
     lda (__wolin_spf),y
     sta {dest}+1,x
 """
+
 
 
 //============================================
