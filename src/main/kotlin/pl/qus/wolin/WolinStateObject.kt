@@ -453,14 +453,29 @@ class WolinStateObject(val pass: Pass) {
                 zliczacz += zmienna.type.sizeOnStack
             }
         }
-        // TODO - dorzucić zmienne lokalne
+
+        if(pass == Pass.TRANSLATION) {
+            functionLocals(funkcja).forEach { zmienna ->
+                if (zmienna.allocation != AllocType.FIXED) {
+                    callStack.add(zmienna)
+                    zliczacz += zmienna.type.sizeOnStack
+                }
+            }
+        }
 
         code("alloc SPF, #$zliczacz")
 
     }
 
     fun fnCallReleaseArgs(funkcja: Funkcja) {
-        // TODO - dorzucić zmienne lokalne
+        if(pass == Pass.TRANSLATION) {
+            functionLocals(funkcja).forEach {
+                if (it.allocation != AllocType.FIXED) {
+                    callStack.pop()
+                }
+            }
+        }
+
         funkcja.arguments.forEach {
             if (it.allocation != AllocType.FIXED) {
                 callStack.pop()
@@ -491,12 +506,28 @@ class WolinStateObject(val pass: Pass) {
                 callStack.add(zmienna)
             }
         }
-        // TODO - dorzucić zmienne lokalne
+
+        if(pass == Pass.TRANSLATION) {
+            functionLocals(funkcja).forEach { zmienna ->
+                if (zmienna.allocation != AllocType.FIXED) {
+                    callStack.add(zmienna)
+                }
+            }
+        }
     }
 
     fun fnDeclFreeStackAndRet(funkcja: Funkcja) {
-        // TODO - dorzucić zmienne lokalne
         var suma = 0
+
+        if(pass == Pass.TRANSLATION) {
+            functionLocals(funkcja).forEach {
+                if (it.allocation != AllocType.FIXED) {
+                    val zmienna = callStack.pop()
+                    suma += zmienna.type.sizeOnStack
+                }
+            }
+        }
+
         funkcja.arguments.forEach {
             if (it.allocation != AllocType.FIXED) {
                 val zmienna = callStack.pop()
@@ -534,6 +565,9 @@ class WolinStateObject(val pass: Pass) {
         return funkcja
     }
 
+    fun functionLocals(function: Funkcja): List<Zmienna> =
+        variablary.filter { it.key.startsWith(function.fullName) }.map { it.value }
+
     /*****************************************************************
     Związane z REJESTRAMI
      *****************************************************************/
@@ -544,9 +578,9 @@ class WolinStateObject(val pass: Pass) {
     fun allocReg(comment: String = "", type: Typ = Typ.unit): Zmienna {
         val name = "__wolin_reg$stackVarCounter"
 
-        if(stackVarCounter == 10) {
-            println("tu!")
-        }
+//        if(stackVarCounter == 10) {
+//            println("tu!")
+//        }
 
         if(variablary[name] != null)
             rem("Using already known $name")
@@ -590,20 +624,6 @@ class WolinStateObject(val pass: Pass) {
         operStack.pop()
 
         dumpStack(operStack)
-    }
-
-    fun freeRegNoPop(comment: String = "") {
-        val zmienna = operStack.peek()
-
-        if (!zmienna.type.isUnit && pass == Pass.TRANSLATION) {
-            var linia = "free SP<${zmienna.name}>, #${zmienna.type.sizeOnStack}"
-            if (comment.isNotBlank()) linia += " // $comment"
-            code(linia)
-        }
-    }
-
-    fun popPostNoPopFree() {
-        operStack.pop()
     }
 
     fun currentRegToAsm(): String = varToAsm(currentReg)

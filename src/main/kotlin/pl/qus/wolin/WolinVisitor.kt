@@ -50,6 +50,8 @@ class WolinVisitor(
             // ========================================================
             it.blockLevelExpression() != null -> it.blockLevelExpression()?.let {
 
+                state.allocReg("for expression")
+
                 when {
                     it.expression()?.assignmentOperator()?.size != 0 -> {
                         val lewaStrona = it.expression()?.disjunction(0) // disjunction = or
@@ -77,6 +79,8 @@ class WolinVisitor(
                 }
 
                 state.inferTopOperType()
+
+                state.freeReg("for expression")
 
                 if (retVal != null) {
                     state.code("let ${state.varToAsm(retVal)} = ${state.currentRegToAsm()} // assign block 'return value' to target variable")

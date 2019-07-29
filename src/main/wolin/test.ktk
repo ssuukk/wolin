@@ -3,8 +3,15 @@ package pl.qus.wolin
 var border: ubyte^53280
 var d: uword = 0
 
-fun main() {
-    while (border < 255) border++
+fun localTest(a: ubyte, b: ubyte): ubyte {
+    val suma: ubyte
+
+    suma = a + b
+
+    return suma
 }
 
-
+fun main() {
+    //while (border < 255) border++
+    localTest(4,3)
+}
