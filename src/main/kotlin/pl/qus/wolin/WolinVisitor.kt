@@ -8,7 +8,7 @@ import pl.qus.wolin.exception.RegTypeMismatchException
 import java.lang.Exception
 
 enum class Pass {
-    DECLARATION, TRANSLATION
+    SYMBOLS, DECLARATION, TRANSLATION
 }
 
 class WolinVisitor(
@@ -54,27 +54,32 @@ class WolinVisitor(
 
                 when {
                     it.expression()?.assignmentOperator()?.size != 0 -> {
-                        val lewaStrona = it.expression()?.disjunction(0) // disjunction = or
-                        val operator = it.expression()?.assignmentOperator(0)
-                        val prawaStrona = it.expression()?.disjunction(1)
+                        if(state.pass != Pass.SYMBOLS) {
 
-                        when {
-                            operator?.ASSIGNMENT() != null -> {
+                            val lewaStrona = it.expression()?.disjunction(0) // disjunction = or
+                            val operator = it.expression()?.assignmentOperator(0)
+                            val prawaStrona = it.expression()?.disjunction(1)
 
-                                processAssignment(it,
-                                    { znajdźSimpleIdW(lewaStrona!!) },
-                                    { visitDisjunction(prawaStrona!!) }
-                                )
+                            when {
+                                operator?.ASSIGNMENT() != null -> {
 
-                                state.switchType(Typ.unit, "assignment")
+                                    processAssignment(it,
+                                        { znajdźSimpleIdW(lewaStrona!!) },
+                                        { visitDisjunction(prawaStrona!!) }
+                                    )
 
-                            }
-                            else -> {
-                                błędzik(it, "Unknown assignment operator")
+                                    state.switchType(Typ.unit, "assignment")
+
+                                }
+                                else -> {
+                                    błędzik(it, "Unknown assignment operator")
+                                }
                             }
                         }
                     }
-                    it.expression() != null -> visitExpression(it.expression())
+                    it.expression() != null -> if(state.pass != Pass.SYMBOLS) {
+                        visitExpression(it.expression())
+                    }
                     else -> błędzik(it, "Unknown block level expression")
                 }
 

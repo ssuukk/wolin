@@ -390,27 +390,44 @@ http://wilsonminesco.com/StructureMacros/
         // Specify our entry point
         val fileContext = parser.kotlinFile()
 
+        val symbolsVisitor = WolinVisitor("test", Pass.SYMBOLS, tokens)
+
         val declarationVisitor = WolinVisitor("test", Pass.DECLARATION, tokens)
 
         val translationVisitor = WolinVisitor("test", Pass.TRANSLATION, tokens)
 
-
         //try {
 
-        // zebranie typów dla rejestrów
-        declarationVisitor.visit(fileContext)
+        // przygotowanie
 
+        println("== PASS 1 - gathering symbols ==")
+
+        symbolsVisitor.visit(fileContext)
+
+        println("== PASS 2 - type inference ==")
+
+        // zebranie typów dla rejestrów
+        declarationVisitor.state.mainFunction = symbolsVisitor.state.functiary.firstOrNull { it.fullName == "main" || it.fullName.endsWith(".main")}
+        declarationVisitor.state.variablary = symbolsVisitor.state.variablary
+        declarationVisitor.state.exceptionsUsed = symbolsVisitor.state.exceptionsUsed
+        declarationVisitor.state.classary = symbolsVisitor.state.classary
+        declarationVisitor.state.functiary = symbolsVisitor.state.functiary
+//            declarationVisitor.state.strings = symbolsVisitor.state.strings
+//            declarationVisitor.state.floats = symbolsVisitor.state.floats
+
+        declarationVisitor.visit(fileContext)
         declarationVisitor.appendLambdas()
 
-        translationVisitor.state.mainFunction = declarationVisitor.state.functiary.firstOrNull { it.fullName == "main" || it.fullName.endsWith(".main")}
+        println("== PASS 3 - code generation ==")
 
+        // właściwa translacja
+        translationVisitor.state.mainFunction = declarationVisitor.state.functiary.firstOrNull { it.fullName == "main" || it.fullName.endsWith(".main")}
         translationVisitor.state.variablary = declarationVisitor.state.variablary
         translationVisitor.state.exceptionsUsed = declarationVisitor.state.exceptionsUsed
         translationVisitor.state.classary = declarationVisitor.state.classary
         translationVisitor.state.functiary = declarationVisitor.state.functiary
 //            translationVisitor.state.strings = declarationVisitor.state.strings
 //            translationVisitor.state.floats = declarationVisitor.state.floats
-
 
         val wynik = translationVisitor.visit(fileContext)
 

@@ -39,14 +39,14 @@ let SP(0)<__wolin_reg6>[ubyte] = SPF(2)<pl.qus.wolin.localTest.b>[ubyte] // simp
 add SP(1)<__wolin_reg5>[ubyte] = SP(1)<__wolin_reg5>[ubyte], SP(0)<__wolin_reg6>[ubyte]
 free SP<__wolin_reg6>, #1 // RIGHT adding operator
 // SAFE INFER TOP: __wolin_reg5: ubyte = 0 (for value that gets assigned to left side) -> no change
-let __wolin_pl_qus_wolin_localTest__suma<pl.qus.wolin.localTest..suma>[ubyte] = SP(0)<__wolin_reg5>[ubyte] // przez sprawdzacz typow - process assignment
+let SPF(1)<pl.qus.wolin.localTest..suma>[ubyte] = SP(0)<__wolin_reg5>[ubyte] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg5>, #1 // for value that gets assigned to left side, type = ubyte
 free SP<__wolin_reg4>, #1 // For assignment left side
 // switchType to:unit by assignment
 // SAFE INFER TOP: __wolin_reg3: unit = 65535 (for expression) -> no change
 // Using already known __wolin_reg7
 alloc SP<__wolin_reg7>, #1 // for expression
-let SP(0)<__wolin_reg7>[ubyte] = __wolin_pl_qus_wolin_localTest__suma<pl.qus.wolin.localTest..suma>[ubyte] // simple id from var
+let SP(0)<__wolin_reg7>[ubyte] = SPF(1)<pl.qus.wolin.localTest..suma>[ubyte] // simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.localTest..suma
 let SPF(6)<returnValue>[ubyte] = SP(0)<__wolin_reg7>[ubyte] // przez sprawdzacz typow - jump expression
 // switchType to:ubyte by return expression

@@ -300,6 +300,14 @@ class WolinStateObject(val pass: Pass) {
 
         } while (zmienna == null)
 
+        gdzieJesteśmy = nameStitcher("")
+
+        if(currentFunction != null && zmienna.name.startsWith(gdzieJesteśmy)) {
+            println("lokalna w funkcji!")
+
+            zmienna.stack = callStack.stackName
+        }
+
         return zmienna
     }
 
@@ -316,7 +324,11 @@ class WolinStateObject(val pass: Pass) {
                     else -> throw Exception("Variable is on unknown stack ${zmienna.stack}!")
                 }
 
-                "${stos.stackName}(${findStackVector(stos, zmienna.name).first})<${zmienna.name}>"
+                try {
+                    "${stos.stackName}(${findStackVector(stos, zmienna.name).first})<${zmienna.name}>"
+                } catch (ex: Exception) {
+                    ""
+                }
             }
             zmienna.type.type == "string" -> labelMaker("stringConst", strings.indexOf(zmienna.stringValue))
             zmienna.type.type == "float" -> {
@@ -432,6 +444,9 @@ class WolinStateObject(val pass: Pass) {
     }
 
     fun fnCallAllocRetAndArgs(funkcja: Funkcja) {
+
+        if(pass == Pass.SYMBOLS) return
+
         var zliczacz = 0
 
         if (!funkcja.type.isUnit) {
@@ -454,27 +469,29 @@ class WolinStateObject(val pass: Pass) {
             }
         }
 
-        if(pass == Pass.TRANSLATION) {
+        //if(pass == Pass.TRANSLATION) {
             functionLocals(funkcja).forEach { zmienna ->
                 if (zmienna.allocation != AllocType.FIXED) {
                     callStack.add(zmienna)
                     zliczacz += zmienna.type.sizeOnStack
                 }
             }
-        }
+        //}
 
         code("alloc SPF, #$zliczacz")
 
     }
 
     fun fnCallReleaseArgs(funkcja: Funkcja) {
-        if(pass == Pass.TRANSLATION) {
+        if(pass == Pass.SYMBOLS) return
+
+        //if(pass == Pass.TRANSLATION) {
             functionLocals(funkcja).forEach {
                 if (it.allocation != AllocType.FIXED) {
                     callStack.pop()
                 }
             }
-        }
+        //}
 
         funkcja.arguments.forEach {
             if (it.allocation != AllocType.FIXED) {
@@ -484,11 +501,15 @@ class WolinStateObject(val pass: Pass) {
     }
 
     fun fnCallReleaseRet(funkcja: Funkcja) {
+        if(pass == Pass.SYMBOLS) return
+
         if (!funkcja.type.isUnit)
             callStack.pop()
     }
 
     fun fnDeclAllocStackAndRet(funkcja: Funkcja) {
+        if(pass == Pass.SYMBOLS) return
+
         if (!funkcja.type.isUnit) {
             callStack.add(
                 Zmienna(
@@ -507,26 +528,28 @@ class WolinStateObject(val pass: Pass) {
             }
         }
 
-        if(pass == Pass.TRANSLATION) {
+        //if(pass == Pass.TRANSLATION) {
             functionLocals(funkcja).forEach { zmienna ->
                 if (zmienna.allocation != AllocType.FIXED) {
                     callStack.add(zmienna)
                 }
             }
-        }
+        //}
     }
 
     fun fnDeclFreeStackAndRet(funkcja: Funkcja) {
+        if(pass == Pass.SYMBOLS) return
+
         var suma = 0
 
-        if(pass == Pass.TRANSLATION) {
+        //if(pass == Pass.TRANSLATION) {
             functionLocals(funkcja).forEach {
                 if (it.allocation != AllocType.FIXED) {
                     val zmienna = callStack.pop()
                     suma += zmienna.type.sizeOnStack
                 }
             }
-        }
+        //}
 
         funkcja.arguments.forEach {
             if (it.allocation != AllocType.FIXED) {

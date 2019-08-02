@@ -110,12 +110,12 @@ __wolin_pl_qus_wolin_localTest:
 
     inx
 
-; let__wolin_pl_qus_wolin_localTest__suma<pl.qus.wolin.localTest..suma>[ubyte]=SP(0)<__wolin_reg5>[ubyte]
+; letSPF(1)<pl.qus.wolin.localTest..suma>[ubyte]=SP(0)<__wolin_reg5>[ubyte]
 
 
     lda 0,x
-    sta __wolin_pl_qus_wolin_localTest__suma
-
+    ldy #1
+    sta (__wolin_spf),y
 
 ; freeSP<__wolin_reg5>,#1
 
@@ -129,11 +129,13 @@ __wolin_pl_qus_wolin_localTest:
 
     dex
 
-; letSP(0)<__wolin_reg7>[ubyte]=__wolin_pl_qus_wolin_localTest__suma<pl.qus.wolin.localTest..suma>[ubyte]
+; letSP(0)<__wolin_reg7>[ubyte]=SPF(1)<pl.qus.wolin.localTest..suma>[ubyte]
 
 
-    lda __wolin_pl_qus_wolin_localTest__suma
+    ldy #1
+    lda (__wolin_spf),y
     sta 0,x
+
 
 ; letSPF(6)<returnValue>[ubyte]=SP(0)<__wolin_reg7>[ubyte]
 
