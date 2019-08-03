@@ -43,227 +43,99 @@ __wolin_sp_top = 143 ; program stack top
 
     jmp __wolin_pl_qus_wolin_main
 
-; allocSP<__wolin_reg0>,#1
+; label__wolin_pl_qus_wolin_main
+
+__wolin_pl_qus_wolin_main:
+
+; allocSP<__wolin_reg2>,#1
 
     dex
 
-; letSP(0)<__wolin_reg0>[ubyte]=#0[ubyte]
+; allocSP<__wolin_reg3>,#2
+
+
+    dex
+    dex
+
+; letSP(0)<__wolin_reg3>[ptr]=1024[ptr]
+
+
+    lda #<1024
+    sta 0,x
+    lda #>1024
+    sta 0+1,x
+
+; allocSP<__wolin_reg4>,#2
+
+
+    dex
+    dex
+
+; letSP(0)<__wolin_reg4>[uword]=#0[ubyte]
 
 
     lda #0
     sta 0,x
+    lda #0
+    sta 0+1,x
 
-; let__wolin_pl_qus_wolin_d<pl.qus.wolin.d>[uword]=SP(0)<__wolin_reg0>[ubyte]
+; addSP(2)<__wolin_reg3>[ptr]=SP(2)<__wolin_reg3>[ptr],SP(0)<__wolin_reg4>[uword]
+
+
+    clc
+    lda 2,x
+    adc 0,x
+    sta 2,x
+    lda 2+1,x
+    adc 0+1,x
+    sta 2+1,x
+
+; freeSP<__wolin_reg4>,#2
+
+
+    inx
+    inx
+
+; letSP(2)<__wolin_reg2>[ptr]=SP(0)<__wolin_reg3>[ptr]
 
 
     lda 0,x
-    sta __wolin_pl_qus_wolin_d
-    lda #0
-    sta __wolin_pl_qus_wolin_d+1
+    sta 2,x
+    lda 0+1,x
+    sta 2+1,x
 
 
-; freeSP<__wolin_reg0>,#1
+; freeSP<__wolin_reg3>,#2
+
 
     inx
-
-; label__wolin_pl_qus_wolin_localTest
-
-__wolin_pl_qus_wolin_localTest:
-
-; allocSP<__wolin_reg4>,#1
-
-    dex
+    inx
 
 ; allocSP<__wolin_reg5>,#1
 
     dex
 
-; letSP(0)<__wolin_reg5>[ubyte]=SPF(3)<pl.qus.wolin.localTest.a>[ubyte]
+; letSP(0)<__wolin_reg5>[ubyte]=#65[ubyte]
 
 
-    ldy #3
-    lda (__wolin_spf),y
+    lda #65
     sta 0,x
 
-
-; allocSP<__wolin_reg6>,#1
-
-    dex
-
-; letSP(0)<__wolin_reg6>[ubyte]=SPF(2)<pl.qus.wolin.localTest.b>[ubyte]
-
-
-    ldy #2
-    lda (__wolin_spf),y
-    sta 0,x
-
-
-; addSP(1)<__wolin_reg5>[ubyte]=SP(1)<__wolin_reg5>[ubyte],SP(0)<__wolin_reg6>[ubyte]
-
-
-    clc
-    lda 1,x
-    adc 0,x
-    sta 1,x
-
-; freeSP<__wolin_reg6>,#1
-
-    inx
-
-; letSPF(1)<pl.qus.wolin.localTest..suma>[ubyte]=SP(0)<__wolin_reg5>[ubyte]
+; letSP(1)<__wolin_reg2>[ptr]=SP(0)<__wolin_reg5>[ubyte]
 
 
     lda 0,x
-    ldy #1
-    sta (__wolin_spf),y
+    sta (1,x)
+
 
 ; freeSP<__wolin_reg5>,#1
 
     inx
 
-; freeSP<__wolin_reg4>,#1
+; freeSP<__wolin_reg2>,#2
+
 
     inx
-
-; allocSP<__wolin_reg7>,#1
-
-    dex
-
-; letSP(0)<__wolin_reg7>[ubyte]=SPF(1)<pl.qus.wolin.localTest..suma>[ubyte]
-
-
-    ldy #1
-    lda (__wolin_spf),y
-    sta 0,x
-
-
-; letSPF(6)<returnValue>[ubyte]=SP(0)<__wolin_reg7>[ubyte]
-
-
-    lda 0,x
-    ldy #6
-    sta (__wolin_spf),y
-
-; freeSP<__wolin_reg7>,#1
-
-    inx
-
-; freeSPF,#6
-
-
-    clc
-    lda __wolin_spf
-    adc #6
-    sta __wolin_spf
-    lda __wolin_spf+1
-    adc #0
-    sta __wolin_spf+1
-
-; ret
-
-    rts
-
-; label__wolin_pl_qus_wolin_main
-
-__wolin_pl_qus_wolin_main:
-
-; allocSP<__wolin_reg10>,#1
-
-    dex
-
-; allocSP<__wolin_reg11>,#1
-
-    dex
-
-; allocSPF,#7
-
-
-    clc
-    lda __wolin_spf
-    sbc #7
-    sta __wolin_spf
-    lda __wolin_spf+1
-    sbc #0
-    sta __wolin_spf+1
-
-; allocSP<__wolin_reg12>,#1
-
-    dex
-
-; letSP(0)<__wolin_reg12>[ubyte]=#4[ubyte]
-
-
-    lda #4
-    sta 0,x
-
-; letSPF(3)[ubyte]=SP(0)<__wolin_reg12>[ubyte]
-
-
-    lda 0,x
-    ldy #3
-    sta (__wolin_spf),y
-
-; freeSP<__wolin_reg12>,#1
-
-    inx
-
-; allocSP<__wolin_reg13>,#1
-
-    dex
-
-; letSP(0)<__wolin_reg13>[ubyte]=#3[ubyte]
-
-
-    lda #3
-    sta 0,x
-
-; letSPF(2)[ubyte]=SP(0)<__wolin_reg13>[ubyte]
-
-
-    lda 0,x
-    ldy #2
-    sta (__wolin_spf),y
-
-; freeSP<__wolin_reg13>,#1
-
-    inx
-
-; call__wolin_pl_qus_wolin_localTest[adr]
-
-    jsr __wolin_pl_qus_wolin_localTest
-
-; letSP(0)<__wolin_reg11>[ubyte]=SPF(0)<returnValue>[ubyte]
-
-
-    ldy #0
-    lda (__wolin_spf),y
-    sta 0,x
-
-
-; freeSPF<ubyte>,#1
-
-
-    clc
-    lda __wolin_spf
-    adc #1
-    sta __wolin_spf
-    lda __wolin_spf+1
-    adc #0
-    sta __wolin_spf+1
-
-; let53280[ubyte]=SP(0)<__wolin_reg11>[ubyte]
-
-
-    lda 0,x
-    sta 53280
-
-
-; freeSP<__wolin_reg11>,#1
-
-    inx
-
-; freeSP<__wolin_reg10>,#1
-
     inx
 
 ; ret
@@ -277,12 +149,4 @@ __wolin_indirect_jsr:
 ; goto65535[adr]
 
     jmp 65535
-
-; label__wolin_pl_qus_wolin_d
-
-__wolin_pl_qus_wolin_d:
-
-; alloc0[uword]
-
-    .word 0
 

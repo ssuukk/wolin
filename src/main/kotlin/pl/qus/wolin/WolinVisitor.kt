@@ -781,7 +781,8 @@ class WolinVisitor(
 
                                 when {
                                     state.currentShortArray == null -> {
-                                        state.rem(" non-fast array")
+                                        state.rem(" non-fast array, changing top reg to ptr")
+                                        currEntReg.type.isPointer = true
                                         state.code("let ${state.varToAsm(currEntReg)} = ${state.varToAsmNoType(state.currentReg)}[ptr]")
                                     }
                                     state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.NORMAL -> {
