@@ -4,12 +4,12 @@ var border: ubyte^53280
 var ekran: ubyte[]^1024
 
 var i: uword
+var znak: ubyte = 0
 
 fun main() {
     i = 0
 
     while(i<1000) {
-        ekran[i] = 65
-        i++
+        ekran[i++] = znak++
     }
 }

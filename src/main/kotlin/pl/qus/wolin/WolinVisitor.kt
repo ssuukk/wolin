@@ -569,10 +569,82 @@ class WolinVisitor(
 
     override fun visitPrefixUnaryExpression(ctx: KotlinParser.PrefixUnaryExpressionContext): WolinStateObject {
         when {
-            ctx.prefixUnaryOperation().size > 0 -> błędzik(
-                ctx,
-                "Nie umiem wykonać prefix unary operation dla '${ctx.text}'"
-            )
+            ctx.prefixUnaryOperation().size > 0 -> {
+                ctx.prefixUnaryOperation()?.forEach {
+                    when {
+                        it.DECR() != null -> {
+
+                            błędzik(
+                                ctx,
+                                "Nie umiem wykonać prefix unary operation dla ++"
+                            )
+
+//                            when {
+//                                atomEx.simpleIdentifier() != null -> {
+//                                    val identifier = atomEx.simpleIdentifier()?.Identifier()?.text
+//                                        ?: throw Exception("No identifier for --")
+//                                    val zmienna = state.findVarInVariablaryWithDescoping(identifier)
+//
+//                                    checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "operator --")
+//
+//                                    state.code(
+//                                        "sub ${state.varToAsm(zmienna)} = ${state.varToAsm(
+//                                            zmienna
+//                                        )}, #1${zmienna.typeForAsm} // simple id"
+//                                    )
+//
+//                                    state.switchType(zmienna.type, "-- operator")
+//                                }
+//                                atomEx.literalConstant() != null -> {
+//
+//                                    parseLiteralConstant(state.currentReg, atomEx.literalConstant())
+//
+//                                    state.code("sub ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}${state.currentReg.typeForAsm}, #1${state.currentReg.typeForAsm}, add // literal const")
+//                                    //state.currentReg.type = "Ubyte"
+//                                }
+//                                else -> błędzik(atomEx, "Nie wiem jak obsłużyć")
+//                            }
+                        }
+                        it.INCR() != null -> {
+//                            when {
+//                                atomEx.simpleIdentifier() != null -> {
+//                                    val identifier = atomEx.simpleIdentifier()?.Identifier()?.text
+//                                        ?: throw Exception("No identifier for ++")
+//                                    val zmienna = state.findVarInVariablaryWithDescoping(identifier)
+//
+//                                    checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "operator ++")
+//
+//                                    state.code(
+//                                        "add ${state.varToAsm(zmienna)} = ${state.varToAsm(
+//                                            zmienna
+//                                        )}, #1${zmienna.typeForAsm} // simple id"
+//                                    )
+//
+//                                    state.switchType(zmienna.type, "++ operator")
+//                                }
+//                                atomEx.literalConstant() != null -> {
+//
+//                                    parseLiteralConstant(state.currentReg, atomEx.literalConstant())
+//
+//                                    state.code("add ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}${state.currentReg.typeForAsm}, #1${state.currentReg.typeForAsm}, add // literal const")
+//                                    //state.currentReg.type = "Ubyte"
+//                                }
+//                                else -> błędzik(atomEx, "Nie wiem jak obsłużyć")
+//                            }
+                            błędzik(
+                                ctx,
+                                "Nie umiem wykonać prefix unary operation dla --"
+                            )
+                        }
+                        else -> {
+                            błędzik(
+                                ctx,
+                                "Nie umiem wykonać prefix unary operation dla '${ctx.text}'"
+                            )
+                        }
+                    }
+                }
+            }
             ctx.postfixUnaryExpression() != null -> visitPostfixUnaryExpression(ctx.postfixUnaryExpression())
             else -> błędzik(ctx, "Unknown prefix unary exception")
         }
@@ -690,11 +762,15 @@ class WolinVisitor(
                                 val identifier = atomEx.simpleIdentifier()?.Identifier()?.text
                                     ?: throw Exception("No identifier for ++")
                                 val zmienna = state.findVarInVariablaryWithDescoping(identifier)
+
+                                checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "operator ++")
+
                                 state.code(
                                     "add ${state.varToAsm(zmienna)} = ${state.varToAsm(
                                         zmienna
                                     )}, #1${zmienna.typeForAsm} // simple id"
                                 )
+
                                 state.switchType(zmienna.type, "++ operator")
                             }
                             atomEx.literalConstant() != null -> {
@@ -713,11 +789,15 @@ class WolinVisitor(
                                 val identifier = atomEx.simpleIdentifier()?.Identifier()?.text
                                     ?: throw Exception("No identifier for --")
                                 val zmienna = state.findVarInVariablaryWithDescoping(identifier)
+
+                                checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "operator --")
+
                                 state.code(
                                     "sub ${state.varToAsm(zmienna)} = ${state.varToAsm(
                                         zmienna
                                     )}, #1${zmienna.typeForAsm} // simple id"
                                 )
+
                                 state.switchType(zmienna.type, "-- operator")
                             }
                             atomEx.literalConstant() != null -> {
@@ -789,6 +869,7 @@ class WolinVisitor(
                                     state.currentShortArray == null -> {
                                         state.rem(" non-fast array, changing top reg to ptr")
                                         currEntReg.type.isPointer = true
+
                                         state.code("let ${state.varToAsm(currEntReg)} = ${state.varToAsmNoType(state.currentReg)}[ptr]")
                                     }
                                     state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.NORMAL -> {
@@ -1316,7 +1397,7 @@ class WolinVisitor(
     fun checkTypeAndAddAssignment(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna, comment: String) {
         if (state.pass == Pass.TRANSLATION) {
             val można =
-                state.canBeAssigned(doJakiej.type, co.type) || doJakiej.type.isPointer || co.type.type == "uword"
+                state.canBeAssigned(doJakiej.type, co.type) //|| doJakiej.type.isPointer || co.type.type == "uword"
 
             if (można) {
                 state.code("let ${state.varToAsm(doJakiej)} = ${state.varToAsm(co)} // przez sprawdzacz typow - $comment")
