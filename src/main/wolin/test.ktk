@@ -13,5 +13,5 @@ fun localTest(a: ubyte, b: ubyte): ubyte {
 
 fun main() {
     //while (border < 255) border++
-    localTest(4,3)
+    border = localTest(4,3)
 }

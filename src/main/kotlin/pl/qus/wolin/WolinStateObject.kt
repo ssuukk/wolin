@@ -303,8 +303,6 @@ class WolinStateObject(val pass: Pass) {
         gdzieJesteśmy = nameStitcher("")
 
         if(currentFunction != null && zmienna.name.startsWith(gdzieJesteśmy)) {
-            println("lokalna w funkcji!")
-
             zmienna.stack = callStack.stackName
         }
 
@@ -323,12 +321,7 @@ class WolinStateObject(val pass: Pass) {
                     "HEAP" -> currentClass!!.heap
                     else -> throw Exception("Variable is on unknown stack ${zmienna.stack}!")
                 }
-
-                try {
-                    "${stos.stackName}(${findStackVector(stos, zmienna.name).first})<${zmienna.name}>"
-                } catch (ex: Exception) {
-                    ""
-                }
+                "${stos.stackName}(${findStackVector(stos, zmienna.name).first})<${zmienna.name}>"
             }
             zmienna.type.type == "string" -> labelMaker("stringConst", strings.indexOf(zmienna.stringValue))
             zmienna.type.type == "float" -> {

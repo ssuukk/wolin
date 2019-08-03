@@ -21,7 +21,7 @@ setup HEADER -> """
 Bas10:      .word BasEnd
             .word 10
             .byte 158 ; sys
-            .byte ' 2064'
+            .byte " 2064"
             .byte 0
 BasEnd:     .word 0
             .word 0
@@ -41,7 +41,7 @@ setup EXPTR = ?zp[ubyte] -> """
 __wolin_exception_ptr = {zp} ; pointer to exception object on throw
 """
 
-setup CATCH =?zp[ubyte] -> """
+setup CATCH = ?zp[ubyte] -> """
 __wolin_spe_zp_vector = {zp}
 """
 
@@ -64,7 +64,7 @@ __wolin_this_ptr = {zp}
 """
 
 //============================================
-// SP, stos programowy oparty na X, wspiera dużo instrukcji, do 70 wordów
+// Static variables
 //============================================
 
 alloc ?val[byte] -> """    .byte {val}"""
@@ -74,6 +74,10 @@ alloc ?val[uword] -> """    .word {val}"""
 alloc ?val[float] -> """    .float {val}"""
 alloc ?val[bool] -> """    .byte {val}"""
 alloc ?val[ptr] -> """    .word {val}"""
+
+//============================================
+// SP, stos programowy oparty na X, wspiera dużo instrukcji, do 70 wordów
+//============================================
 
 alloc SP, #0 -> """ """
 
@@ -147,7 +151,6 @@ let SP(?d)[uword] = SP(?s)[uword] -> """
     lda {s}+1,x
     sta {d}+1,x"""
 
-
 let SP(?d)[byte] = SP(?s)[byte] -> """
     lda {s},x
     sta {d},x"""
@@ -173,7 +176,6 @@ let SP(?d)[bool] = ?addr[bool] -> """
 let ?addr[bool] = SP(?s)[bool] -> """
     lda {s},x
     sta {addr}"""
-
 
 let SP(?d)[byte] = #?val[byte] -> """
     lda #{val}
@@ -310,7 +312,6 @@ free SPF, #?count -> """
     adc #0
     sta __wolin_spf+1"""
 
-
 let SPF(?d)[uword] = #?val[uword] -> """
     ldy #{d}
     lda #<{val}
@@ -319,7 +320,7 @@ let SPF(?d)[uword] = #?val[uword] -> """
     lda #>{val}
     sta (__wolin_spf),y"""
 
-// TYLKO dla konstuktora?
+// only in constructor?
 let SPF(?d)[ptr] = SP(?s)[uword] -> """
     ldy #{d}
     lda {s},x
@@ -328,19 +329,19 @@ let SPF(?d)[ptr] = SP(?s)[uword] -> """
     lda {s}+1,x
     sta (__wolin_spf),y"""
 
-// dla wywołania funkcji
+// for function call
 let SPF(?d)[byte] = SP(?s)[byte] -> """
     lda {s},x
     ldy #{d}
     sta (__wolin_spf),y"""
 
-// dla wywołania funkcji
+// for function call
 let SPF(?d)[ubyte] = SP(?s)[ubyte] -> """
     lda {s},x
     ldy #{d}
     sta (__wolin_spf),y"""
 
-// dla wywołania funkcji
+// for function call
 let SPF(?d)[word] = SP(?s)[word] -> """
     lda {s},x
     ldy #{d}
@@ -349,7 +350,7 @@ let SPF(?d)[word] = SP(?s)[word] -> """
     iny
     sta (__wolin_spf),y"""
 
-// dla wywołania funkcji
+// for function call
 let SPF(?d)[uword] = SP(?s)[uword] -> """
     lda {s},x
     ldy #{d}
@@ -358,21 +359,21 @@ let SPF(?d)[uword] = SP(?s)[uword] -> """
     iny
     sta (__wolin_spf),y"""
 
-// przy powrocie z funkcji, wartość zwrotna stos funkcji -> stos programowy
+// function return value from function stack to program stack
 let SP(?dest)[byte] = SPF(?src)[byte] -> """
     ldy #{src}
     lda (__wolin_spf),y
     sta {dest},x
 """
 
+// function return value from function stack to program stack
 let SP(?dest)[ubyte] = SPF(?src)[ubyte] -> """
     ldy #{src}
     lda (__wolin_spf),y
     sta {dest},x
 """
 
-
-// przy powrocie z funkcji, wartość zwrotna stos funkcji -> stos programowy
+// function return value from function stack to program stack
 let SP(?dest)[word] = SPF(?src)[word] -> """
     ldy #{src}
     lda (__wolin_spf),y
@@ -382,7 +383,7 @@ let SP(?dest)[word] = SPF(?src)[word] -> """
     sta {dest}+1,x
 """
 
-// przy powrocie z funkcji, wartość zwrotna stos funkcji -> stos programowy
+// function return value from function stack to program stack
 let SP(?dest)[uword] = SPF(?src)[uword] -> """
     ldy #{src}
     lda (__wolin_spf),y
@@ -392,10 +393,8 @@ let SP(?dest)[uword] = SPF(?src)[uword] -> """
     sta {dest}+1,x
 """
 
-
-
 //============================================
-// SPE, stos wyjątków, oparty na Y
+// SPE, exception stack, Y based
 //============================================
 
 alloc SPE, #0 -> """ """
@@ -420,9 +419,7 @@ free SPE, #?count -> """
     adc #0
     sta __wolin_spe+1"""
 
-
-
-// wkaźnik stosu 6502 -> zapis w SPE
+// save 6502 SP to SPE
 let SPE(?d)[ubyte] = SPC[ubyte] -> """
     txa
     pha
@@ -434,7 +431,7 @@ let SPE(?d)[ubyte] = SPC[ubyte] -> """
     tax
   """
 
-// zapisany w SPE wskaźnik stosu 6502 -> wskaźnik stosu 6502
+// restore 6502 SP from SPE
 let SPC[ubyte] = SPE(?s)[ubyte] -> """
     txa
     pha
@@ -445,17 +442,17 @@ let SPC[ubyte] = SPE(?s)[ubyte] -> """
     pla
     tax"""
 
-// wskaźnik stosu SP -> SPE
+// SP -> SPE
 let SPE(?d)[ubyte] = SP[ubyte] -> """
     ldy #{d}
     stx (__wolin_spe),y"""
 
-// zapisany w SPE wskaźnik SP -> wskaźnik SP
+// restore SP from SPE
 let SP[ubyte] = SPE(?s)[ubyte] -> """
     ldy #{s}
     ldx (__wolin_spe),y"""
 
-// np. adres końca catch -> SPE
+// catch end address -> SPE
 let SPE(?d)[uword] = SP(?s)[uword] -> """
     lda {s},x
     ldy #{d}
@@ -464,7 +461,7 @@ let SPE(?d)[uword] = SP(?s)[uword] -> """
     iny
     sta (__wolin_spe),y"""
 
-// SPE -> wektor skoku dla catch
+// SPE -> catch jump vector
 let ?addr[uword] = SPE(?s)[uword] -> """
     ldy #{s}
     lda (__wolin_spe),y
@@ -495,7 +492,8 @@ let SP(?dest)[ubyte] = HEAP(?src)[ubyte] -> """
 // kondiszjonalsy
 //============================================
 
-bne SPE = ?value, ?dest -> """
+// jump if catch block exists
+bne SPE = ?value, ?dest[adr] -> """
     lda __wolin_spe
     cmp #<{value}
     bne {dest}
@@ -518,7 +516,6 @@ bne SP(?s)[bool] = #0[bool], ?dest[adr] -> """
 beq SP(?s)[bool] = #0[bool], ?dest[adr] -> """
     lda {s},x
     beq {dest}"""
-
 
 evaleq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     lda #1 ; rowne
@@ -698,8 +695,6 @@ let SP(?d)[ptr] = SP(?s)[ptr] -> """
     sta {d}+1,x
 """
 
-
-
 let SP(?d)[ptr] = SP(?s)[ptr] -> """
     lda {s},x
     sta {d},x
@@ -735,7 +730,6 @@ let SP(?dst)[ptr] = ?adr[ptr] -> """
     sta {dst},x
     lda #>{adr}
     sta {dst}+1,x"""
-
 
 //============================================
 // rozmaite funkcje
@@ -789,7 +783,6 @@ throw SP(?s)[uword] -> """
     jmp __wolin_throw_exception
 
 """
-
 
 //============================================
 // CPU
@@ -969,16 +962,15 @@ sub ?dest[uword] = ?src[uword], #?val[uword] -> """
     sta {dest}+1
 """
 
-
-
 add ?dest[word] = ?src[word], #?val[byte] -> """
     clc
     lda {src}
     adc #{val}
     sta {dest}
-    lda {src}+1
-    adc #0
-    sta {dest}+1"""
+    bcc +:
+    inc {a}+1
+:
+"""
 
 add ?dest[word] = ?a[word], ?b[uword] -> """
     clc

@@ -64,38 +64,48 @@ ret
 label __wolin_pl_qus_wolin_main
 // Using already known __wolin_reg8
 // Using already known __wolin_reg9
-alloc SP<__wolin_reg9>, #1 // for expression
+//  lewa strona assignment
+// Using already known __wolin_reg10
+alloc SP<__wolin_reg10>, #1 // For assignment left side
+// switchType to:ubyte by by znajdźSimpleIdW
+// SAFE INFER TOP: __wolin_reg10: ubyte = 0 (For assignment left side) -> no change
+//  prawa strona assignment
+// Using already known __wolin_reg11
+alloc SP<__wolin_reg11>, #1 // for value that gets assigned to left side
 // switchType to:ubyte by function type 1
-// SAFE INFER TOP: __wolin_reg9: ubyte = 0 (for expression) -> no change
+// SAFE INFER TOP: __wolin_reg11: ubyte = 0 (for value that gets assigned to left side) -> no change
 alloc SPF, #7
 //  obsługa argumentu 0 wywołania localTest
-// Using already known __wolin_reg10
-alloc SP<__wolin_reg10>, #1 // for call argument 0
+// Using already known __wolin_reg12
+alloc SP<__wolin_reg12>, #1 // for call argument 0
 // Prze visit vALUE
 //  obliczenia dla parametru 4
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg10>[ubyte] = #4[ubyte] // atomic ex
+let SP(0)<__wolin_reg12>[ubyte] = #4[ubyte] // atomic ex
 // po visit value
-let SPF(3)[ubyte] = SP(0)<__wolin_reg10>[ubyte]
-free SP<__wolin_reg10>, #1 // for call argument 0, type = ubyte
+let SPF(3)[ubyte] = SP(0)<__wolin_reg12>[ubyte]
+free SP<__wolin_reg12>, #1 // for call argument 0, type = ubyte
 //  obsługa argumentu 1 wywołania localTest
-// Using already known __wolin_reg11
-alloc SP<__wolin_reg11>, #1 // for call argument 1
+// Using already known __wolin_reg13
+alloc SP<__wolin_reg13>, #1 // for call argument 1
 // Prze visit vALUE
 //  obliczenia dla parametru 3
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg11>[ubyte] = #3[ubyte] // atomic ex
+let SP(0)<__wolin_reg13>[ubyte] = #3[ubyte] // atomic ex
 // po visit value
-let SPF(2)[ubyte] = SP(0)<__wolin_reg11>[ubyte]
-free SP<__wolin_reg11>, #1 // for call argument 1, type = ubyte
+let SPF(2)[ubyte] = SP(0)<__wolin_reg13>[ubyte]
+free SP<__wolin_reg13>, #1 // for call argument 1, type = ubyte
 // switchType to:ubyte by function type 2
 // switchType to:ubyte by function call
 call __wolin_pl_qus_wolin_localTest[adr]
 
-let SP(0)<__wolin_reg9>[ubyte] = SPF(0)<returnValue>[ubyte]// copy return parameter - TODO sprawdzić co jeśli wywołanie funkcji było bez podstawienia!!!
+let SP(0)<__wolin_reg11>[ubyte] = SPF(0)<returnValue>[ubyte]// copy return parameter - TODO sprawdzić co jeśli wywołanie funkcji było bez podstawienia!!!
 free SPF <ubyte>, #1
-// SAFE INFER TOP: __wolin_reg9: ubyte = 0 (for expression) -> no change
-free SP<__wolin_reg9>, #1 // for expression
+let 53280[ubyte] = SP(0)<__wolin_reg11>[ubyte] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg11>, #1 // for value that gets assigned to left side, type = ubyte
+free SP<__wolin_reg10>, #1 // For assignment left side
+// switchType to:unit by assignment
+// SAFE INFER TOP: __wolin_reg9: unit = 65535 (for expression) -> no change
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 ret
 

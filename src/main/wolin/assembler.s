@@ -14,7 +14,7 @@
 Bas10:      .word BasEnd
             .word 10
             .byte 158 ; sys
-            .byte ' 2064'
+            .byte " 2064"
             .byte 0
 BasEnd:     .word 0
             .word 0
@@ -167,7 +167,11 @@ __wolin_pl_qus_wolin_localTest:
 
 __wolin_pl_qus_wolin_main:
 
-; allocSP<__wolin_reg9>,#1
+; allocSP<__wolin_reg10>,#1
+
+    dex
+
+; allocSP<__wolin_reg11>,#1
 
     dex
 
@@ -182,45 +186,45 @@ __wolin_pl_qus_wolin_main:
     sbc #0
     sta __wolin_spf+1
 
-; allocSP<__wolin_reg10>,#1
+; allocSP<__wolin_reg12>,#1
 
     dex
 
-; letSP(0)<__wolin_reg10>[ubyte]=#4[ubyte]
+; letSP(0)<__wolin_reg12>[ubyte]=#4[ubyte]
 
 
     lda #4
     sta 0,x
 
-; letSPF(3)[ubyte]=SP(0)<__wolin_reg10>[ubyte]
+; letSPF(3)[ubyte]=SP(0)<__wolin_reg12>[ubyte]
 
 
     lda 0,x
     ldy #3
     sta (__wolin_spf),y
 
-; freeSP<__wolin_reg10>,#1
+; freeSP<__wolin_reg12>,#1
 
     inx
 
-; allocSP<__wolin_reg11>,#1
+; allocSP<__wolin_reg13>,#1
 
     dex
 
-; letSP(0)<__wolin_reg11>[ubyte]=#3[ubyte]
+; letSP(0)<__wolin_reg13>[ubyte]=#3[ubyte]
 
 
     lda #3
     sta 0,x
 
-; letSPF(2)[ubyte]=SP(0)<__wolin_reg11>[ubyte]
+; letSPF(2)[ubyte]=SP(0)<__wolin_reg13>[ubyte]
 
 
     lda 0,x
     ldy #2
     sta (__wolin_spf),y
 
-; freeSP<__wolin_reg11>,#1
+; freeSP<__wolin_reg13>,#1
 
     inx
 
@@ -228,7 +232,7 @@ __wolin_pl_qus_wolin_main:
 
     jsr __wolin_pl_qus_wolin_localTest
 
-; letSP(0)<__wolin_reg9>[ubyte]=SPF(0)<returnValue>[ubyte]
+; letSP(0)<__wolin_reg11>[ubyte]=SPF(0)<returnValue>[ubyte]
 
 
     ldy #0
@@ -247,7 +251,18 @@ __wolin_pl_qus_wolin_main:
     adc #0
     sta __wolin_spf+1
 
-; freeSP<__wolin_reg9>,#1
+; let53280[ubyte]=SP(0)<__wolin_reg11>[ubyte]
+
+
+    lda 0,x
+    sta 53280
+
+
+; freeSP<__wolin_reg11>,#1
+
+    inx
+
+; freeSP<__wolin_reg10>,#1
 
     inx
 

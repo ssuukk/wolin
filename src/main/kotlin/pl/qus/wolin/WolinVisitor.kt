@@ -1667,7 +1667,7 @@ class WolinVisitor(
 
             state.code("")
             state.code("label __wolin_throw_exception")
-            state.code("bne SPE = __wolin_spe_top, __wolin_process_exception // jesli mamy blok catch, to go obslugujemy")
+            state.code("bne SPE = __wolin_spe_top, __wolin_process_exception[adr] // jesli mamy blok catch, to go obslugujemy")
             state.code("let __wolin_exception_ptr[ptr] = #0[uword]")
             state.code("crash")
 
