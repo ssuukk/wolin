@@ -3,6 +3,13 @@ package pl.qus.wolin
 var border: ubyte^53280
 var ekran: ubyte[]^1024
 
+var i: uword
+
 fun main() {
-    ekran[0] = 65
+    i = 0
+
+    while(i<1000) {
+        ekran[i] = 65
+        i++
+    }
 }

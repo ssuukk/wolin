@@ -212,15 +212,15 @@ let SP(?d)[word] = #?s[ubyte] -> """
 // adr -> SP
 
 let SP(?d)[word] = ?label[word] -> """
-    lda #<{label}
+    lda {label}
     sta {d},x
-    lda #>{label}
+    lda {label}+1
     sta {d}+1,x"""
 
 let SP(?d)[uword] = ?label[uword] -> """
-    lda #<{label}
+    lda {label}
     sta {d},x
-    lda #>{label}
+    lda {label}+1
     sta {d}+1,x"""
 
 let SP(?d)[ubyte] = ?addr[ubyte] -> """
@@ -555,6 +555,19 @@ evaleq SP(?dest)[bool] = SP(?left)[uword], SP(?right)[ubyte] -> """
 evalless SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     lda #1 ; mniejsze
     sta {dest},x
+    lda {left},x
+    cmp {right},x
+    bcc :+
+    lda #0 ; jednak wieksze
+    sta {dest},x
+:"""
+
+evalless SP(?dest)[bool] = SP(?left)[uword], SP(?right)[uword] -> """
+    lda #1 ; mniejsze
+    sta {dest},x
+    lda {left}+1,x
+    cmp {right}+1,x
+    bcc :+
     lda {left},x
     cmp {right},x
     bcc :+

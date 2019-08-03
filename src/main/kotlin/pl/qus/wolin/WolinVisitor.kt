@@ -123,10 +123,13 @@ class WolinVisitor(
         if (isArray) {
             val ctx = wynik.first() as KotlinParser.SimpleIdentifierContext
 
+            //val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
+
             state.rem(" left side disjunction - prawie dobrze")
             visitDisjunction(lewaStrona)
-
+//val test = state.currentReg ROBIONE
             state.assignStack.assignLeftSideVar = state.currentReg
+            //state.assignStack.assignLeftSideVar.type = zmienna.type
             state.assignStack.arrayAssign = true
 
             return state
@@ -493,7 +496,7 @@ class WolinVisitor(
         val leftSide = state.allocReg("For assignment left side")
 
         leftFunction()
-        state.inferTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji!
+        state.inferTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji! ROBIONE
 
         val destinationReg = state.assignStack.assignLeftSideVar
         val destinationType = destinationReg.type
@@ -509,7 +512,10 @@ class WolinVisitor(
 
         //state.inferTopOregType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji!
 
-        tempSourceReg.type = destinationType.arrayElementType // to ustawia źle aktualny typ...
+        tempSourceReg.type = destinationType.arrayElementType // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
+        // typ indeksu, nie faktyczny typ zmiennej
+        // więc np x[255] jest ok, ale x[256] daje uword!
+        // typ pobierany jest z state.assignStack.assignLeftSideVar
         tempSourceReg.type.isPointer = false // przy podstawieniu konkretnej wartości
         tempSourceReg.type.array = false
 
@@ -786,12 +792,14 @@ class WolinVisitor(
                                         state.code("let ${state.varToAsm(currEntReg)} = ${state.varToAsmNoType(state.currentReg)}[ptr]")
                                     }
                                     state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.NORMAL -> {
-                                        state.rem(" allocated fast array")
+                                        state.rem(" allocated fast array, changing top reg to ptr")
+                                        currEntReg.type.isPointer = true
                                         state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.name}[ptr], ${state.currentRegToAsm()}")
                                         state.currentShortArray = null
                                     }
                                     state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.FIXED -> {
-                                        state.rem(" allocated fast array")
+                                        state.rem(" allocated fast array, changing top reg to ptr")
+                                        currEntReg.type.isPointer = true
                                         state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}[ptr], ${state.currentRegToAsm()}")
                                         state.currentShortArray = null
                                     }
@@ -853,6 +861,9 @@ class WolinVisitor(
                     state.rem(" fast array - no additional op")
                     //state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()}")
                 }
+
+                state.rem("**ARRAY Changing current type to prevReg type $prevReg")
+                state.currentWolinType = prevReg.type
 
                 state.rem(" after index")
 
