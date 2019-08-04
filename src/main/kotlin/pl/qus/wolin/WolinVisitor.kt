@@ -1394,19 +1394,6 @@ class WolinVisitor(
         return state
     }
 
-    fun checkTypeAndAddAssignment(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna, comment: String) {
-        if (state.pass == Pass.TRANSLATION) {
-            val można =
-                state.canBeAssigned(doJakiej.type, co.type) //|| doJakiej.type.isPointer || co.type.type == "uword"
-
-            if (można) {
-                state.code("let ${state.varToAsm(doJakiej)} = ${state.varToAsm(co)} // przez sprawdzacz typow - $comment")
-            } else {
-                błędzik(ctx, "Nie można przypisać ${co} do zmiennej typu ${doJakiej}")
-            }
-        }
-    }
-
     override fun visitJumpExpression(ctx: KotlinParser.JumpExpressionContext): WolinStateObject {
         when {
             ctx.RETURN() != null -> {
@@ -1689,6 +1676,8 @@ class WolinVisitor(
                 state.createAndRegisterVar(name, ctx.variableDeclaration().type(), ctx, false, stack)
             } else
                 state.createAndRegisterVar(name, AllocType.NORMAL, state.currentWolinType, false, stack)
+
+            zmienna.initExpression = ctx.expression()
 
             state.code("let ${state.varToAsm(zmienna)} = ${state.currentRegToAsm()} // podstawic wynik inicjalizacji expression do zmiennej $name")
 
@@ -1993,6 +1982,20 @@ class WolinVisitor(
             state.code("$op ${state.varToAsm(left)} = ${state.varToAsm(left)}, ${state.varToAsm(right)}")
 
             state.currentWolinType
+        }
+    }
+
+
+    fun checkTypeAndAddAssignment(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna, comment: String) {
+        if (state.pass == Pass.TRANSLATION) {
+            val można =
+                state.canBeAssigned(doJakiej.type, co.type) //|| doJakiej.type.isPointer || co.type.type == "uword"
+
+            if (można) {
+                state.code("let ${state.varToAsm(doJakiej)} = ${state.varToAsm(co)} // przez sprawdzacz typow - $comment")
+            } else {
+                błędzik(ctx, "Nie można przypisać ${co} do zmiennej typu ${doJakiej}")
+            }
         }
     }
 

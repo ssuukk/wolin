@@ -91,7 +91,7 @@ https://www.atariarchives.org/roots/chapter_10.php
 
 		pl.qus.Dupa.a - ustawiamy tej zmiennej stos na "HEAP"
 
-	4) scope pliku - USUNIETY
+	4) scope pliku
 
 		pl.qus.a
 

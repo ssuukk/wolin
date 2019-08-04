@@ -297,9 +297,9 @@ alloc SPF, #?count -> """
     lda __wolin_spf
     sbc #{count}
     sta __wolin_spf
-    lda __wolin_spf+1
-    sbc #0
-    sta __wolin_spf+1"""
+    bcs +:
+    dec __wolin_spf+1
+:"""
 
 free SPF, #0 -> """ """
 
@@ -308,9 +308,9 @@ free SPF, #?count -> """
     lda __wolin_spf
     adc #{count}
     sta __wolin_spf
-    lda __wolin_spf+1
-    adc #0
-    sta __wolin_spf+1"""
+    bcc +:
+    inc __wolin_spf+1
+:"""
 
 let SPF(?d)[uword] = #?val[uword] -> """
     ldy #{d}
