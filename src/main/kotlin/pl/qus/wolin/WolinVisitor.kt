@@ -27,6 +27,7 @@ class WolinVisitor(
 
         state.fnDeclFreeStackAndRet(state.currentFunction!!)
 
+        state.rem("return from function body")
         state.code("ret")
 
         return state
@@ -991,7 +992,7 @@ class WolinVisitor(
         when {
             ctx.simpleIdentifier() != null -> visitSimpleIdentifier(ctx.simpleIdentifier())
             ctx.literalConstant() != null -> {
-                val wartość = Zmienna(allocation = AllocType.LITERAL, stack = "")
+                val wartość = Zmienna(allocation = AllocType.LITERAL, fieldType = FieldType.DUMMY)
                 parseLiteralConstant(wartość, ctx.literalConstant())
                 state.code("let ${state.currentRegToAsm()} = ${state.varToAsm(wartość)} // atomic ex")
             }
@@ -1064,13 +1065,13 @@ class WolinVisitor(
                         if (state.assignStack.isNotEmpty()) {
                             val funkcja = state.lambdaTypeToFunction(state.assignStack.assignLeftSideVar)
                             val interred = funkcja.arguments[index]
-                            state.createAndRegisterVar(id, AllocType.NORMAL, interred.type, true, "SPF")
+                            state.createAndRegisterVar(id, AllocType.NORMAL, interred.type, true, FieldType.FUNCTION)
                         } else {
                             błędzik(ctx, "Can't infer type of lambda!")
                             throw Exception()
                         }
                     } else {
-                        state.createAndRegisterVar(id, typ, null, true, "SPF")
+                        state.createAndRegisterVar(id, typ, null, true, FieldType.FUNCTION)
                     }
 
                     if (arg.allocation != AllocType.FIXED) nowaFunkcja.arguments.add(arg)
@@ -1471,7 +1472,7 @@ class WolinVisitor(
 
         val lokacjaLiterał = ctx.locationReference()?.literalConstant()
 
-        val lokacjaAdres = Zmienna("", allocation = AllocType.FIXED, stack = "dummy")
+        val lokacjaAdres = Zmienna("", allocation = AllocType.FIXED, fieldType = FieldType.DUMMY)
 
         state.switchType(Typ.unit, "function declaration")
 
@@ -1484,17 +1485,17 @@ class WolinVisitor(
 
         state.currentFunction = nowaFunkcja
 
-        val zwrotka = state.createAndRegisterVar("returnValue", ctx.type(0), null, true, "SPF")
+        val zwrotka = state.createVar("returnValue", ctx.type(0), null, true, FieldType.FUNCTION)
 
         nowaFunkcja.type = zwrotka.type
 
-        if (state.currentClass != null) {
+        if (state.currentClass != null && state.pass == Pass.SYMBOLS) {
             val thisArg = state.createAndRegisterVar(
                 "this",
                 AllocType.NORMAL,
                 Typ.byName(state.currentClass!!.name, state),
                 true,
-                "SPF"
+                FieldType.FUNCTION
             )
             state.currentFunction?.arguments?.add(thisArg)
         }
@@ -1541,9 +1542,14 @@ class WolinVisitor(
 
 
     override fun visitClassDeclaration(ctx: KotlinParser.ClassDeclarationContext): WolinStateObject {
-        state.currentClass = Klasa(state.nameStitcher(ctx.simpleIdentifier().text))
 
-        state.toClassary(state.currentClass!!)
+        state.currentClass = try {
+            state.findClass(ctx.simpleIdentifier().text)
+        } catch (ex: Exception) {
+            val nowa = Klasa(state.nameStitcher(ctx.simpleIdentifier().text))
+            state.toClassary(nowa)
+            nowa
+        }
 
         val konstruktor = Funkcja(
             state.currentClass!!.name,
@@ -1552,6 +1558,7 @@ class WolinVisitor(
 
 
         ////////////////////////////////////////
+
 
         state.code(
             "\n" + """// ****************************************
@@ -1570,7 +1577,7 @@ class WolinVisitor(
 
         val typZwrotki = Typ(state.currentClass!!.name, false, true)
 
-        val zwrotka = state.createAndRegisterVar("returnValue", AllocType.NORMAL, typZwrotki, true, "SPF")
+        val zwrotka = state.createAndRegisterVar("returnValue", AllocType.NORMAL, typZwrotki, true, FieldType.FUNCTION)
 
         val funkcjaAlloc = state.findProc("allocMem").apply {
             if (state.pass == Pass.TRANSLATION) {
@@ -1580,23 +1587,32 @@ class WolinVisitor(
             }
         }
 
-        state.allocReg("for returning this", funkcjaAlloc.type)
+        state.allocReg("for returning this", typZwrotki)
 
-        state.switchType(funkcjaAlloc.type, "function type 1")
+        state.switchType(typZwrotki, "function type 1")
         state.inferTopOperType()
-        state.switchType(funkcjaAlloc.type, "function type 2")
+//        state.switchType(funkcjaAlloc.type, "function type 2")
 
-        easeyCall(ctx, funkcjaAlloc, state.currentReg)
+        if(state.pass != Pass.SYMBOLS)
+            easeyCall(ctx, funkcjaAlloc, state.currentReg, true)
 
         state.rem(" tutaj kod na przepisanie z powyższego rejestru do zwrotki konstruktora")
-        checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "konstruktor")
+        checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "zwrotka alloc do zwrotki konstruktora")
 
+        state.code("setup HEAP = ${state.currentRegToAsm()}")
+
+        state.freeReg("for returning this")
+        state.fnDeclFreeStackAndRet(konstruktor)
+
+        state.variablary.filter { it.value.fieldType == FieldType.CLASS && it.value.initExpression != null }.map{ it.value }.forEach {
+            state.rem("inicjalizacja zmiennej ${it.name}")
+            if(state.pass != Pass.SYMBOLS) doInitCode(it)
+        }
+
+        state.rem("return from constructor")
         state.code("ret")
 
         ////////////////////////////////////////
-        state.freeReg("for returning this")
-
-        state.fnDeclFreeStackAndRet(konstruktor)
 
         val a = ctx.classBody()
         a.classMemberDeclaration()?.forEach {
@@ -1612,13 +1628,14 @@ class WolinVisitor(
             true,
             null,
             AllocType.NORMAL,
-            stack = "HEAP",
+            fieldType = FieldType.CLASS,
             type = Typ.ubyte
         ).apply {
             intValue = classUniqId.toLong()
         }
 
-        state.currentClass!!.heap.push(zmienna)
+        if(state.pass == Pass.SYMBOLS)
+            state.currentClass!!.heap.push(zmienna)
 
         // musi być rozdzielone, aby uwzględnić zmienną z id klasy
         a.classMemberDeclaration()?.forEach {
@@ -1626,7 +1643,6 @@ class WolinVisitor(
                 visitFunctionDeclaration(it)
             }
         }
-
 
         state.currentClass = null
 
@@ -1636,9 +1652,10 @@ class WolinVisitor(
     override fun visitFunctionValueParameter(ctx: KotlinParser.FunctionValueParameterContext): WolinStateObject {
         val param = ctx.parameter()
 
-        val arg = state.createAndRegisterVar(param.simpleIdentifier().text, param.type(), null, true, "SPF")
-        state.currentFunction?.arguments?.add(arg)
+        val arg = state.createAndRegisterVar(param.simpleIdentifier().text, param.type(), null, true, FieldType.FUNCTION)
 
+        if(state.pass == Pass.SYMBOLS)
+            state.currentFunction?.arguments?.add(arg)
 
         return state
     }
@@ -1663,15 +1680,13 @@ class WolinVisitor(
     override fun visitPropertyDeclaration(ctx: KotlinParser.PropertyDeclarationContext): WolinStateObject {
         val name = ctx.variableDeclaration().simpleIdentifier().text
 
-        val stack = if (state.currentClass != null) "HEAP" else ""
+        val stack = when {
+            state.currentFunction != null -> FieldType.FUNCTION
+            state.currentClass != null -> FieldType.CLASS
+            else -> FieldType.DUMMY
+        }
 
         if (ctx.expression() != null) {
-
-            state.allocReg("for var init expression")
-
-            visitExpression(ctx.expression())
-            state.inferTopOperType()
-
             val zmienna = if (ctx.variableDeclaration().type() != null) {
                 state.createAndRegisterVar(name, ctx.variableDeclaration().type(), ctx, false, stack)
             } else
@@ -1679,9 +1694,9 @@ class WolinVisitor(
 
             zmienna.initExpression = ctx.expression()
 
-            state.code("let ${state.varToAsm(zmienna)} = ${state.currentRegToAsm()} // podstawic wynik inicjalizacji expression do zmiennej $name")
-
-            state.freeReg("for var init expression")
+            if(zmienna.fieldType == FieldType.FUNCTION && state.pass != Pass.SYMBOLS) {
+                doInitCode(zmienna)
+            }
         } else {
             if (ctx.variableDeclaration().type() == null)
                 błędzik(ctx, "Variable $name has no type!")
@@ -1710,6 +1725,11 @@ class WolinVisitor(
 
         if (state.spUsed)
             state.code("setup SP = 143[ubyte] // register stack top = 142")
+
+        state.variablary.filter { it.value.fieldType == FieldType.STATIC && it.value.initExpression != null }.map{ it.value }.forEach {
+            state.rem("inicjalizacja zmiennej ${it.name}")
+            doInitCode(it)
+        }
 
         if (state.mainFunction != null) {
             state.rem(" main function entry")
@@ -1883,6 +1903,7 @@ class WolinVisitor(
 
             state.fnDeclFreeStackAndRet(state.currentFunction!!)
 
+            state.rem("return from lambda function")
             state.code("ret")
 
             state.code("")
@@ -1892,14 +1913,14 @@ class WolinVisitor(
     }
 
 
-    fun easeyCall(ctx: ParseTree, funkcjaAlloc: Funkcja, destReg: Zmienna) {
-        state.rem(" otwarcie stosu na wywolanie ${funkcjaAlloc.fullName}")
-        state.fnCallAllocRetAndArgs(funkcjaAlloc)
+    fun easeyCall(ctx: ParseTree, functionToCall: Funkcja, destReg: Zmienna, constructor: Boolean = false) {
+        state.rem(" otwarcie stosu na wywolanie ${functionToCall.fullName}")
+        state.fnCallAllocRetAndArgs(functionToCall)
 
-        state.rem(" tu podajemy argumenty dla ${funkcjaAlloc.fullName}")
+        state.rem(" tu podajemy argumenty dla ${functionToCall.fullName}")
         // wypełnić argumenty
 
-        funkcjaAlloc.arguments.forEach {
+        functionToCall.arguments.forEach {
             state.rem(" let ${it.name} = #${it.immediateValue}")
 
             val found = state.findStackVector(state.callStack, it.name)
@@ -1915,16 +1936,19 @@ class WolinVisitor(
             }
         }
 
-        state.rem(" po argumentach dla ${funkcjaAlloc.fullName}")
-        state.code("call ${funkcjaAlloc.labelName}[adr]")
+        state.rem(" po argumentach dla ${functionToCall.fullName}")
+        state.code("call ${functionToCall.labelName}[adr]")
 
-        state.fnCallReleaseArgs(funkcjaAlloc)
+        state.fnCallReleaseArgs(functionToCall)
 
-        checkTypeAndAddAssignment(ctx, destReg, state.callStack.peek(), "easey call")
+        if(constructor)
+            state.code("let ${state.varToAsmNoType(destReg)}[ptr] = ${state.varToAsmNoType(state.callStack.peek())}[ptr]")
+        else
+            checkTypeAndAddAssignment(ctx, destReg, state.callStack.peek(), "easey call")
 
-        state.fnCallReleaseRet(funkcjaAlloc)
+        state.fnCallReleaseRet(functionToCall)
 
-        state.code("free SPF <${funkcjaAlloc.type.type}>, #${funkcjaAlloc.type.sizeOnStack} // free return value of ${funkcjaAlloc.fullName} from call stack")
+        state.code("free SPF <${functionToCall.type.type}>, #${functionToCall.type.sizeOnStack} // free return value of ${functionToCall.fullName} from call stack")
     }
 
     fun processTypeChangingOp(
@@ -1994,11 +2018,21 @@ class WolinVisitor(
             if (można) {
                 state.code("let ${state.varToAsm(doJakiej)} = ${state.varToAsm(co)} // przez sprawdzacz typow - $comment")
             } else {
-                błędzik(ctx, "Nie można przypisać ${co} do zmiennej typu ${doJakiej}")
+                błędzik(ctx, "Nie można przypisać ${co} do zmiennej ${doJakiej}")
             }
         }
     }
 
+    fun doInitCode(zmienna: Zmienna) {
+        state.allocReg("for var init expression")
+
+        visitExpression(zmienna.initExpression!!)
+        state.inferTopOperType()
+
+        state.code("let ${state.varToAsm(zmienna)} = ${state.currentRegToAsm()} // podstawic wynik inicjalizacji expression do zmiennej ${zmienna.name}")
+
+        state.freeReg("for var init expression")
+    }
 
 }
 

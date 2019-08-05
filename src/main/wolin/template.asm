@@ -473,6 +473,8 @@ let ?addr[uword] = SPE(?s)[uword] -> """
 //============================================
 // Sterta
 //============================================
+
+// for setting this pointer when in method
 setup HEAP = this -> """
     ldy #0 ; this pointer from SPF to this pointer on ZP
     lda (__wolin_spf),y
@@ -481,12 +483,28 @@ setup HEAP = this -> """
     lda (__wolin_spf),y
     sta __wolin_this_ptr+1"""
 
+setup HEAP = ?heap[ptr] -> """
+    lda #<{heap}
+    sta __wolin_this_ptr
+    lda #>{heap}
+    sta __wolin_this_ptr+1"""
+
+setup HEAP = SP(?src)[ptr] -> """
+    lda {src},x
+    sta __wolin_this_ptr
+    lda {src}+1,x
+    sta __wolin_this_ptr+1"""
+
+
 let SP(?dest)[ubyte] = HEAP(?src)[ubyte] -> """
     ldy #{src} ; assuming this ZP is set!
     lda (__wolin_this_ptr),y
     sta {dest},x"""
 
-
+let HEAP(?dest)[ubyte] = SP(?src)[ubyte] -> """
+    lda {src},x
+    ldy #{dest}
+    sta (__wolin_this_ptr),y"""
 
 //============================================
 // kondiszjonalsy
@@ -649,7 +667,6 @@ let SP(?dst)[ptr] = SP(?src)[uword] -> """
     sta ({dst},x)
 """
 
-
 let SP(?dst)[uword] = SP(?src)[ptr] -> """
     lda ({src},x)
     sta {dst},x
@@ -743,6 +760,13 @@ let SP(?dst)[ptr] = ?adr[ptr] -> """
     sta {dst},x
     lda #>{adr}
     sta {dst}+1,x"""
+
+// dla konstruktora
+let SP(?dst)[ptr] = #?val[uword] -> """
+    lda #<{val}
+    sta {dst}
+    lda #>{val}
+    sta {dst}+1"""
 
 //============================================
 // rozmaite funkcje

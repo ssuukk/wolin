@@ -3,13 +3,25 @@ package pl.qus.wolin
 var border: ubyte^53280
 var ekran: ubyte[]^1024
 
-var i: uword
+var i: uword = 0
 var znak: ubyte = 0
 
-fun main() {
-    i = 0
+fun allocMem(size: uword, count: uword): Any {
+    return 30000
+}
 
+class Test {
+    var x: ubyte = 10
+    var y: ubyte = 20
+}
+
+fun suma(a: ubyte, b: ubyte): ubyte {
+    return a+b
+}
+
+fun main() {
     while(i<1000) {
         ekran[i++] = znak++
     }
+    val x: ubyte = suma(2,2) // TODO - bez ubyte x jest typu ptr!
 }

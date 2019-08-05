@@ -8,8 +8,8 @@ class Zmienna(
     var location: String? = null,
     var allocation: AllocType,
     var comment: String = "",
-    var fileStatic: Boolean = false,
-    var stack: String,
+    //var fileStatic: Boolean = false,
+    var fieldType: FieldType,
     var type: Typ = Typ.unit,
     var initExpression: KotlinParser.ExpressionContext? = null
 )
