@@ -1,6 +1,7 @@
 setup HEADER
 setup SPF = 251[ubyte], 40959[uword] // call stack pointer at 251 = 40959
 setup SP = 143[ubyte] // register stack top = 142
+setup HEAP = 176[ubyte]
 // inicjalizacja zmiennej pl.qus.wolin.znak
 // Using already known __wolin_reg0
 alloc SP<__wolin_reg0>, #1 // for var init expression
@@ -22,7 +23,7 @@ goto __wolin_pl_qus_wolin_main[adr]
 // switchType to:unit by function declaration
 
 // ****************************************
-// funkcja: fun pl.qus.wolin.allocMem():Any
+// funkcja: fun pl.qus.wolin.allocMem(pl.qus.wolin.allocMem.size: uword = 0 (), pl.qus.wolin.allocMem.count: uword = 0 ()):Any
 // ****************************************
 label __wolin_pl_qus_wolin_allocMem
 // Using already known __wolin_reg2
@@ -66,13 +67,11 @@ free SPF <Any>, #2 // free return value of pl.qus.wolin.allocMem from call stack
 let SPF(0)<pl.qus.wolin.Test.returnValue>[ptr] = SP(0)<__wolin_reg4>[ptr] // przez sprawdzacz typow - zwrotka alloc do zwrotki konstruktora
 setup HEAP = SP(0)<__wolin_reg4>[ptr]
 free SP<__wolin_reg4>, #2 // for returning this
-free SPF, #2 // free fn arguments and locals for pl.qus.wolin.Test
-// caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // inicjalizacja zmiennej pl.qus.wolin.Test.x
 // Using already known __wolin_reg5
 alloc SP<__wolin_reg5>, #1 // for var init expression
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg5>[ubyte] = #10[ubyte] // atomic ex
+let SP(0)<__wolin_reg5>[ubyte] = #3[ubyte] // atomic ex
 // SAFE INFER TOP: __wolin_reg5: ubyte = 0 (for var init expression) -> no change
 let HEAP(2)<pl.qus.wolin.Test.x>[ubyte] = SP(0)<__wolin_reg5>[ubyte] // podstawic wynik inicjalizacji expression do zmiennej pl.qus.wolin.Test.x
 free SP<__wolin_reg5>, #1 // for var init expression
@@ -80,28 +79,30 @@ free SP<__wolin_reg5>, #1 // for var init expression
 // Using already known __wolin_reg6
 alloc SP<__wolin_reg6>, #1 // for var init expression
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg6>[ubyte] = #20[ubyte] // atomic ex
+let SP(0)<__wolin_reg6>[ubyte] = #7[ubyte] // atomic ex
 // SAFE INFER TOP: __wolin_reg6: ubyte = 0 (for var init expression) -> no change
 let HEAP(1)<pl.qus.wolin.Test.y>[ubyte] = SP(0)<__wolin_reg6>[ubyte] // podstawic wynik inicjalizacji expression do zmiennej pl.qus.wolin.Test.y
 free SP<__wolin_reg6>, #1 // for var init expression
+// caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // return from constructor
 ret
 // switchType to:unit by function declaration
 
 // ****************************************
-// funkcja: fun pl.qus.wolin.suma():ubyte
+// funkcja: fun pl.qus.wolin.Test.suma(pl.qus.wolin.Test.suma.this: pl.qus.wolin.Test = 65535 ()):ubyte
 // ****************************************
-label __wolin_pl_qus_wolin_suma
+label __wolin_pl_qus_wolin_Test_suma
+setup HEAP = this
 // Using already known __wolin_reg7
 // Using already known __wolin_reg8
 alloc SP<__wolin_reg8>, #1 // for expression
-let SP(0)<__wolin_reg8>[ubyte] = SPF(0)<pl.qus.wolin.suma.a>[ubyte] // simple id from var
-// switchType to:ubyte by type from pl.qus.wolin.suma.a
+let SP(0)<__wolin_reg8>[ubyte] = HEAP(2)<pl.qus.wolin.Test.x>[ubyte] // simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.Test.x
 // SAFE INFER TOP: __wolin_reg8: ubyte = 0 (for expression) -> no change
 // Using already known __wolin_reg9
 alloc SP<__wolin_reg9>, #1 // RIGHT adding operator
-let SP(0)<__wolin_reg9>[ubyte] = SPF(1)<pl.qus.wolin.suma.b>[ubyte] // simple id from var
-// switchType to:ubyte by type from pl.qus.wolin.suma.b
+let SP(0)<__wolin_reg9>[ubyte] = HEAP(1)<pl.qus.wolin.Test.y>[ubyte] // simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.Test.y
 // SAFE INFER TOP: __wolin_reg9: ubyte = 0 (RIGHT adding operator) -> no change
 add SP(1)<__wolin_reg8>[ubyte] = SP(1)<__wolin_reg8>[ubyte], SP(0)<__wolin_reg9>[ubyte]
 free SP<__wolin_reg9>, #1 // RIGHT adding operator
@@ -110,7 +111,7 @@ let SPF(2)<returnValue>[ubyte] = SP(0)<__wolin_reg8>[ubyte] // przez sprawdzacz 
 // switchType to:ubyte by return expression
 // SAFE INFER TOP: __wolin_reg8: ubyte = 0 (for expression) -> no change
 free SP<__wolin_reg8>, #1 // for expression
-free SPF, #2 // free fn arguments and locals for pl.qus.wolin.suma
+free SPF, #2 // free fn arguments and locals for pl.qus.wolin.Test.suma
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // return from function body
 ret
@@ -123,107 +124,70 @@ ret
 label __wolin_pl_qus_wolin_main
 // Using already known __wolin_reg10
 // Using already known __wolin_reg11
+// SAFE INFER TOP: __wolin_reg11: unit = 65535 (for declaration valtestowa:Test) -> no change
 // Using already known __wolin_reg12
-alloc SP<__wolin_reg12>, #1 // for while condition
-label __wolin_lab_loopStart_1
-// Using already known __wolin_reg13
-alloc SP<__wolin_reg13>, #2 // LEFT for <
-let SP(0)<__wolin_reg13>[uword] = __wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword] // simple id from var
-// switchType to:uword by type from pl.qus.wolin.i
-// SAFE INFER TOP: __wolin_reg13: uword = 0 (LEFT for <) -> no change
-// Using already known __wolin_reg14
-alloc SP<__wolin_reg14>, #2 // RIGHT for <
-// switchType to:uword by parse literal constant
-let SP(0)<__wolin_reg14>[uword] = #1000[uword] // atomic ex
-// SAFE INFER TOP: __wolin_reg14: uword = 0 (RIGHT for <) -> no change
-evalless SP(4)<__wolin_reg12>[bool] = SP(2)<__wolin_reg13>[uword], SP(0)<__wolin_reg14>[uword]
-free SP<__wolin_reg14>, #2 // RIGHT for <
-free SP<__wolin_reg13>, #2 // LEFT for <
-// SAFE INFER TOP: __wolin_reg12: bool = 0 (for while condition) -> no change
-bne SP(0)<__wolin_reg12>[bool] = #1[bool], __wolin_lab_loopEnd_1<label_po_if>[adr]
-// Using already known __wolin_reg15
-// Using already known __wolin_reg16
 //  lewa strona assignment
-// Using already known __wolin_reg17
-alloc SP<__wolin_reg17>, #2 // For assignment left side
-//  left side disjunction - prawie dobrze
-// Using already known __wolin_reg18
-alloc SP<__wolin_reg18>, #2 // arr_deref
-//  LEWA strona array access, czyli co to za zmienna
-let SP(0)<__wolin_reg18>[ptr] = 1024[ptr] // simple id from fixed array var
-// switchType to:ubyte* by type from pl.qus.wolin.ekran
-//  PRAWA strona array access, czyli indeks w nawiasach
-// Using already known __wolin_reg19
-alloc SP<__wolin_reg19>, #2 // For calculating index
-let SP(0)<__wolin_reg19>[uword] = __wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword] // przez sprawdzacz typow - operator ++
-add __wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword] = __wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword], #1[uword] // simple id
-// switchType to:uword by ++ operator
-// FORCE TOP: __wolin_reg19: uword = 0 (For calculating index) -> uword
-//  long index, single byte per element array
-add SP(2)<__wolin_reg18>[ptr] = SP(2)<__wolin_reg18>[ptr], SP(0)<__wolin_reg19>[uword]
-free SP<__wolin_reg19>, #2 // For calculating index
-// **ARRAY Changing current type to prevReg type __wolin_reg18: ubyte* = 0 (arr_deref)
-//  after index
-// dereference value at topRegister
-//  kod obsługi tablicy
-//  non-fast array, changing top reg to ptr
-let SP(2)<__wolin_reg17>[ptr] = SP(0)<__wolin_reg18>[ptr]
-free SP<__wolin_reg18>, #2 // arr_deref
-// SAFE INFER TOP: __wolin_reg17: ubyte* = 0 (For assignment left side) -> no change
+// Using already known __wolin_reg13
+alloc SP<__wolin_reg13>, #2 // For assignment left side
+// switchType to:pl.qus.wolin.Test by by znajdźSimpleIdW
+// SAFE INFER TOP: __wolin_reg13: pl.qus.wolin.Test = 65535 (For assignment left side) -> no change
 //  prawa strona assignment
-// Using already known __wolin_reg20
-alloc SP<__wolin_reg20>, #1 // for value that gets assigned to left side
-let SP(0)<__wolin_reg20>[ubyte] = __wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte] // przez sprawdzacz typow - operator ++
-add __wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte] = __wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte], #1[ubyte] // simple id
-// switchType to:ubyte by ++ operator
-let SP(1)<__wolin_reg17>[ptr] = SP(0)<__wolin_reg20>[ubyte] // przez sprawdzacz typow - process assignment
-free SP<__wolin_reg20>, #1 // for value that gets assigned to left side, type = ubyte
-free SP<__wolin_reg17>, #2 // For assignment left side
+// Using already known __wolin_reg14
+alloc SP<__wolin_reg14>, #2 // for value that gets assigned to left side
+// switchType to:pl.qus.wolin.Test by function type 1
+// SAFE INFER TOP: __wolin_reg14: pl.qus.wolin.Test = 65535 (for value that gets assigned to left side) -> no change
+alloc SPF, #2
+// switchType to:pl.qus.wolin.Test by function type 2
+// switchType to:pl.qus.wolin.Test by function call
+call __wolin_pl_qus_wolin_Test[adr]
+
+let SP(0)<__wolin_reg14>[ptr] = SPF(0)<returnValue>[ptr]// copy return parameter - TODO sprawdzić co jeśli wywołanie funkcji było bez podstawienia!!!
+free SPF <pl.qus.wolin.Test>, #2
+let SPF(0)<pl.qus.wolin.main..testowa>[ptr] = SP(0)<__wolin_reg14>[ptr] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg14>, #2 // for value that gets assigned to left side, type = pl.qus.wolin.Test
+free SP<__wolin_reg13>, #2 // For assignment left side
 // switchType to:unit by assignment
-// SAFE INFER TOP: __wolin_reg16: unit = 65535 (for expression) -> no change
-goto __wolin_lab_loopStart_1[adr]
-label __wolin_lab_loopEnd_1
-free SP<__wolin_reg12>, #1 // for while condition
-// SAFE INFER TOP: __wolin_reg11: unit = 65535 (for expression) -> no change
-// Using already known __wolin_reg21
-alloc SP<__wolin_reg21>, #1 // for declaration valx:ubyte=suma(2,2)
-// Using already known __wolin_reg22
-alloc SP<__wolin_reg22>, #1 // for var init expression
+// SAFE INFER TOP: __wolin_reg12: unit = 65535 (for expression) -> no change
+// Using already known __wolin_reg15
+//  lewa strona assignment
+// Using already known __wolin_reg16
+alloc SP<__wolin_reg16>, #1 // For assignment left side
+// switchType to:ubyte by by znajdźSimpleIdW
+// SAFE INFER TOP: __wolin_reg16: ubyte = 0 (For assignment left side) -> no change
+//  prawa strona assignment
+// Using already known __wolin_reg17
+alloc SP<__wolin_reg17>, #1 // for value that gets assigned to left side
+// Using already known __wolin_reg18
+alloc SP<__wolin_reg18>, #2 // dereferenced var
+//  lewa strona deref
+let SP(0)<__wolin_reg18>[ptr] = SPF(0)<pl.qus.wolin.main..testowa>[ptr] // simple id from var
+// switchType to:pl.qus.wolin.Test by type from pl.qus.wolin.main..testowa
+// to jest klasa zmieniamy chwilowo aktualną
+//  jesli tak, to na gorze heapu jest uniqid klasy
+//  prawa strona deref
+// Using already known __wolin_reg19
+alloc SP<__wolin_reg19>, #1 // for right side of deref
+//  postfix unary w dereferencji
 // switchType to:ubyte by function type 1
-// SAFE INFER TOP: __wolin_reg22: ubyte = 0 (for var init expression) -> no change
+// SAFE INFER TOP: __wolin_reg19: ubyte = 0 (for right side of deref) -> no change
 alloc SPF, #3
-//  obsługa argumentu 0 wywołania suma
-// Using already known __wolin_reg23
-alloc SP<__wolin_reg23>, #1 // for call argument 0
-// Prze visit vALUE
-//  obliczenia dla parametru 2
-// switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg23>[ubyte] = #2[ubyte] // atomic ex
-// po visit value
-let SPF(0)[ubyte] = SP(0)<__wolin_reg23>[ubyte]
-free SP<__wolin_reg23>, #1 // for call argument 0, type = ubyte
-//  obsługa argumentu 1 wywołania suma
-// Using already known __wolin_reg24
-alloc SP<__wolin_reg24>, #1 // for call argument 1
-// Prze visit vALUE
-//  obliczenia dla parametru 2
-// switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg24>[ubyte] = #2[ubyte] // atomic ex
-// po visit value
-let SPF(1)[ubyte] = SP(0)<__wolin_reg24>[ubyte]
-free SP<__wolin_reg24>, #1 // for call argument 1, type = ubyte
+// obsługa this dla suma
+let SPF(0)[ptr] = SP(1)<__wolin_reg18>[ptr]
 // switchType to:ubyte by function type 2
 // switchType to:ubyte by function call
-call __wolin_pl_qus_wolin_suma[adr]
+call __wolin_pl_qus_wolin_Test_suma[adr]
 
-let SP(0)<__wolin_reg22>[ubyte] = SPF(0)<returnValue>[ubyte]// copy return parameter - TODO sprawdzić co jeśli wywołanie funkcji było bez podstawienia!!!
+let SP(0)<__wolin_reg19>[ubyte] = SPF(0)<returnValue>[ubyte]// copy return parameter - TODO sprawdzić co jeśli wywołanie funkcji było bez podstawienia!!!
 free SPF <ubyte>, #1
-// SAFE INFER TOP: __wolin_reg22: ubyte = 0 (for var init expression) -> no change
-let SPF(0)<pl.qus.wolin.main..x>[ubyte] = SP(0)<__wolin_reg22>[ubyte] // podstawic wynik inicjalizacji expression do zmiennej pl.qus.wolin.main..x
-free SP<__wolin_reg22>, #1 // for var init expression
-// SAFE INFER TOP: __wolin_reg21: ubyte = 0 (for declaration valx:ubyte=suma(2,2)) -> no change
-free SP<__wolin_reg21>, #1 // for declaration valx:ubyte=suma(2,2)
-free SPF, #1 // free fn arguments and locals for pl.qus.wolin.main
+// tu przywrócić poprzednią klasę
+free SP<__wolin_reg19>, #1 // for right side of deref
+free SP<__wolin_reg18>, #2 // dereferenced var
+let 53280[ubyte] = SP(0)<__wolin_reg17>[ubyte] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg17>, #1 // for value that gets assigned to left side, type = ubyte
+free SP<__wolin_reg16>, #1 // For assignment left side
+// switchType to:unit by assignment
+// SAFE INFER TOP: __wolin_reg15: unit = 65535 (for expression) -> no change
+free SPF, #2 // free fn arguments and locals for pl.qus.wolin.main
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // return from function body
 ret

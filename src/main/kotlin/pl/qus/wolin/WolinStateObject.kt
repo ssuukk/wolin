@@ -16,9 +16,9 @@ class WolinStateObject(val pass: Pass) {
     var codeOn = true
     var commentOn = true
 
-    var variablary = hashMapOf<String, Zmienna>()
-    var functiary = mutableListOf<Funkcja>()
-    var classary = hashMapOf<String, Klasa>()
+    private var variablary = hashMapOf<String, Zmienna>()
+    private var functiary = hashMapOf<String, Funkcja>()
+    private var classary = hashMapOf<String, Klasa>()
 
     val operStack = SpecStack("SP")
     val callStack = SpecStack("SPF")
@@ -47,20 +47,18 @@ class WolinStateObject(val pass: Pass) {
 
     val spUsed get() = variablary.any { it.value.fieldType == FieldType.OP_STACK }
 
-    val spfUsed get() = variablary.any { it.value.fieldType == FieldType.FUNCTION }
+    val spfUsed get() = variablary.any { it.value.fieldType == FieldType.LOCAL }
 
     // potencjalnie wymagające stosu
-
+    val classDerefStack = Stack<Zmienna>()
     val assignStack = AssignStack()
-
     var arrayElementSize: Int = 0
-
     var simpleWhen = true
     var lastWhenEntry = false
-    var whenBranchResult : Zmienna? = null
+    var whenBranchResult: Zmienna? = null
 
     init {
-        if(classary.isEmpty()) {
+        if (classary.isEmpty()) {
             classary["Any"] = AnyKlasa()
         }
     }
@@ -68,6 +66,16 @@ class WolinStateObject(val pass: Pass) {
     /*****************************************************************
     Generalny kod
      *****************************************************************/
+
+    fun copy(state: WolinStateObject) {
+        state.variablary = variablary
+        state.exceptionsUsed = exceptionsUsed
+        state.classary = classary
+        state.functiary = functiary
+        state.mainFunction = mainFunction
+//            declarationVisitor.state.strings = symbolsVisitor.state.strings
+//            declarationVisitor.state.floats = symbolsVisitor.state.floats
+    }
 
     fun code(kod: String) {
         if (codeOn && pass == Pass.TRANSLATION)
@@ -89,14 +97,14 @@ class WolinStateObject(val pass: Pass) {
         name: String,
         typeContext: KotlinParser.TypeContext?,
         propertyCtx: KotlinParser.PropertyDeclarationContext?,
-        argument: Boolean = false,
-        stack: FieldType
+        //isArgument: Boolean = false,
+        fieldType: FieldType
     ): Zmienna {
         if (typeContext == null) {
             return Zmienna(
                 name = nameStitcher(name),
                 allocation = AllocType.NORMAL,
-                fieldType = stack,
+                fieldType = fieldType,
                 type = Typ.unit
             )
         }
@@ -158,11 +166,11 @@ class WolinStateObject(val pass: Pass) {
             else -> AllocType.NORMAL
         }
 
-        val zmienna = Zmienna("", allocation = typ, fieldType = stack)
+        val zmienna = Zmienna("", allocation = typ, fieldType = fieldType)
 
-        zmienna.immutable = propertyCtx?.VAL() != null || argument == true
+        zmienna.immutable = propertyCtx?.VAL() != null || fieldType == FieldType.ARGUMENT
         zmienna.location = loc ?: nullableTypeLoc
-        zmienna.name = nameStitcher(name, argument)
+        zmienna.name = nameStitcher(name, fieldType == FieldType.ARGUMENT)
         zmienna.type = type
 
         var pomiń = 0
@@ -188,15 +196,21 @@ class WolinStateObject(val pass: Pass) {
         name: String,
         typeContext: KotlinParser.TypeContext?,
         propertyCtx: KotlinParser.PropertyDeclarationContext?,
-        argument: Boolean = false,
+        //isArgument: Boolean = false,
         fieldType: FieldType
     ): Zmienna {
-        val zmienna = createVar(name, typeContext, propertyCtx, argument, fieldType)
+        val zmienna = createVar(name, typeContext, propertyCtx, fieldType)
 
         toVariablary(zmienna)
 
         if (zmienna.fieldType == FieldType.CLASS) {
             currentClass!!.toHeapAndVariablary(zmienna)
+        }
+
+        if (fieldType != FieldType.ARGUMENT && currentFunction?.locals?.none {it.name == zmienna.name} == true) {
+            currentFunction?.addField(zmienna)
+//            if(callStack.none { it.name == zmienna.name })
+//                callStack.push(zmienna)
         }
 
         return zmienna
@@ -206,13 +220,13 @@ class WolinStateObject(val pass: Pass) {
         name: String,
         alloc: AllocType,
         typ: Typ,
-        argument: Boolean,
+        //isArgument: Boolean,
         fieldType: FieldType
     ): Zmienna {
         val zmienna = Zmienna("", allocation = alloc, fieldType = fieldType, type = typ)
 
-        zmienna.immutable = argument == true
-        zmienna.name = nameStitcher(name, argument)
+        zmienna.immutable = fieldType == FieldType.ARGUMENT
+        zmienna.name = nameStitcher(name, fieldType == FieldType.ARGUMENT)
 
         var pomiń = 0
         if (basePackage.isNotEmpty()) pomiń = basePackage.length + 1
@@ -240,17 +254,18 @@ class WolinStateObject(val pass: Pass) {
 //    }
 
     fun toVariablary(zmienna: Zmienna) {
-        if(zmienna.name == "pl.qus.wolin.allocMem.returnValue") {
-            println("tutaj!")
-        }
         if (!variablary.containsKey(zmienna.name))
             variablary[zmienna.name] = zmienna
     }
 
-
     fun toClassary(klasa: Klasa) {
         if (!classary.containsKey(klasa.name))
             classary[klasa.name] = klasa
+    }
+
+    fun toFunctiary(proc: Funkcja) {
+        if (!functiary.containsKey(proc.fullName))
+            functiary[proc.fullName] = proc
     }
 
     fun findClass(nazwa: String): Klasa {
@@ -272,6 +287,15 @@ class WolinStateObject(val pass: Pass) {
 
         return klasa
     }
+
+    fun initializedStatics(): List<Zmienna> =
+        variablary.filter { it.value.fieldType == FieldType.STATIC && it.value.initExpression != null }.map{ it.value }
+
+    fun initializedClassFields(): List<Zmienna> =
+        variablary.filter { it.value.fieldType == FieldType.CLASS && it.value.initExpression != null }.map{ it.value }
+
+    fun lambdas(): List<Funkcja> =
+        functiary.values.filter { it.lambdaBody != null }
 
     fun findVarInVariablaryWithDescoping(nazwa: String): Zmienna {
         var gdzieJesteśmy = nameStitcher("")
@@ -311,8 +335,8 @@ class WolinStateObject(val pass: Pass) {
 
         gdzieJesteśmy = nameStitcher("")
 
-        if(currentFunction != null && zmienna.name.startsWith(gdzieJesteśmy)) {
-            zmienna.fieldType = FieldType.FUNCTION
+        if (currentFunction != null && zmienna.name.startsWith(gdzieJesteśmy)) {
+            zmienna.fieldType = FieldType.LOCAL
         }
 
         return zmienna
@@ -326,9 +350,10 @@ class WolinStateObject(val pass: Pass) {
             zmienna.fieldType != FieldType.DUMMY && zmienna.fieldType != FieldType.STATIC -> {
                 val stos = when (zmienna.fieldType) {
                     FieldType.OP_STACK -> operStack
-                    FieldType.FUNCTION -> callStack
+                    FieldType.LOCAL -> callStack
+                    FieldType.ARGUMENT -> callStack
                     FieldType.CLASS -> currentClass!!.heap
-                    else -> throw Exception("Variable is on unknown stack ${zmienna.fieldType}!")
+                    else -> throw Exception("Unknown field type: ${zmienna.fieldType}!")
                 }
                 "${stos.stackName}(${findStackVector(stos, zmienna.name).first})<${zmienna.name}>"
             }
@@ -422,7 +447,7 @@ class WolinStateObject(val pass: Pass) {
                 true,
                 null,
                 AllocType.NORMAL,
-                fieldType = FieldType.FUNCTION,
+                fieldType = FieldType.LOCAL,
                 type = Typ.byName(retVal, this)
             )
 
@@ -430,28 +455,28 @@ class WolinStateObject(val pass: Pass) {
 
         funkcja.type = retZmienna.type
 
-        funkcja.arguments = args.mapIndexed { index, argType ->
+            args.forEachIndexed { index, argType ->
             val lambdaArg =
                 Zmienna(
                     "lambdaArg$index",
                     true,
                     null,
                     AllocType.NORMAL,
-                    fieldType = FieldType.FUNCTION,
+                    fieldType = FieldType.LOCAL,
                     type = Typ.byName(argType, this)
                 )
 
             toVariablary(lambdaArg)
 
-            lambdaArg
-        }.toMutableList()
+            funkcja.addField(lambdaArg)
+        }
 
         return funkcja
     }
 
     fun fnCallAllocRetAndArgs(funkcja: Funkcja) {
 
-        if(pass == Pass.SYMBOLS) return
+        if (pass == Pass.SYMBOLS) return
 
         var zliczacz = 0
 
@@ -461,60 +486,43 @@ class WolinStateObject(val pass: Pass) {
                     name = "returnValue",
                     immutable = false,
                     allocation = AllocType.NORMAL,
-                    fieldType = FieldType.FUNCTION,
+                    fieldType = FieldType.LOCAL,
                     type = funkcja.type
                 )
             )
             zliczacz += funkcja.type.sizeOnStack
         }
 
-//        funkcja.arguments.forEach { zmienna ->
-//            if (zmienna.allocation != AllocType.FIXED) {
-//                callStack.add(zmienna)
-//                zliczacz += zmienna.type.sizeOnStack
-//            }
-//        }
-
-        //if(pass == Pass.TRANSLATION) {
-            functionLocals(funkcja).forEach { zmienna ->
-                if (zmienna.allocation != AllocType.FIXED) {
-                    callStack.add(zmienna)
-                    zliczacz += zmienna.type.sizeOnStack
-                }
+        funkcja.fields.forEach { zmienna ->
+            if (zmienna.allocation != AllocType.FIXED) {
+                callStack.add(zmienna)
+                zliczacz += zmienna.type.sizeOnStack
             }
-        //}
+        }
 
         code("alloc SPF, #$zliczacz")
 
     }
 
     fun fnCallReleaseArgs(funkcja: Funkcja) {
-        if(pass == Pass.SYMBOLS) return
+        if (pass == Pass.SYMBOLS) return
 
-        //if(pass == Pass.TRANSLATION) {
-            functionLocals(funkcja).forEach {
-                if (it.allocation != AllocType.FIXED) {
-                    callStack.pop()
-                }
+        funkcja.fields.forEach {
+            if (it.allocation != AllocType.FIXED) {
+                callStack.pop()
             }
-        //}
-
-//        funkcja.arguments.forEach {
-//            if (it.allocation != AllocType.FIXED) {
-//                callStack.pop()
-//            }
-//        }
+        }
     }
 
     fun fnCallReleaseRet(funkcja: Funkcja) {
-        if(pass == Pass.SYMBOLS) return
+        if (pass == Pass.SYMBOLS) return
 
         if (!funkcja.type.isUnit)
             callStack.pop()
     }
 
     fun fnDeclAllocStackAndRet(funkcja: Funkcja) {
-        if(pass == Pass.SYMBOLS) return
+        if (pass == Pass.SYMBOLS) return
 
         if (!funkcja.type.isUnit) {
             callStack.add(
@@ -522,48 +530,30 @@ class WolinStateObject(val pass: Pass) {
                     name = "returnValue",
                     immutable = false,
                     allocation = AllocType.NORMAL,
-                    fieldType = FieldType.FUNCTION,
+                    fieldType = FieldType.LOCAL,
                     type = funkcja.type
                 )
             )
         }
 
-//        // zalatwiane przez functionLocals
-//        funkcja.arguments.forEach { zmienna ->
-//            if (zmienna.allocation != AllocType.FIXED) {
-//                callStack.add(zmienna)
-//            }
-//        }
-
-        //if(pass == Pass.TRANSLATION) {
-            functionLocals(funkcja).forEach { zmienna ->
-                if (zmienna.allocation != AllocType.FIXED) {
-                    callStack.add(zmienna)
-                }
+        funkcja.fields.forEach { zmienna ->
+            if (zmienna.allocation != AllocType.FIXED) {
+                callStack.add(zmienna)
             }
-        //}
+        }
     }
 
     fun fnDeclFreeStackAndRet(funkcja: Funkcja) {
-        if(pass == Pass.SYMBOLS) return
+        if (pass == Pass.SYMBOLS) return
 
         var suma = 0
 
-        //if(pass == Pass.TRANSLATION) {
-            functionLocals(funkcja).forEach {
-                if (it.allocation != AllocType.FIXED) {
-                    val zmienna = callStack.pop()
-                    suma += zmienna.type.sizeOnStack
-                }
+        funkcja.fields.forEach {
+            if (it.allocation != AllocType.FIXED) {
+                val zmienna = callStack.pop()
+                suma += zmienna.type.sizeOnStack
             }
-        //}
-
-//        funkcja.arguments.forEach {
-//            if (it.allocation != AllocType.FIXED) {
-//                val zmienna = callStack.pop()
-//                suma += zmienna.type.sizeOnStack
-//            }
-//        }
+        }
 
         if (suma > 0)
             code("free SPF, #$suma // free fn arguments and locals for ${funkcja.fullName}")
@@ -575,14 +565,24 @@ class WolinStateObject(val pass: Pass) {
     }
 
     fun findProc(nazwa: String): Funkcja {
-        var gdzieJesteśmy = nameStitcher("")
+        var funkcja: Funkcja? = functiary[nazwa]
 
-        var funkcja: Funkcja?
+        if(funkcja != null)
+            return funkcja
+
+        if(classDerefStack.isNotEmpty())
+            funkcja = functiary["${classDerefStack.peek()!!.type.type}.$nazwa"]
+
+        if(funkcja != null)
+            return funkcja
+
+        var gdzieJesteśmy = nameStitcher("")
 
         do {
             val pattern = "$gdzieJesteśmy.$nazwa"
 
-            funkcja = functiary.firstOrNull { it.fullName == pattern }
+            val key = functiary.keys.firstOrNull { it == pattern }
+            funkcja = functiary[key]
 
             val ostKropka = gdzieJesteśmy.lastIndexOf(".")
             try {
@@ -612,7 +612,7 @@ class WolinStateObject(val pass: Pass) {
 //            println("tu!")
 //        }
 
-        if(variablary[name] != null)
+        if (variablary[name] != null)
             rem("Using already known $name")
         else
             rem("$name not yet in variablary")
@@ -680,13 +680,12 @@ class WolinStateObject(val pass: Pass) {
     fun inferTopOperType() {
         val top = operStack.peek()
 
-        if(top.type == currentWolinType) {
+        if (top.type == currentWolinType) {
             rem("SAFE INFER TOP: $top -> no change")
         } else if (top.type.isUnit) {
             top.type = currentWolinType
             rem("SAFE INFER TOP: $top -> $currentWolinType")
-        }
-        else if (!top.type.canBeAssigned(currentWolinType))
+        } else if (!top.type.canBeAssigned(currentWolinType))
             throw RegTypeMismatchException("Attempt to reassign $currentWolinType to $top")
     }
 
@@ -704,10 +703,9 @@ class WolinStateObject(val pass: Pass) {
         val fromClasses =
             classary.values.firstOrNull {
                 it.name == typeName
-            } ?:
-            classary.values.firstOrNull {
-            it.name.endsWith(".$typeName")
-        }
+            } ?: classary.values.firstOrNull {
+                it.name.endsWith(".$typeName")
+            }
 
         return when {
             typeName == "byte" -> "byte"
@@ -749,8 +747,8 @@ class WolinStateObject(val pass: Pass) {
         }
     }
 
-    fun nameStitcher(name: String, argument: Boolean = false): String {
-        return nameStitcher(name, currentFunction?.fullName, argument)
+    fun nameStitcher(name: String, isArgument: Boolean = false): String {
+        return nameStitcher(name, currentFunction?.fullName, isArgument)
     }
 
     fun nameStitcher(name: String, functionName: String?, isArgument: Boolean = false): String {

@@ -15,16 +15,16 @@ C64 - dostępna pamięć:
 bajty do wykorzystania:
 146 - tape
 150 - tape
-155 - tape: ESP
 190 - tape
 192 - tape
 255 - free
 
 wordy do wykorzystania:
-176-177 - tape:
-178-179 - tape: EXCEPTION OBJECT
-251-252 - free: FSP
-253-254 - free: CATCH JUMP ADDRESS
+155-156 - tape: [ESP]
+176-177 - tape: [HEAP]
+178-179 - tape: [EXCEPTION OBJECT]
+251-252 - free: [FSP]
+253-254 - free: [CATCH JUMP ADDRESS]
 
 potencjalnie do wykorzystania:
 197-246 - edytor
@@ -407,13 +407,9 @@ http://wilsonminesco.com/StructureMacros/
         println("== PASS 2 - type inference ==")
 
         // zebranie typów dla rejestrów
-        declarationVisitor.state.mainFunction = symbolsVisitor.state.functiary.firstOrNull { it.fullName == "main" || it.fullName.endsWith(".main")}
-        declarationVisitor.state.variablary = symbolsVisitor.state.variablary
-        declarationVisitor.state.exceptionsUsed = symbolsVisitor.state.exceptionsUsed
-        declarationVisitor.state.classary = symbolsVisitor.state.classary
-        declarationVisitor.state.functiary = symbolsVisitor.state.functiary
-//            declarationVisitor.state.strings = symbolsVisitor.state.strings
-//            declarationVisitor.state.floats = symbolsVisitor.state.floats
+        val mainName = symbolsVisitor.state.findProc("main")// { it == "main" || it.endsWith(".main")}
+        symbolsVisitor.state.copy(declarationVisitor.state)
+        declarationVisitor.state.mainFunction = mainName
 
         declarationVisitor.visit(fileContext)
         declarationVisitor.appendLambdas()
@@ -421,14 +417,7 @@ http://wilsonminesco.com/StructureMacros/
         println("== PASS 3 - code generation ==")
 
         // właściwa translacja
-        translationVisitor.state.mainFunction = declarationVisitor.state.functiary.firstOrNull { it.fullName == "main" || it.fullName.endsWith(".main")}
-        translationVisitor.state.variablary = declarationVisitor.state.variablary
-        translationVisitor.state.exceptionsUsed = declarationVisitor.state.exceptionsUsed
-        translationVisitor.state.classary = declarationVisitor.state.classary
-        translationVisitor.state.functiary = declarationVisitor.state.functiary
-//            translationVisitor.state.strings = declarationVisitor.state.strings
-//            translationVisitor.state.floats = declarationVisitor.state.floats
-
+        declarationVisitor.state.copy(translationVisitor.state)
         val wynik = translationVisitor.visit(fileContext)
 
         translationVisitor.appendLambdas()

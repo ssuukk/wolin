@@ -25,6 +25,8 @@ class WolinVisitor(
             }
         else błędzik(ctx, "Unknown function body type")
 
+        println("visiting function ${state.currentFunction?.fullName}")
+
         state.fnDeclFreeStackAndRet(state.currentFunction!!)
 
         state.rem("return from function body")
@@ -681,9 +683,11 @@ class WolinVisitor(
                             val klasa = state.findClass(procName)
                             // TODO - tymczasowo dodać do funkcjarium konstruktor bez parametrów przy rejestrowaniu klasy
                             // konstruktor zawiera allokację i zwraca adres
+//                            val fnName = state.functiary.keys.first { it == klasa.name }
+//                            state.functiary[fnName]!!
 
-                            state.functiary.first { it.fullName == klasa.name }
-                        } catch (ex: StringIndexOutOfBoundsException) {
+                            state.findProc(klasa.name)
+                        } catch (ex: Exception) {
                             try {
                                 state.findProc(procName)
                             } catch (ex: FunctionNotFound) {
@@ -691,7 +695,11 @@ class WolinVisitor(
                             }
                         }
 
-                        if (prototyp.arguments.size != arguments.valueArgument()?.size)
+
+
+                        if (state.classDerefStack.isNotEmpty() && prototyp.arguments.size-1 != arguments.valueArgument()?.size)
+                            błędzik(ctx, "Wrong number of arguments in method call $procName")
+                        else if (state.classDerefStack.isEmpty() && prototyp.arguments.size != arguments.valueArgument()?.size)
                             błędzik(ctx, "Wrong number of arguments in function call $procName")
 
                         state.switchType(prototyp.type, "function type 1")
@@ -703,8 +711,17 @@ class WolinVisitor(
                             state.code("save CPU.X // save SP, as X is used by native call argument")
                         }
 
+                        if(state.classDerefStack.isNotEmpty()) {
+                            state.rem("obsługa this dla $procName")
+                            val found = state.findStackVector(state.callStack, "${prototyp.fullName}.this")
+
+                            state.code(
+                                "let SPF(${found.first})${found.second.typeForAsm} = ${state.varToAsm(state.regFromTop(1))}"
+                            )
+                        }
+
                         arguments.valueArgument()?.forEachIndexed { i, it ->
-                            state.rem(" obsługa argumentu $i wywołania $procName")
+                            state.rem("obsługa argumentu $i wywołania $procName")
                             state.allocReg("for call argument $i", prototyp.arguments[i].type)
 
                             // w valueArgumentContext jest ExpressionContext
@@ -820,30 +837,44 @@ class WolinVisitor(
                         when {
                             prawo.memberAccessOperator() != null -> {
 
+                                val dereferenced = state.allocReg("dereferenced var")
+
                                 state.rem(" lewa strona deref")
                                 visitAtomicExpression(lewo)
-                                state.rem(" sprawdzic, czy aktualny typ to klasa")
-                                state.rem(" jesli tak, to na gorze heapu jest uniqid klasy")
+
+                                val classDeref = if(state.currentWolinType.isClass) {
+                                    state.rem("to jest klasa zmieniamy chwilowo aktualną")
+                                    state.rem(" jesli tak, to na gorze heapu jest uniqid klasy")
+                                    //val akt = state.regFromTop(1)
+                                    dereferenced.type = state.currentWolinType
+                                    state.classDerefStack.push(dereferenced)
+                                    true
+                                } else {
+                                    false
+                                }
 
                                 // TODO tu podstawiamy pod aktualny rejestr instancje jakiejś klasy
-                                // ale nie wiemy co to za klasa,  bo to już tylko ptr
-                                // więc nie wiemy jakie ma metody ten ptr!
 
                                 state.rem(" prawa strona deref")
-                                //visitPostfixUnaryOperation(poKropce)
-                                //błędzik(ctx,"nie wiem jak dereferncić")
 
-                                val reg = state.currentReg
+                                val reg = state.allocReg("for right side of deref")
                                 val safeDeref = prawo.memberAccessOperator().QUEST() != null
 
                                 val costam = prawo.postfixUnaryExpression()
                                 if (safeDeref) {
-                                    state.code("evaleq costam[bool] = $reg[ptr], null")
-                                    state.code("beq costam[bool] = #0, jakis_label[adr]")
+                                    state.code("evaleq costam[bool] = $reg[ptr], null // safe deref")
+                                    state.code("beq costam[bool] = #0, jakis_label[adr] // safe deref")
                                 }
 
                                 state.rem(" postfix unary w dereferencji")
-                                //visitPostfixUnaryExpression(costam)
+                                visitPostfixUnaryExpression(costam)
+                                if(classDeref) {
+                                    state.rem("tu przywrócić poprzednią klasę")
+                                    state.classDerefStack.pop()
+                                    //state.currentClass = prevClass
+                                }
+                                state.freeReg("for right side of deref")
+                                state.freeReg("dereferenced var")
                             }
                             prawo.arrayAccess() != null -> {
                                 // ARRAYCODE
@@ -1042,7 +1073,11 @@ class WolinVisitor(
 
         val lambdaName = "lambda_function_${state.lambdaCounter++}"
 
-        val nowaFunkcja = Funkcja(fullName = lambdaName)
+        val nowaFunkcja = try {
+            state.findProc(lambdaName)
+        } catch (ex: Exception) {
+            Funkcja(fullName = lambdaName)
+        }
 
         // TODO - dodać do skołpu zmienne tej lambdy
 
@@ -1065,16 +1100,16 @@ class WolinVisitor(
                         if (state.assignStack.isNotEmpty()) {
                             val funkcja = state.lambdaTypeToFunction(state.assignStack.assignLeftSideVar)
                             val interred = funkcja.arguments[index]
-                            state.createAndRegisterVar(id, AllocType.NORMAL, interred.type, true, FieldType.FUNCTION)
+                            state.createAndRegisterVar(id, AllocType.NORMAL, interred.type, FieldType.ARGUMENT)
                         } else {
                             błędzik(ctx, "Can't infer type of lambda!")
                             throw Exception()
                         }
                     } else {
-                        state.createAndRegisterVar(id, typ, null, true, FieldType.FUNCTION)
+                        state.createAndRegisterVar(id, typ, null, FieldType.ARGUMENT)
                     }
 
-                    if (arg.allocation != AllocType.FIXED) nowaFunkcja.arguments.add(arg)
+                    if (arg.allocation != AllocType.FIXED) nowaFunkcja.addField(arg)
                 }
                 else -> {
                     błędzik(ctx, "Może nie błąd, tylko lambda bez parametrów?")
@@ -1097,7 +1132,7 @@ class WolinVisitor(
 
         state.currentFunction = rememberedFunction
 
-        state.functiary.add(nowaFunkcja)
+        state.toFunctiary(nowaFunkcja)
 
         val test = state.functionToLambdaType(nowaFunkcja)
 
@@ -1466,8 +1501,6 @@ class WolinVisitor(
     }
 
     override fun visitFunctionDeclaration(ctx: KotlinParser.FunctionDeclarationContext): WolinStateObject {
-        val nowaFunkcja = Funkcja()
-
         val name = ctx.identifier()?.text ?: throw Exception("Brak nazwy funkcji")
 
         val lokacjaLiterał = ctx.locationReference()?.literalConstant()
@@ -1480,24 +1513,34 @@ class WolinVisitor(
             parseLiteralConstant(lokacjaAdres, it)
         }
 
-        nowaFunkcja.location = lokacjaAdres.intValue.toInt()
-        nowaFunkcja.fullName = state.nameStitcher(name)
+        val functionName = state.nameStitcher(name)
+
+        val nowaFunkcja = try {
+            state.findProc(functionName)
+        } catch (ex: Exception) {
+            val nowa = Funkcja()
+
+            nowa.location = lokacjaAdres.intValue.toInt()
+            nowa.fullName = functionName
+
+            val zwrotka = state.createVar("returnValue", ctx.type(0), null, FieldType.ARGUMENT)
+
+            nowa.type = zwrotka.type
+
+            nowa
+        }
 
         state.currentFunction = nowaFunkcja
 
-        val zwrotka = state.createVar("returnValue", ctx.type(0), null, true, FieldType.FUNCTION)
-
-        nowaFunkcja.type = zwrotka.type
 
         if (state.currentClass != null && state.pass == Pass.SYMBOLS) {
             val thisArg = state.createAndRegisterVar(
                 "this",
                 AllocType.NORMAL,
                 Typ.byName(state.currentClass!!.name, state),
-                true,
-                FieldType.FUNCTION
+                FieldType.ARGUMENT
             )
-            state.currentFunction?.arguments?.add(thisArg)
+            state.currentFunction?.addField(thisArg)
         }
 
         ctx.functionValueParameters()?.functionValueParameter()?.forEach {
@@ -1533,7 +1576,7 @@ class WolinVisitor(
 
         state.code("")
 
-        state.functiary.add(nowaFunkcja)
+        state.toFunctiary(nowaFunkcja)
 
         state.currentFunction = null
 
@@ -1551,14 +1594,17 @@ class WolinVisitor(
             nowa
         }
 
-        val konstruktor = Funkcja(
-            state.currentClass!!.name,
-            Typ.byName(state.currentClass!!.name, state)
-        )
+        val konstruktor = try {
+            state.findProc(state.currentClass!!.name)
+        } catch (ex: Exception) {
+            Funkcja(
+                state.currentClass!!.name,
+                Typ.byName(state.currentClass!!.name, state)
+            )
+        }
 
-
+        state.currentFunction = konstruktor
         ////////////////////////////////////////
-
 
         state.code(
             "\n" + """// ****************************************
@@ -1573,11 +1619,11 @@ class WolinVisitor(
 
         state.code("")
 
-        state.functiary.add(konstruktor)
+        state.toFunctiary(konstruktor)
 
         val typZwrotki = Typ(state.currentClass!!.name, false, true)
 
-        val zwrotka = state.createAndRegisterVar("returnValue", AllocType.NORMAL, typZwrotki, true, FieldType.FUNCTION)
+        val zwrotka = state.createAndRegisterVar("returnValue", AllocType.NORMAL, typZwrotki, FieldType.ARGUMENT)
 
         val funkcjaAlloc = state.findProc("allocMem").apply {
             if (state.pass == Pass.TRANSLATION) {
@@ -1602,12 +1648,15 @@ class WolinVisitor(
         state.code("setup HEAP = ${state.currentRegToAsm()}")
 
         state.freeReg("for returning this")
-        state.fnDeclFreeStackAndRet(konstruktor)
 
-        state.variablary.filter { it.value.fieldType == FieldType.CLASS && it.value.initExpression != null }.map{ it.value }.forEach {
+        state.initializedClassFields().forEach {
             state.rem("inicjalizacja zmiennej ${it.name}")
             if(state.pass != Pass.SYMBOLS) doInitCode(it)
         }
+
+        state.fnDeclFreeStackAndRet(konstruktor)
+
+        state.currentFunction = null
 
         state.rem("return from constructor")
         state.code("ret")
@@ -1623,7 +1672,7 @@ class WolinVisitor(
 
         val classUniqId = state.classCounter++
 
-        val zmienna = Zmienna(
+        val classId = Zmienna(
             "classUniqId",
             true,
             null,
@@ -1635,7 +1684,7 @@ class WolinVisitor(
         }
 
         if(state.pass == Pass.SYMBOLS)
-            state.currentClass!!.heap.push(zmienna)
+            state.currentClass!!.heap.push(classId)
 
         // musi być rozdzielone, aby uwzględnić zmienną z id klasy
         a.classMemberDeclaration()?.forEach {
@@ -1652,10 +1701,10 @@ class WolinVisitor(
     override fun visitFunctionValueParameter(ctx: KotlinParser.FunctionValueParameterContext): WolinStateObject {
         val param = ctx.parameter()
 
-        val arg = state.createAndRegisterVar(param.simpleIdentifier().text, param.type(), null, true, FieldType.FUNCTION)
+        val arg = state.createAndRegisterVar(param.simpleIdentifier().text, param.type(), null, FieldType.ARGUMENT)
 
         if(state.pass == Pass.SYMBOLS)
-            state.currentFunction?.arguments?.add(arg)
+            state.currentFunction?.addField(arg)
 
         return state
     }
@@ -1681,27 +1730,27 @@ class WolinVisitor(
         val name = ctx.variableDeclaration().simpleIdentifier().text
 
         val stack = when {
-            state.currentFunction != null -> FieldType.FUNCTION
+            state.currentFunction != null -> FieldType.LOCAL
             state.currentClass != null -> FieldType.CLASS
             else -> FieldType.DUMMY
         }
 
         if (ctx.expression() != null) {
             val zmienna = if (ctx.variableDeclaration().type() != null) {
-                state.createAndRegisterVar(name, ctx.variableDeclaration().type(), ctx, false, stack)
+                state.createAndRegisterVar(name, ctx.variableDeclaration().type(), ctx, stack)
             } else
-                state.createAndRegisterVar(name, AllocType.NORMAL, state.currentWolinType, false, stack)
+                state.createAndRegisterVar(name, AllocType.NORMAL, state.currentWolinType, stack)
 
             zmienna.initExpression = ctx.expression()
 
-            if(zmienna.fieldType == FieldType.FUNCTION && state.pass != Pass.SYMBOLS) {
+            if(zmienna.fieldType == FieldType.LOCAL && state.pass != Pass.SYMBOLS) {
                 doInitCode(zmienna)
             }
         } else {
             if (ctx.variableDeclaration().type() == null)
                 błędzik(ctx, "Variable $name has no type!")
 
-            val zmienna = state.createAndRegisterVar(name, ctx.variableDeclaration().type(), ctx, false, stack)
+            val zmienna = state.createAndRegisterVar(name, ctx.variableDeclaration().type(), ctx,  stack)
 
             //state.code("let ${state.varToAsm(zmienna)} = ${state.currentRegToAsm()} // podstawic wynik expression do zmiennej $name")
         }
@@ -1726,7 +1775,9 @@ class WolinVisitor(
         if (state.spUsed)
             state.code("setup SP = 143[ubyte] // register stack top = 142")
 
-        state.variablary.filter { it.value.fieldType == FieldType.STATIC && it.value.initExpression != null }.map{ it.value }.forEach {
+        state.code("setup HEAP = 176[ubyte]")
+
+        state.initializedStatics().forEach {
             state.rem("inicjalizacja zmiennej ${it.name}")
             doInitCode(it)
         }
@@ -1871,7 +1922,7 @@ class WolinVisitor(
         """.trimMargin()
         )
 
-        state.functiary.filter { it.lambdaBody != null }.forEach { nowaFunkcja ->
+        state.lambdas().forEach { nowaFunkcja ->
 
             state.switchType(Typ.unit, "function declaration")
 

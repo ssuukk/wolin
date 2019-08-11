@@ -11,17 +11,24 @@ fun allocMem(size: uword, count: uword): Any {
 }
 
 class Test {
-    var x: ubyte = 10
-    var y: ubyte = 20
+    var x: ubyte = 3
+    var y: ubyte = 7
+
+    fun suma(): ubyte {
+        return x+y
+    }
 }
 
-fun suma(a: ubyte, b: ubyte): ubyte {
-    return a+b
-}
 
 fun main() {
-    while(i<1000) {
-        ekran[i++] = znak++
-    }
-    val x: ubyte = suma(2,2) // TODO - bez ubyte x jest typu ptr!
+//    val x: ubyte// = suma(2,2) // TODO - bez ubyte x jest typu ptr!
+//    while(i<1000) {
+//        ekran[i++] = znak++
+//    }
+
+    val testowa : Test
+
+    testowa = Test()
+
+    border = testowa.suma()
 }

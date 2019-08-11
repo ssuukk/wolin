@@ -6,7 +6,7 @@
 ;* BASIC header
 ;*
 ;* compile with:
-;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg assembler.s
+;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg -Ln labels.txt assembler.s
 ;*
 ;**********************************************
             .org 2049
@@ -25,8 +25,8 @@ BasEnd:     .word 0
 
 
 ; prepare function stack
-__wolin_spf = 251 ; function stack ptr
-__wolin_spf_top = 40959 ; function stack top
+__wolin_spf := 251 ; function stack ptr
+__wolin_spf_top := 40959 ; function stack top
     lda #<__wolin_spf_top ; set function stack top
     sta __wolin_spf
     lda #>__wolin_spf_top
@@ -36,8 +36,14 @@ __wolin_spf_top = 40959 ; function stack top
 
 
 ; prepare program stack
-__wolin_sp_top = 143 ; program stack top
+__wolin_sp_top := 143 ; program stack top
     ldx #__wolin_sp_top ; set program stack top
+
+; setupHEAP=176[ubyte]
+
+
+__wolin_this_ptr := 176
+
 
 ; allocSP<__wolin_reg0>,#1
 
@@ -140,7 +146,7 @@ __wolin_pl_qus_wolin_allocMem:
     lda __wolin_spf
     adc #4
     sta __wolin_spf
-    bcc +:
+    bcc :+
     inc __wolin_spf+1
 :
 
@@ -165,7 +171,7 @@ __wolin_pl_qus_wolin_Test:
     lda __wolin_spf
     sbc #6
     sta __wolin_spf
-    bcs +:
+    bcs :+
     dec __wolin_spf+1
 :
 
@@ -210,7 +216,7 @@ __wolin_pl_qus_wolin_Test:
     lda __wolin_spf
     adc #2
     sta __wolin_spf
-    bcc +:
+    bcc :+
     inc __wolin_spf+1
 :
 
@@ -238,25 +244,14 @@ __wolin_pl_qus_wolin_Test:
     inx
     inx
 
-; freeSPF,#2
-
-
-    clc
-    lda __wolin_spf
-    adc #2
-    sta __wolin_spf
-    bcc +:
-    inc __wolin_spf+1
-:
-
 ; allocSP<__wolin_reg5>,#1
 
     dex
 
-; letSP(0)<__wolin_reg5>[ubyte]=#10[ubyte]
+; letSP(0)<__wolin_reg5>[ubyte]=#3[ubyte]
 
 
-    lda #10
+    lda #3
     sta 0,x
 
 ; letHEAP(2)<pl.qus.wolin.Test.x>[ubyte]=SP(0)<__wolin_reg5>[ubyte]
@@ -274,10 +269,10 @@ __wolin_pl_qus_wolin_Test:
 
     dex
 
-; letSP(0)<__wolin_reg6>[ubyte]=#20[ubyte]
+; letSP(0)<__wolin_reg6>[ubyte]=#7[ubyte]
 
 
-    lda #20
+    lda #7
     sta 0,x
 
 ; letHEAP(1)<pl.qus.wolin.Test.y>[ubyte]=SP(0)<__wolin_reg6>[ubyte]
@@ -295,33 +290,41 @@ __wolin_pl_qus_wolin_Test:
 
     rts
 
-; label__wolin_pl_qus_wolin_suma
+; label__wolin_pl_qus_wolin_Test_suma
 
-__wolin_pl_qus_wolin_suma:
+__wolin_pl_qus_wolin_Test_suma:
+
+; setupHEAP=this
+
+
+    ldy #0 ; this pointer from SPF to this pointer on ZP
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr
+    iny
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr+1
 
 ; allocSP<__wolin_reg8>,#1
 
     dex
 
-; letSP(0)<__wolin_reg8>[ubyte]=SPF(0)<pl.qus.wolin.suma.a>[ubyte]
+; letSP(0)<__wolin_reg8>[ubyte]=HEAP(2)<pl.qus.wolin.Test.x>[ubyte]
 
 
-    ldy #0
-    lda (__wolin_spf),y
+    ldy #2 ; assuming this ZP is set!
+    lda (__wolin_this_ptr),y
     sta 0,x
-
 
 ; allocSP<__wolin_reg9>,#1
 
     dex
 
-; letSP(0)<__wolin_reg9>[ubyte]=SPF(1)<pl.qus.wolin.suma.b>[ubyte]
+; letSP(0)<__wolin_reg9>[ubyte]=HEAP(1)<pl.qus.wolin.Test.y>[ubyte]
 
 
-    ldy #1
-    lda (__wolin_spf),y
+    ldy #1 ; assuming this ZP is set!
+    lda (__wolin_this_ptr),y
     sta 0,x
-
 
 ; addSP(1)<__wolin_reg8>[ubyte]=SP(1)<__wolin_reg8>[ubyte],SP(0)<__wolin_reg9>[ubyte]
 
@@ -353,7 +356,7 @@ __wolin_pl_qus_wolin_suma:
     lda __wolin_spf
     adc #2
     sta __wolin_spf
-    bcc +:
+    bcc :+
     inc __wolin_spf+1
 :
 
@@ -365,27 +368,11 @@ __wolin_pl_qus_wolin_suma:
 
 __wolin_pl_qus_wolin_main:
 
-; allocSP<__wolin_reg12>,#1
-
-    dex
-
-; label__wolin_lab_loopStart_1
-
-__wolin_lab_loopStart_1:
-
 ; allocSP<__wolin_reg13>,#2
 
 
     dex
     dex
-
-; letSP(0)<__wolin_reg13>[uword]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]
-
-
-    lda __wolin_pl_qus_wolin_i
-    sta 0,x
-    lda __wolin_pl_qus_wolin_i+1
-    sta 0+1,x
 
 ; allocSP<__wolin_reg14>,#2
 
@@ -393,28 +380,51 @@ __wolin_lab_loopStart_1:
     dex
     dex
 
-; letSP(0)<__wolin_reg14>[uword]=#1000[uword]
+; allocSPF,#2
 
 
-    lda #<1000
-    sta 0,x
-    lda #>1000
-    sta 0+1,x
-
-; evallessSP(4)<__wolin_reg12>[bool]=SP(2)<__wolin_reg13>[uword],SP(0)<__wolin_reg14>[uword]
-
-
-    lda #1 ; mniejsze
-    sta 4,x
-    lda 2+1,x
-    cmp 0+1,x
-    bcc :+
-    lda 2,x
-    cmp 0,x
-    bcc :+
-    lda #0 ; jednak wieksze
-    sta 4,x
+    clc
+    lda __wolin_spf
+    sbc #2
+    sta __wolin_spf
+    bcs :+
+    dec __wolin_spf+1
 :
+
+; call__wolin_pl_qus_wolin_Test[adr]
+
+    jsr __wolin_pl_qus_wolin_Test
+
+; letSP(0)<__wolin_reg14>[ptr]=SPF(0)<returnValue>[ptr]
+
+
+     ldy #0
+     lda (__wolin_spf),y
+     sta 0,x
+     iny
+     lda (__wolin_spf),y
+     sta 0+1,x
+
+; freeSPF<pl.qus.wolin.Test>,#2
+
+
+    clc
+    lda __wolin_spf
+    adc #2
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
+
+; letSPF(0)<pl.qus.wolin.main..testowa>[ptr]=SP(0)<__wolin_reg14>[ptr]
+
+
+    ldy #0
+    lda 0,x
+    sta (__wolin_spf),y
+    iny
+    lda 0+1,x
+    sta (__wolin_spf),y
 
 ; freeSP<__wolin_reg14>,#2
 
@@ -428,16 +438,12 @@ __wolin_lab_loopStart_1:
     inx
     inx
 
-; bneSP(0)<__wolin_reg12>[bool]=#1[bool],__wolin_lab_loopEnd_1<label_po_if>[adr]
-
-
-    lda 0,x
-    beq __wolin_lab_loopEnd_1
-
-; allocSP<__wolin_reg17>,#2
-
+; allocSP<__wolin_reg16>,#1
 
     dex
+
+; allocSP<__wolin_reg17>,#1
+
     dex
 
 ; allocSP<__wolin_reg18>,#2
@@ -446,121 +452,17 @@ __wolin_lab_loopStart_1:
     dex
     dex
 
-; letSP(0)<__wolin_reg18>[ptr]=1024[ptr]
+; letSP(0)<__wolin_reg18>[ptr]=SPF(0)<pl.qus.wolin.main..testowa>[ptr]
 
 
-    lda #<1024
-    sta 0,x
-    lda #>1024
-    sta 0+1,x
+     ldy #0
+     lda (__wolin_spf),y
+     sta 0,x
+     iny
+     lda (__wolin_spf),y
+     sta 0+1,x
 
-; allocSP<__wolin_reg19>,#2
-
-
-    dex
-    dex
-
-; letSP(0)<__wolin_reg19>[uword]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]
-
-
-    lda __wolin_pl_qus_wolin_i
-    sta 0,x
-    lda __wolin_pl_qus_wolin_i+1
-    sta 0+1,x
-
-; add__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword],#1[uword]
-
-
-    clc
-    lda __wolin_pl_qus_wolin_i
-    adc #<1
-    sta __wolin_pl_qus_wolin_i
-    lda __wolin_pl_qus_wolin_i+1
-    adc #>1
-    sta __wolin_pl_qus_wolin_i+1
-
-
-; addSP(2)<__wolin_reg18>[ptr]=SP(2)<__wolin_reg18>[ptr],SP(0)<__wolin_reg19>[uword]
-
-
-    clc
-    lda 2,x
-    adc 0,x
-    sta 2,x
-    lda 2+1,x
-    adc 0+1,x
-    sta 2+1,x
-
-; freeSP<__wolin_reg19>,#2
-
-
-    inx
-    inx
-
-; letSP(2)<__wolin_reg17>[ptr]=SP(0)<__wolin_reg18>[ptr]
-
-
-    lda 0,x
-    sta 2,x
-    lda 0+1,x
-    sta 2+1,x
-
-
-; freeSP<__wolin_reg18>,#2
-
-
-    inx
-    inx
-
-; allocSP<__wolin_reg20>,#1
-
-    dex
-
-; letSP(0)<__wolin_reg20>[ubyte]=__wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte]
-
-
-    lda __wolin_pl_qus_wolin_znak
-    sta 0,x
-
-; add__wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte]=__wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte],#1[ubyte]
-
-
-    inc __wolin_pl_qus_wolin_znak
-
-; letSP(1)<__wolin_reg17>[ptr]=SP(0)<__wolin_reg20>[ubyte]
-
-
-    lda 0,x
-    sta (1,x)
-
-
-; freeSP<__wolin_reg20>,#1
-
-    inx
-
-; freeSP<__wolin_reg17>,#2
-
-
-    inx
-    inx
-
-; goto__wolin_lab_loopStart_1[adr]
-
-    jmp __wolin_lab_loopStart_1
-
-; label__wolin_lab_loopEnd_1
-
-__wolin_lab_loopEnd_1:
-
-; freeSP<__wolin_reg12>,#1
-
-    inx
-
-; allocSP<__wolin_reg21>,#1
-
-    dex
-
-; allocSP<__wolin_reg22>,#1
+; allocSP<__wolin_reg19>,#1
 
     dex
 
@@ -571,57 +473,25 @@ __wolin_lab_loopEnd_1:
     lda __wolin_spf
     sbc #3
     sta __wolin_spf
-    bcs +:
+    bcs :+
     dec __wolin_spf+1
 :
 
-; allocSP<__wolin_reg23>,#1
-
-    dex
-
-; letSP(0)<__wolin_reg23>[ubyte]=#2[ubyte]
+; letSPF(0)[ptr]=SP(1)<__wolin_reg18>[ptr]
 
 
-    lda #2
-    sta 0,x
-
-; letSPF(0)[ubyte]=SP(0)<__wolin_reg23>[ubyte]
-
-
-    lda 0,x
     ldy #0
+    lda 1,x
+    sta (__wolin_spf),y
+    iny
+    lda 1+1,x
     sta (__wolin_spf),y
 
-; freeSP<__wolin_reg23>,#1
+; call__wolin_pl_qus_wolin_Test_suma[adr]
 
-    inx
+    jsr __wolin_pl_qus_wolin_Test_suma
 
-; allocSP<__wolin_reg24>,#1
-
-    dex
-
-; letSP(0)<__wolin_reg24>[ubyte]=#2[ubyte]
-
-
-    lda #2
-    sta 0,x
-
-; letSPF(1)[ubyte]=SP(0)<__wolin_reg24>[ubyte]
-
-
-    lda 0,x
-    ldy #1
-    sta (__wolin_spf),y
-
-; freeSP<__wolin_reg24>,#1
-
-    inx
-
-; call__wolin_pl_qus_wolin_suma[adr]
-
-    jsr __wolin_pl_qus_wolin_suma
-
-; letSP(0)<__wolin_reg22>[ubyte]=SPF(0)<returnValue>[ubyte]
+; letSP(0)<__wolin_reg19>[ubyte]=SPF(0)<returnValue>[ubyte]
 
 
     ldy #0
@@ -636,33 +506,43 @@ __wolin_lab_loopEnd_1:
     lda __wolin_spf
     adc #1
     sta __wolin_spf
-    bcc +:
+    bcc :+
     inc __wolin_spf+1
 :
 
-; letSPF(0)<pl.qus.wolin.main..x>[ubyte]=SP(0)<__wolin_reg22>[ubyte]
+; freeSP<__wolin_reg19>,#1
+
+    inx
+
+; freeSP<__wolin_reg18>,#2
+
+
+    inx
+    inx
+
+; let53280[ubyte]=SP(0)<__wolin_reg17>[ubyte]
 
 
     lda 0,x
-    ldy #0
-    sta (__wolin_spf),y
+    sta 53280
 
-; freeSP<__wolin_reg22>,#1
 
-    inx
-
-; freeSP<__wolin_reg21>,#1
+; freeSP<__wolin_reg17>,#1
 
     inx
 
-; freeSPF,#1
+; freeSP<__wolin_reg16>,#1
+
+    inx
+
+; freeSPF,#2
 
 
     clc
     lda __wolin_spf
-    adc #1
+    adc #2
     sta __wolin_spf
-    bcc +:
+    bcc :+
     inc __wolin_spf+1
 :
 

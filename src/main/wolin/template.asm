@@ -13,7 +13,7 @@ setup HEADER -> """
 ;* BASIC header
 ;*
 ;* compile with:
-;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg assembler.s
+;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg -Ln labels.txt assembler.s
 ;*
 ;**********************************************
             .org 2049
@@ -30,25 +30,25 @@ BasEnd:     .word 0
 
 setup SPE = ?zp[ubyte], ?top[uword] -> """
 ; prepare exception stack
-__wolin_spe = {zp} ; exception stack ptr
-__wolin_spe_top = {top} ; exception stack top
+__wolin_spe := {zp} ; exception stack ptr
+__wolin_spe_top := {top} ; exception stack top
     lda #<__wolin_spe_top ; set exception stack top
     sta __wolin_spe
     lda #>__wolin_spe_top
     sta __wolin_spe+1"""
 
 setup EXPTR = ?zp[ubyte] -> """
-__wolin_exception_ptr = {zp} ; pointer to exception object on throw
+__wolin_exception_ptr := {zp} ; pointer to exception object on throw
 """
 
 setup CATCH = ?zp[ubyte] -> """
-__wolin_spe_zp_vector = {zp}
+__wolin_spe_zp_vector := {zp}
 """
 
 setup SPF = ?zp[ubyte], ?top[uword] -> """
 ; prepare function stack
-__wolin_spf = {zp} ; function stack ptr
-__wolin_spf_top = {top} ; function stack top
+__wolin_spf := {zp} ; function stack ptr
+__wolin_spf_top := {top} ; function stack top
     lda #<__wolin_spf_top ; set function stack top
     sta __wolin_spf
     lda #>__wolin_spf_top
@@ -56,11 +56,11 @@ __wolin_spf_top = {top} ; function stack top
 
 setup SP = ?zp[ubyte] -> """
 ; prepare program stack
-__wolin_sp_top = {zp} ; program stack top
+__wolin_sp_top := {zp} ; program stack top
     ldx #__wolin_sp_top ; set program stack top"""
 
 setup HEAP = ?zp[ubyte] -> """
-__wolin_this_ptr = {zp}
+__wolin_this_ptr := {zp}
 """
 
 //============================================
@@ -297,7 +297,7 @@ alloc SPF, #?count -> """
     lda __wolin_spf
     sbc #{count}
     sta __wolin_spf
-    bcs +:
+    bcs :+
     dec __wolin_spf+1
 :"""
 
@@ -308,7 +308,7 @@ free SPF, #?count -> """
     lda __wolin_spf
     adc #{count}
     sta __wolin_spf
-    bcc +:
+    bcc :+
     inc __wolin_spf+1
 :"""
 
@@ -540,7 +540,7 @@ evaleq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     sta {dest},x
     lda {left},x
     cmp {right},x
-    beq +:
+    beq :+
     lda #0 ; jednak rozne
     sta {dest},x
 :"""
@@ -550,10 +550,10 @@ evaleq SP(?dest)[bool] = SP(?left)[uword], SP(?right)[uword] -> """
     sta {dest},x
     lda {left},x
     cmp {right},x
-    bne +:
+    bne :+
     lda {left}+1
     cmp {right}+1
-    bne +:
+    bne :+
     lda #1
     sta {dest},x
 :"""
@@ -1004,7 +1004,7 @@ add ?dest[word] = ?src[word], #?val[byte] -> """
     lda {src}
     adc #{val}
     sta {dest}
-    bcc +:
+    bcc :+
     inc {a}+1
 :
 """
