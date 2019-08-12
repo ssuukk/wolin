@@ -31,7 +31,10 @@ BasEnd:     .word 0
 setup SPE = ?zp[ubyte], ?top[uword] -> """
 ; prepare exception stack
 __wolin_spe := {zp} ; exception stack ptr
+__wolin_spe_hi := {zp}+1 ; exception stack ptr
+
 __wolin_spe_top := {top} ; exception stack top
+__wolin_spe_top_hi := {top}+1 ; exception stack top
     lda #<__wolin_spe_top ; set exception stack top
     sta __wolin_spe
     lda #>__wolin_spe_top
@@ -39,16 +42,21 @@ __wolin_spe_top := {top} ; exception stack top
 
 setup EXPTR = ?zp[ubyte] -> """
 __wolin_exception_ptr := {zp} ; pointer to exception object on throw
+__wolin_exception_ptr_hi := {zp}+1 ; pointer to exception object on throw
 """
 
 setup CATCH = ?zp[ubyte] -> """
 __wolin_spe_zp_vector := {zp}
+__wolin_spe_zp_vector_hi := {zp}+1
 """
 
 setup SPF = ?zp[ubyte], ?top[uword] -> """
 ; prepare function stack
 __wolin_spf := {zp} ; function stack ptr
+__wolin_spf_hi := {zp}+1 ; function stack ptr
+
 __wolin_spf_top := {top} ; function stack top
+__wolin_spf_top_hi := {top}+1 ; function stack top
     lda #<__wolin_spf_top ; set function stack top
     sta __wolin_spf
     lda #>__wolin_spf_top
@@ -57,10 +65,12 @@ __wolin_spf_top := {top} ; function stack top
 setup SP = ?zp[ubyte] -> """
 ; prepare program stack
 __wolin_sp_top := {zp} ; program stack top
+__wolin_sp_top_hi := {zp}+1 ; program stack top
     ldx #__wolin_sp_top ; set program stack top"""
 
 setup HEAP = ?zp[ubyte] -> """
 __wolin_this_ptr := {zp}
+__wolin_this_ptr_hi := {zp}+1
 """
 
 //============================================
@@ -764,9 +774,9 @@ let SP(?dst)[ptr] = ?adr[ptr] -> """
 // dla konstruktora
 let SP(?dst)[ptr] = #?val[uword] -> """
     lda #<{val}
-    sta {dst}
+    sta {dst},x
     lda #>{val}
-    sta {dst}+1"""
+    sta {dst}+1,x"""
 
 //============================================
 // rozmaite funkcje

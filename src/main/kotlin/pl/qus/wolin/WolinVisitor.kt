@@ -123,31 +123,42 @@ class WolinVisitor(
             it is KotlinParser.ArrayAccessContext
         }
 
-        if (isArray) {
-            val ctx = wynik.first() as KotlinParser.SimpleIdentifierContext
+        val isObject = lewaStrona.any {
+            it is KotlinParser.MemberAccessOperatorContext
+        }
 
-            //val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
+        when {
+            isObject -> {
+                błędzik(lewaStrona,"Nie umiem obsłużyć podstawienia do pola obiektu")
+                return state
+            }
+            isArray -> {
+                val ctx = wynik.first() as KotlinParser.SimpleIdentifierContext
 
-            state.rem(" left side disjunction - prawie dobrze")
-            visitDisjunction(lewaStrona)
-//val test = state.currentReg ROBIONE
-            state.assignStack.assignLeftSideVar = state.currentReg
-            //state.assignStack.assignLeftSideVar.type = zmienna.type
-            state.assignStack.arrayAssign = true
+                //val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
 
-            return state
-        } else {
-            val ctx = wynik.first() as KotlinParser.SimpleIdentifierContext
+                state.rem(" left side disjunction - prawie dobrze")
+                visitDisjunction(lewaStrona)
+    //val test = state.currentReg ROBIONE
+                state.assignStack.assignLeftSideVar = state.currentReg
+                //state.assignStack.assignLeftSideVar.type = zmienna.type
+                state.assignStack.arrayAssign = true
 
-            val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
+                return state
+            }
+            else -> {
+                val ctx = wynik.first() as KotlinParser.SimpleIdentifierContext
 
-            // TODO - usunąć assignLeftSideVar
-            //state.currentReg = zmienna
-            state.assignStack.assignLeftSideVar = zmienna
+                val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
 
-            state.switchType(zmienna.type, "by znajdźSimpleIdW")
+                // TODO - usunąć assignLeftSideVar
+                //state.currentReg = zmienna
+                state.assignStack.assignLeftSideVar = zmienna
 
-            return state
+                state.switchType(zmienna.type, "by znajdźSimpleIdW")
+
+                return state
+            }
         }
     }
 
@@ -869,6 +880,10 @@ class WolinVisitor(
                                 state.rem(" postfix unary w dereferencji")
                                 visitPostfixUnaryExpression(costam)
                                 if(classDeref) {
+                                    if(state.assignStack.isNotEmpty())
+                                        checkTypeAndAddAssignment(ctx, state.assignStack.peek().right, reg, "deref assignment")
+                                    state.assignStack.peek().left
+                                    // let value that gets assigned to left side = reg
                                     state.rem("tu przywrócić poprzednią klasę")
                                     state.classDerefStack.pop()
                                     //state.currentClass = prevClass

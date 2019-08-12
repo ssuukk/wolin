@@ -30,5 +30,8 @@ fun main() {
 
     testowa = Test()
 
+    //testowa.x = 10
+    //testowa.y = 2
+
     border = testowa.suma()
 }
