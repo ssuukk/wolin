@@ -59,16 +59,17 @@ class WolinVisitor(
                     it.expression()?.assignmentOperator()?.size != 0 -> {
                         if(state.pass != Pass.SYMBOLS) {
 
-                            val lewaStrona = it.expression()?.disjunction(0) // disjunction = or
+                            //val lewaStrona = it.expression()?.disjunction(0) // disjunction = or
                             val operator = it.expression()?.assignmentOperator(0)
-                            val prawaStrona = it.expression()?.disjunction(1)
+                            //val prawaStrona = it.expression()?.disjunction(1)
 
                             when {
                                 operator?.ASSIGNMENT() != null -> {
 
                                     processAssignment(it,
-                                        { znajdźSimpleIdW(lewaStrona!!) },
-                                        { visitDisjunction(prawaStrona!!) }
+                                        { dereferenceVariable(it.expression()?.disjunction(0)!!) },
+                                        //{ visitDisjunction(it.expression()?.disjunction(0)!!) },
+                                        { visitDisjunction(it.expression()?.disjunction(1)!!) }
                                     )
 
                                     state.switchType(Typ.unit, "assignment")
@@ -110,12 +111,12 @@ class WolinVisitor(
 
     }
 
-    private fun znajdźSimpleIdW(lewaStrona: KotlinParser.DisjunctionContext): WolinStateObject {
-        val wynik = mutableListOf<ParseTree>()
+    private fun dereferenceVariable(lewaStrona: KotlinParser.DisjunctionContext): WolinStateObject {
+        val simpleIdentifiers = mutableListOf<ParseTree>()
 
         //println("lewa strona:${dump(lewaStrona,1)}")
 
-        lewaStrona.traverseFilter(wynik) {
+        lewaStrona.traverseFilter(simpleIdentifiers) {
             it is KotlinParser.SimpleIdentifierContext
         }
 
@@ -133,29 +134,22 @@ class WolinVisitor(
                 return state
             }
             isArray -> {
-                val ctx = wynik.first() as KotlinParser.SimpleIdentifierContext
-
-                //val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
-
                 state.rem(" left side disjunction - prawie dobrze")
+
                 visitDisjunction(lewaStrona)
-    //val test = state.currentReg ROBIONE
                 state.assignStack.assignLeftSideVar = state.currentReg
-                //state.assignStack.assignLeftSideVar.type = zmienna.type
                 state.assignStack.arrayAssign = true
 
                 return state
             }
             else -> {
-                val ctx = wynik.first() as KotlinParser.SimpleIdentifierContext
-
-                val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
-
-                // TODO - usunąć assignLeftSideVar
-                //state.currentReg = zmienna
-                state.assignStack.assignLeftSideVar = zmienna
-
-                state.switchType(zmienna.type, "by znajdźSimpleIdW")
+//                val ctx = simpleIdentifiers.first() as KotlinParser.SimpleIdentifierContext
+//                val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
+//                state.assignStack.assignLeftSideVar = zmienna
+//                state.switchType(zmienna.type, "by znajdźSimpleIdW")
+                visitDisjunction(lewaStrona)
+                state.assignStack.assignLeftSideVar = state.currentReg
+                state.assignStack.arrayAssign = false
 
                 return state
             }
@@ -195,7 +189,8 @@ class WolinVisitor(
                 when {
                     ctx.assignmentOperator().first().ASSIGNMENT() != null -> {
                         processAssignment(ctx,
-                            { znajdźSimpleIdW(ctx.disjunction(0)) /*visitDisjunction(ctx.disjunction(0)) */ },
+                            { dereferenceVariable(ctx.disjunction(0)) /*visitDisjunction(ctx.disjunction(0)) */ },
+                            //{ visitDisjunction(ctx.disjunction(0)) },
                             { visitDisjunction(ctx.disjunction(1)) })
                     }
                     else -> błędzik(ctx, "Unknown assignment operator")
@@ -668,26 +663,21 @@ class WolinVisitor(
 
     override fun visitPostfixUnaryExpression(ctx: KotlinParser.PostfixUnaryExpressionContext): WolinStateObject {
         val atomEx = ctx.atomicExpression()
-        val callableRef = ctx.callableReference()
-        val postfixOp = ctx.postfixUnaryOperation()
 
         when {
-            callableRef != null -> błędzik(ctx, "Nie wiem co się robi z callable ref")
-            postfixOp.size > 1 -> błędzik(ctx, "Za dużo postfixUnaryOperation w postfixUnaryExpression")
-            postfixOp.size == 0 && atomEx != null -> visitAtomicExpression(atomEx)
-            atomEx != null && postfixOp != null -> {
-                val operator = postfixOp.first()
+            ctx.callableReference() != null -> błędzik(ctx, "Nie wiem co się robi z callable ref")
+            ctx.postfixUnaryOperation().size == 0 && atomEx != null -> visitAtomicExpression(atomEx)
+            ctx.postfixUnaryOperation().size >  1 -> błędzik(ctx, "Za dużo postfixUnaryOperation w postfixUnaryExpression")
+            ctx.postfixUnaryOperation().size == 1 && atomEx != null-> {
+                val prawo = ctx.postfixUnaryOperation().first()
 
                 when {
-                    operator.callSuffix() != null -> {
+                    // =================================================================================================
+                    prawo.callSuffix() != null -> {
                         val procName =
                             atomEx.simpleIdentifier()?.Identifier()?.text ?: throw Exception("Pusta nazwa procedury")
 
-                        if (postfixOp.size > 1)
-                            błędzik(ctx, "Za dużo postfixUnaryOp w postifxOp")
-
-                        val postfixUnaryOperation = postfixOp.first()
-                        val callSuffix = postfixUnaryOperation.callSuffix()
+                        val callSuffix = prawo.callSuffix()
                         val arguments = callSuffix.valueArguments()
 
                         val prototyp = try {
@@ -705,8 +695,6 @@ class WolinVisitor(
                                 state.lambdaTypeToFunction(state.findVarInVariablaryWithDescoping(procName))
                             }
                         }
-
-
 
                         if (state.classDerefStack.isNotEmpty() && prototyp.arguments.size-1 != arguments.valueArgument()?.size)
                             błędzik(ctx, "Wrong number of arguments in method call $procName")
@@ -785,7 +773,8 @@ class WolinVisitor(
                             state.code("setup HEAP = this")
 
                     }
-                    operator.INCR() != null -> {
+                    // =================================================================================================
+                    prawo.INCR() != null -> {
                         when {
                             atomEx.simpleIdentifier() != null -> {
                                 val identifier = atomEx.simpleIdentifier()?.Identifier()?.text
@@ -812,7 +801,8 @@ class WolinVisitor(
                             else -> błędzik(atomEx, "Nie wiem jak obsłużyć")
                         }
                     }
-                    operator.DECR() != null -> {
+                    // =================================================================================================
+                    prawo.DECR() != null -> {
                         when {
                             atomEx.simpleIdentifier() != null -> {
                                 val identifier = atomEx.simpleIdentifier()?.Identifier()?.text
@@ -839,109 +829,101 @@ class WolinVisitor(
                             else -> błędzik(atomEx, "Nie wiem jak obsłużyć")
                         }
                     }
-                    ctx.postfixUnaryOperation().size > 1 -> błędzik(ctx, "too many postfix unary ops")
-                    ctx.postfixUnaryOperation().size == 1 -> {
+                    // =================================================================================================
+                    prawo.memberAccessOperator() != null -> {
 
-                        val lewo = atomEx
-                        val prawo = ctx.postfixUnaryOperation()[0]
+                        val dereferenced = state.allocReg("dereferenced var")
+
+                        state.rem(" lewa strona deref")
+                        visitAtomicExpression(atomEx)
+
+                        val classDeref = if(state.currentWolinType.isClass) {
+                            state.rem("to jest klasa zmieniamy chwilowo aktualną")
+                            state.rem(" jesli tak, to na gorze heapu jest uniqid klasy")
+                            //val akt = state.regFromTop(1)
+                            dereferenced.type = state.currentWolinType
+                            state.classDerefStack.push(dereferenced)
+                            true
+                        } else {
+                            false
+                        }
+
+                        // TODO tu podstawiamy pod aktualny rejestr instancje jakiejś klasy
+
+                        state.rem(" prawa strona deref")
+
+                        val reg = state.allocReg("for right side of deref")
+                        val safeDeref = prawo.memberAccessOperator().QUEST() != null
+
+                        val costam = prawo.postfixUnaryExpression()
+                        if (safeDeref) {
+                            state.code("evaleq costam[bool] = $reg[ptr], null // safe deref")
+                            state.code("beq costam[bool] = #0, jakis_label[adr] // safe deref")
+                        }
+
+                        state.rem(" postfix unary w dereferencji")
+                        visitPostfixUnaryExpression(costam)
+                        if(classDeref) {
+                            if(state.assignStack.isNotEmpty())
+                                checkTypeAndAddAssignment(ctx, state.assignStack.peek().right, reg, "deref assignment")
+                            state.assignStack.peek().left
+                            // let value that gets assigned to left side = reg
+                            state.rem("tu przywrócić poprzednią klasę")
+                            state.classDerefStack.pop()
+                            //state.currentClass = prevClass
+                        }
+                        state.freeReg("for right side of deref")
+                        state.freeReg("dereferenced var")
+                    }
+                    // =================================================================================================
+                    prawo.arrayAccess() != null -> {
+                        // ARRAYCODE
+                        val currEntReg = state.currentReg
+                        state.arrayElementSize = currEntReg.type.arrayElementSize
+
+                        // jeśli indeks 8-bitowy i element nie robic tej allokacji
+
+                        state.codeOn = false
+                        visitAtomicExpression(atomEx)
+                        state.codeOn = true
+
+                        state.allocReg("arr_deref", state.currentWolinType).apply {
+                            type.isPointer = true
+                        }
+                        state.rem(" LEWA strona array access, czyli co to za zmienna")
+                        visitAtomicExpression(atomEx)
+                        state.rem(" PRAWA strona array access, czyli indeks w nawiasach")
+                        visitArrayAccess(prawo.arrayAccess())
+
+                        state.rem(" kod obsługi tablicy")
 
                         when {
-                            prawo.memberAccessOperator() != null -> {
+                            state.currentShortArray == null -> {
+                                state.rem(" non-fast array, changing top reg to ptr")
+                                currEntReg.type.isPointer = true
 
-                                val dereferenced = state.allocReg("dereferenced var")
-
-                                state.rem(" lewa strona deref")
-                                visitAtomicExpression(lewo)
-
-                                val classDeref = if(state.currentWolinType.isClass) {
-                                    state.rem("to jest klasa zmieniamy chwilowo aktualną")
-                                    state.rem(" jesli tak, to na gorze heapu jest uniqid klasy")
-                                    //val akt = state.regFromTop(1)
-                                    dereferenced.type = state.currentWolinType
-                                    state.classDerefStack.push(dereferenced)
-                                    true
-                                } else {
-                                    false
-                                }
-
-                                // TODO tu podstawiamy pod aktualny rejestr instancje jakiejś klasy
-
-                                state.rem(" prawa strona deref")
-
-                                val reg = state.allocReg("for right side of deref")
-                                val safeDeref = prawo.memberAccessOperator().QUEST() != null
-
-                                val costam = prawo.postfixUnaryExpression()
-                                if (safeDeref) {
-                                    state.code("evaleq costam[bool] = $reg[ptr], null // safe deref")
-                                    state.code("beq costam[bool] = #0, jakis_label[adr] // safe deref")
-                                }
-
-                                state.rem(" postfix unary w dereferencji")
-                                visitPostfixUnaryExpression(costam)
-                                if(classDeref) {
-                                    if(state.assignStack.isNotEmpty())
-                                        checkTypeAndAddAssignment(ctx, state.assignStack.peek().right, reg, "deref assignment")
-                                    state.assignStack.peek().left
-                                    // let value that gets assigned to left side = reg
-                                    state.rem("tu przywrócić poprzednią klasę")
-                                    state.classDerefStack.pop()
-                                    //state.currentClass = prevClass
-                                }
-                                state.freeReg("for right side of deref")
-                                state.freeReg("dereferenced var")
+                                state.code("let ${state.varToAsm(currEntReg)} = ${state.varToAsmNoType(state.currentReg)}[ptr]")
                             }
-                            prawo.arrayAccess() != null -> {
-                                // ARRAYCODE
-                                val currEntReg = state.currentReg
-                                state.arrayElementSize = currEntReg.type.arrayElementSize
-
-                                // jeśli indeks 8-bitowy i element nie robic tej allokacji
-
-                                state.codeOn = false
-                                visitAtomicExpression(lewo)
-                                state.codeOn = true
-
-                                state.allocReg("arr_deref", state.currentWolinType).apply {
-                                    type.isPointer = true
-                                }
-                                state.rem(" LEWA strona array access, czyli co to za zmienna")
-                                visitAtomicExpression(lewo)
-                                state.rem(" PRAWA strona array access, czyli indeks w nawiasach")
-                                visitArrayAccess(prawo.arrayAccess())
-
-                                state.rem(" kod obsługi tablicy")
-
-                                when {
-                                    state.currentShortArray == null -> {
-                                        state.rem(" non-fast array, changing top reg to ptr")
-                                        currEntReg.type.isPointer = true
-
-                                        state.code("let ${state.varToAsm(currEntReg)} = ${state.varToAsmNoType(state.currentReg)}[ptr]")
-                                    }
-                                    state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.NORMAL -> {
-                                        state.rem(" allocated fast array, changing top reg to ptr")
-                                        currEntReg.type.isPointer = true
-                                        state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.name}[ptr], ${state.currentRegToAsm()}")
-                                        state.currentShortArray = null
-                                    }
-                                    state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.FIXED -> {
-                                        state.rem(" allocated fast array, changing top reg to ptr")
-                                        currEntReg.type.isPointer = true
-                                        state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}[ptr], ${state.currentRegToAsm()}")
-                                        state.currentShortArray = null
-                                    }
-
-                                    else -> throw Exception("Dereference of unknown array!")
-                                }
-
-                                // jeśli indeks 8-bitowy i element nie robic tej allokacji
-                                state.freeReg("arr_deref")
+                            state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.NORMAL -> {
+                                state.rem(" allocated fast array, changing top reg to ptr")
+                                currEntReg.type.isPointer = true
+                                state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.name}[ptr], ${state.currentRegToAsm()}")
+                                state.currentShortArray = null
                             }
-                            else -> błędzik(ctx, "Nieznany postfixUnaryOp")
+                            state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.FIXED -> {
+                                state.rem(" allocated fast array, changing top reg to ptr")
+                                currEntReg.type.isPointer = true
+                                state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}[ptr], ${state.currentRegToAsm()}")
+                                state.currentShortArray = null
+                            }
+
+                            else -> throw Exception("Dereference of unknown array!")
                         }
+
+                        // jeśli indeks 8-bitowy i element nie robic tej allokacji
+                        state.freeReg("arr_deref")
                     }
-                    else -> błędzik(ctx, "Nieznana prawa strona ${operator.javaClass.simpleName}")
+                    else -> błędzik(ctx, "Nieznany postfixUnaryOp ${prawo.javaClass.simpleName}")
                 }
             }
             else -> błędzik(ctx, "null po którejś stronie postfixUnaryExpression")
@@ -1321,20 +1303,20 @@ class WolinVisitor(
                         "whenEndLabel",
                         state.whenCounter
                     )}[adr]"
-                ) // TODO lub whenEndLabel dla ostatniego
+                )
             else
-                state.code("bne ${state.varToAsm(resultReg)} = #1[bool], ${nextLabel}[adr]") // TODO lub whenEndLabel dla ostatniego
+                state.code("bne ${state.varToAsm(resultReg)} = #1[bool], $nextLabel[adr]")
         else {
-            state.code("evaleq ${state.varToAsm(boolReg)} = ${state.varToAsm(resultReg)}, ${state.varToAsm(condReg)}") // TODO tylko jeśłi to when z wyrażeniem!
+            state.code("evaleq ${state.varToAsm(boolReg)} = ${state.varToAsm(resultReg)}, ${state.varToAsm(condReg)}")
             if (state.lastWhenEntry)
                 state.code(
                     "bne ${state.varToAsm(boolReg)} = #1[bool], ${labelMaker(
                         "whenEndLabel",
                         state.whenCounter
                     )}[adr]"
-                ) // TODO lub whenEndLabel dla ostatniego
+                )
             else
-                state.code("bne ${state.varToAsm(boolReg)} = #1[bool], ${nextLabel}[adr]")
+                state.code("bne ${state.varToAsm(boolReg)} = #1[bool], $nextLabel[adr]")
         }
 
         state.rem("when operacja")
@@ -1344,7 +1326,7 @@ class WolinVisitor(
         else if (whenTrue.expression() != null) visitExpression(whenTrue.expression())
 
         if (!state.lastWhenEntry)
-            state.code("goto ${labelMaker("whenEndLabel", state.whenCounter)}[adr]") // TODO lub nic dla ostatniego
+            state.code("goto ${labelMaker("whenEndLabel", state.whenCounter)}[adr]")
 
         return state
     }

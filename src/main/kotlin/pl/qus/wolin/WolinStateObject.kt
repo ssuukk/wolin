@@ -173,6 +173,8 @@ class WolinStateObject(val pass: Pass) {
         zmienna.name = nameStitcher(name, fieldType == FieldType.ARGUMENT)
         zmienna.type = type
 
+
+
         var pomiń = 0
         if (basePackage.isNotEmpty()) pomiń = basePackage.length + 1
         //if (fileScopeSuffix.isNotEmpty()) pomiń += fileScopeSuffix.length + 1

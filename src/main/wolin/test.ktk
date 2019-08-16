@@ -26,12 +26,14 @@ fun main() {
 //        ekran[i++] = znak++
 //    }
 
-    val testowa : Test
+//    val testowa : Test
 
-    testowa = Test()
+//    testowa = Test()
 
     //testowa.x = 10
     //testowa.y = 2
 
-    border = testowa.suma()
+    //border = testowa.suma()
+
+    border = 8
 }
