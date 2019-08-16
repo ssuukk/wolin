@@ -143,13 +143,13 @@ class WolinVisitor(
                 return state
             }
             else -> {
-//                val ctx = simpleIdentifiers.first() as KotlinParser.SimpleIdentifierContext
-//                val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
-//                state.assignStack.assignLeftSideVar = zmienna
-//                state.switchType(zmienna.type, "by znajdźSimpleIdW")
-                visitDisjunction(lewaStrona)
-                state.assignStack.assignLeftSideVar = state.currentReg
-                state.assignStack.arrayAssign = false
+                val ctx = simpleIdentifiers.first() as KotlinParser.SimpleIdentifierContext
+                val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
+                state.assignStack.assignLeftSideVar = zmienna
+                state.switchType(zmienna.type, "by znajdźSimpleIdW")
+//                visitDisjunction(lewaStrona)
+//                state.assignStack.assignLeftSideVar = state.currentReg
+//                state.assignStack.arrayAssign = false
 
                 return state
             }
