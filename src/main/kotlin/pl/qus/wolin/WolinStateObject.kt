@@ -47,7 +47,7 @@ class WolinStateObject(val pass: Pass) {
 
     val spUsed get() = variablary.any { it.value.fieldType == FieldType.OP_STACK }
 
-    val spfUsed get() = variablary.any { it.value.fieldType == FieldType.LOCAL }
+    val spfUsed get() = functiary.isNotEmpty()
 
     // potencjalnie wymagające stosu
     val classDerefStack = Stack<Zmienna>()
@@ -173,13 +173,10 @@ class WolinStateObject(val pass: Pass) {
         zmienna.name = nameStitcher(name, fieldType == FieldType.ARGUMENT)
         zmienna.type = type
 
-
-
         var pomiń = 0
         if (basePackage.isNotEmpty()) pomiń = basePackage.length + 1
         //if (fileScopeSuffix.isNotEmpty()) pomiń += fileScopeSuffix.length + 1
 
-        val bezSkopuPliku = if (zmienna.name.startsWith(basePackage)) zmienna.name.drop(pomiń) else zmienna.name
 
         if (!zmienna.immutable && zmienna.allocation == AllocType.LITERAL)
             throw Exception("var can't be const!")
@@ -188,8 +185,13 @@ class WolinStateObject(val pass: Pass) {
             throw Exception("przeliczyć wartość const:${propertyCtx.expression().text} dla ${zmienna.name}")
         }
 
+        val bezSkopuPliku = if (zmienna.name.startsWith(basePackage)) zmienna.name.drop(pomiń) else zmienna.name
+
         if (!bezSkopuPliku.contains(".") && zmienna.allocation != AllocType.FIXED)
             zmienna.fieldType = FieldType.STATIC
+
+        if(zmienna.allocation == AllocType.FIXED)
+            zmienna.type.isPointer = true
 
         return zmienna
     }
@@ -198,7 +200,6 @@ class WolinStateObject(val pass: Pass) {
         name: String,
         typeContext: KotlinParser.TypeContext?,
         propertyCtx: KotlinParser.PropertyDeclarationContext?,
-        //isArgument: Boolean = false,
         fieldType: FieldType
     ): Zmienna {
         val zmienna = createVar(name, typeContext, propertyCtx, fieldType)
@@ -207,12 +208,11 @@ class WolinStateObject(val pass: Pass) {
 
         if (zmienna.fieldType == FieldType.CLASS) {
             currentClass!!.toHeapAndVariablary(zmienna)
+            zmienna.inClass = currentClass
         }
 
         if (fieldType != FieldType.ARGUMENT && currentFunction?.locals?.none {it.name == zmienna.name} == true) {
             currentFunction?.addField(zmienna)
-//            if(callStack.none { it.name == zmienna.name })
-//                callStack.push(zmienna)
         }
 
         return zmienna
@@ -245,6 +245,7 @@ class WolinStateObject(val pass: Pass) {
         toVariablary(zmienna)
         if (zmienna.fieldType == FieldType.CLASS) {
             currentClass!!.toHeapAndVariablary(zmienna)
+            zmienna.inClass = currentClass
         }
 
         return zmienna
@@ -307,6 +308,15 @@ class WolinStateObject(val pass: Pass) {
         if (zmienna != null)
             return zmienna
 
+        if(classDerefStack.isNotEmpty()) {
+            val claz = findClass(classDerefStack.peek().type.name)
+            zmienna = findStackVector(claz.heap,claz.name+"."+nazwa).second
+        }
+
+        if (zmienna != null)
+            return zmienna
+
+
         do {
 
             val pattern = "$gdzieJesteśmy.$nazwa"
@@ -354,13 +364,13 @@ class WolinStateObject(val pass: Pass) {
                     FieldType.OP_STACK -> operStack
                     FieldType.LOCAL -> callStack
                     FieldType.ARGUMENT -> callStack
-                    FieldType.CLASS -> currentClass!!.heap
+                    FieldType.CLASS -> zmienna.inClass!!.heap //currentClass!!.heap // TODO - czasem musimy znaleźć to w klasie derefe, nie current!
                     else -> throw Exception("Unknown field type: ${zmienna.fieldType}!")
                 }
                 "${stos.stackName}(${findStackVector(stos, zmienna.name).first})<${zmienna.name}>"
             }
-            zmienna.type.type == "string" -> labelMaker("stringConst", strings.indexOf(zmienna.stringValue))
-            zmienna.type.type == "float" -> {
+            zmienna.type.name == "string" -> labelMaker("stringConst", strings.indexOf(zmienna.stringValue))
+            zmienna.type.name == "float" -> {
                 val znal = floats.indexOf(zmienna.floatValue)
                 println("sd")
                 labelMaker("floatConst", floats.indexOf(zmienna.floatValue))
@@ -438,7 +448,7 @@ class WolinStateObject(val pass: Pass) {
     fun lambdaTypeToFunction(zmienna: Zmienna): Funkcja {
         val funkcja = Funkcja(fullName = zmienna.name)
 
-        val zwrotkaIArgsy = zmienna.type.type.split("->")
+        val zwrotkaIArgsy = zmienna.type.name.split("->")
 
         val args = zwrotkaIArgsy[0].drop(1).dropLast(1).split(",")
         val retVal = zwrotkaIArgsy[1]
@@ -573,7 +583,7 @@ class WolinStateObject(val pass: Pass) {
             return funkcja
 
         if(classDerefStack.isNotEmpty())
-            funkcja = functiary["${classDerefStack.peek()!!.type.type}.$nazwa"]
+            funkcja = functiary["${classDerefStack.peek()!!.type.name}.$nazwa"]
 
         if(funkcja != null)
             return funkcja
@@ -724,12 +734,12 @@ class WolinStateObject(val pass: Pass) {
 
     fun canBeAssigned(doJakiej: Typ, co: Typ): Boolean {
 
-        val typyZgodne = doJakiej.type == co.type ||
+        val typyZgodne = doJakiej.name == co.name ||
                 if (co.isClass) {
-                    val doTegoKlasa = classary[doJakiej.type] ?: throw Exception("Unknown class $doJakiej (=$co)")
-                    val tenKlasa = classary[co.type] ?: throw Exception("Unknown class $co ($doJakiej=)")
+                    val doTegoKlasa = classary[doJakiej.name] ?: throw Exception("Unknown class $doJakiej (=$co)")
+                    val tenKlasa = classary[co.name] ?: throw Exception("Unknown class $co ($doJakiej=)")
 
-                    doJakiej.type == co.type || doTegoKlasa.hasChild(tenKlasa.name)
+                    doJakiej.name == co.name || doTegoKlasa.hasChild(tenKlasa.name)
                 } else
                     false
 

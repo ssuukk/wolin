@@ -67,8 +67,8 @@ class WolinVisitor(
                                 operator?.ASSIGNMENT() != null -> {
 
                                     processAssignment(it,
-                                        { dereferenceVariable(it.expression()?.disjunction(0)!!) },
-                                        //{ visitDisjunction(it.expression()?.disjunction(0)!!) },
+                                        //{ dereferenceVariable(it.expression()?.disjunction(0)!!) },
+                                        { visitDisjunction(it.expression()?.disjunction(0)!!) },
                                         { visitDisjunction(it.expression()?.disjunction(1)!!) }
                                     )
 
@@ -143,13 +143,13 @@ class WolinVisitor(
                 return state
             }
             else -> {
-                val ctx = simpleIdentifiers.first() as KotlinParser.SimpleIdentifierContext
-                val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
-                state.assignStack.assignLeftSideVar = zmienna
-                state.switchType(zmienna.type, "by znajdźSimpleIdW")
-//                visitDisjunction(lewaStrona)
-//                state.assignStack.assignLeftSideVar = state.currentReg
-//                state.assignStack.arrayAssign = false
+//                val ctx = simpleIdentifiers.first() as KotlinParser.SimpleIdentifierContext
+//                val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
+//                state.assignStack.assignLeftSideVar = zmienna
+//                state.switchType(zmienna.type, "by znajdźSimpleIdW")
+                visitDisjunction(lewaStrona)
+                state.assignStack.assignLeftSideVar = state.currentReg
+                state.assignStack.arrayAssign = false
 
                 return state
             }
@@ -189,8 +189,8 @@ class WolinVisitor(
                 when {
                     ctx.assignmentOperator().first().ASSIGNMENT() != null -> {
                         processAssignment(ctx,
-                            { dereferenceVariable(ctx.disjunction(0)) /*visitDisjunction(ctx.disjunction(0)) */ },
-                            //{ visitDisjunction(ctx.disjunction(0)) },
+                            //{ dereferenceVariable(ctx.disjunction(0)) /*visitDisjunction(ctx.disjunction(0)) */ },
+                            { visitDisjunction(ctx.disjunction(0)) },
                             { visitDisjunction(ctx.disjunction(1)) })
                     }
                     else -> błędzik(ctx, "Unknown assignment operator")
@@ -505,6 +505,9 @@ class WolinVisitor(
         val leftSide = state.allocReg("For assignment left side")
 
         leftFunction()
+
+        state.assignStack.assignLeftSideVar = state.currentReg
+
         state.inferTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji! ROBIONE
 
         val destinationReg = state.assignStack.assignLeftSideVar
@@ -767,7 +770,7 @@ class WolinVisitor(
 
                         state.fnCallReleaseRet(prototyp)
 
-                        state.code("free SPF <${prototyp.type.type}>, #${prototyp.type.sizeOnStack}")
+                        state.code("free SPF <${prototyp.type.name}>, #${prototyp.type.sizeOnStack}")
 
                         if (state.currentClass != null)
                             state.code("setup HEAP = this")
@@ -935,6 +938,9 @@ class WolinVisitor(
     override fun visitArrayAccess(ctx: KotlinParser.ArrayAccessContext): WolinStateObject {
         when {
             ctx.expression().size == 1 -> {
+
+                state.assignStack.first()?.isArray = true
+
                 val prevReg = state.currentReg!!
 
                 // ARRAYCODE
@@ -1469,24 +1475,27 @@ class WolinVisitor(
         when {
             ctx.Identifier() != null -> {
 
-                val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
+                try {
+                    val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
 
-
-                if (zmienna.type.shortIndex && zmienna.type.elementOccupiesOneByte) {
-                    state.currentShortArray = zmienna
-                } else {
-                    if (zmienna.allocation == AllocType.FIXED && zmienna.type.array) {
-                        state.code(
-                            "let ${state.currentRegToAsm()} = ${zmienna.location}[ptr] // simple id from fixed array var"
-                        )
+                    if (zmienna.type.shortIndex && zmienna.type.elementOccupiesOneByte) {
+                        state.currentShortArray = zmienna
                     } else {
-                        state.code(
-                            "let ${state.currentRegToAsm()} = ${state.varToAsm(zmienna)} // simple id from var"
-                        )
+                        if (zmienna.allocation == AllocType.FIXED && zmienna.type.array) {
+                            state.code(
+                                "let ${state.currentRegToAsm()} = ${zmienna.location}[ptr] // simple id from fixed array var"
+                            )
+                        } else {
+                            state.code(
+                                "let ${state.currentRegToAsm()} = ${state.varToAsm(zmienna)} // simple id from var"
+                            )
+                        }
                     }
-                }
 
-                state.switchType(zmienna.type, "type from ${zmienna.name}")
+                    state.switchType(zmienna.type, "type from ${zmienna.name}")
+                } catch (ex: Exception) {
+                    błędzik(ctx, "Unknown variable near ${ctx.parent.parent.text}")
+                }
             }
             else -> {
                 błędzik(ctx, "Nie wiem jak obsłużyć ten simpleIdentifier")
@@ -1902,7 +1911,7 @@ class WolinVisitor(
         //state.switchType(reg.type, "parse literal constant")
     }
 
-    fun błędzik(miejsce: ParseTree, teskt: String = "") {
+    fun błędzik(miejsce: ParseTree, teskt: String = ""): Nothing {
         val interval = miejsce.sourceInterval
         val token = tokenStream.get(interval.a)
         val linia = token.line
@@ -1996,7 +2005,7 @@ class WolinVisitor(
 
         state.fnCallReleaseRet(functionToCall)
 
-        state.code("free SPF <${functionToCall.type.type}>, #${functionToCall.type.sizeOnStack} // free return value of ${functionToCall.fullName} from call stack")
+        state.code("free SPF <${functionToCall.type.name}>, #${functionToCall.type.sizeOnStack} // free return value of ${functionToCall.fullName} from call stack")
     }
 
     fun processTypeChangingOp(
@@ -2061,12 +2070,12 @@ class WolinVisitor(
     fun checkTypeAndAddAssignment(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna, comment: String) {
         if (state.pass == Pass.TRANSLATION) {
             val można =
-                state.canBeAssigned(doJakiej.type, co.type) //|| doJakiej.type.isPointer || co.type.type == "uword"
+                state.canBeAssigned(doJakiej.type, co.type) //|| doJakiej.type.isPointer || co.type.name == "uword"
 
             if (można) {
                 state.code("let ${state.varToAsm(doJakiej)} = ${state.varToAsm(co)} // przez sprawdzacz typow - $comment")
             } else {
-                błędzik(ctx, "Nie można przypisać ${co} do zmiennej ${doJakiej}")
+                błędzik(ctx, "Nie można przypisać ${co} do zmiennej $doJakiej")
             }
         }
     }

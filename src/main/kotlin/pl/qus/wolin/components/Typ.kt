@@ -2,7 +2,7 @@ package pl.qus.wolin.components
 
 import pl.qus.wolin.WolinStateObject
 
-class Typ(val type: String, val nulable: Boolean, var isPointer: Boolean = false) {
+class Typ(val name: String, val nulable: Boolean, var isPointer: Boolean = false) {
 
     var array: Boolean = false
     var shortIndex: Boolean = false
@@ -27,15 +27,15 @@ class Typ(val type: String, val nulable: Boolean, var isPointer: Boolean = false
         }
     }
 
-    val isUnit get() = type == "unit"
+    val isUnit get() = name == "unit"
 
-    val isClass get() = type.contains(".")
+    val isClass get() = name.contains(".")
 
-    val isFunctional get() = type.contains("->")
+    val isFunctional get() = name.contains("->")
 
     val elementOccupiesOneByte: Boolean
         get() = if(array) {
-            when(type) {
+            when(name) {
                 "bool" -> true
                 "ubyte" -> true
                 "byte" -> true
@@ -47,17 +47,17 @@ class Typ(val type: String, val nulable: Boolean, var isPointer: Boolean = false
         get() = when {
             array -> 2
             isPointer -> 2
-            type == "unit" -> 0
-            type == "bool" -> 1
-            type == "byte" -> 1
-            type == "ubyte" -> 1
-            type == "float" -> 4 // http://6502.org/source/floats/wozfp1.txt
-            type == "" -> throw Exception("Empty type!!!")
+            name == "unit" -> 0
+            name == "bool" -> 1
+            name == "byte" -> 1
+            name == "ubyte" -> 1
+            name == "float" -> 4 // http://6502.org/source/floats/wozfp1.txt
+            name == "" -> throw Exception("Empty type!!!")
             else -> 2
         }
 
     val arrayElementSize: Int
-        get() = when (type) {
+        get() = when (name) {
             "unit" -> 0
             "bool" -> 1
             "byte" -> 1
@@ -68,17 +68,17 @@ class Typ(val type: String, val nulable: Boolean, var isPointer: Boolean = false
         }
 
     override fun equals(other: Any?): Boolean = if (other is Typ) {
-        other.type == this.type && other.nulable == this.nulable && other.isPointer == this.isPointer
+        other.name == this.name && other.nulable == this.nulable && other.isPointer == this.isPointer
     } else super.equals(other)
 
     fun canBeAssigned(other: Any?): Boolean = if (other is Typ) {
-        other.type == this.type && other.nulable == this.nulable
+        other.name == this.name && other.nulable == this.nulable
     } else super.equals(other)
 
 
 
-    override fun toString(): String = type + if (nulable) "?" else "" + if (isPointer) "*" else ""
+    override fun toString(): String = name + if (nulable) "?" else "" + if (isPointer) "*" else ""
 
     val arrayElementType: Typ
-        get() = Typ(type, nulable, isPointer)
+        get() = Typ(name, nulable, isPointer)
 }

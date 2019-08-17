@@ -21,19 +21,20 @@ class Test {
 
 
 fun main() {
-//    val x: ubyte// = suma(2,2) // TODO - bez ubyte x jest typu ptr!
-//    while(i<1000) {
-//        ekran[i++] = znak++
-//    }
+    val x: ubyte// = suma(2,2) // TODO - bez ubyte x jest typu ptr!
+    while(i<1000) {
+        ekran[i++] = znak++
+    }
 
-//    val testowa : Test
+    val testowa : Test
 
-//    testowa = Test()
+    testowa = Test()
+
+    border = testowa.suma()
+
+    border = 8
 
     //testowa.x = 10
     //testowa.y = 2
 
-    //border = testowa.suma()
-
-    border = 8
 }

@@ -24,5 +24,5 @@ class Funkcja(
             fields.add(nowa)
     }
 
-    override fun toString(): String = "fun $fullName(${arguments.joinToString()}):${type.type}"
+    override fun toString(): String = "fun $fullName(${arguments.joinToString()}):${type.name}"
 }
