@@ -111,50 +111,50 @@ class WolinVisitor(
 
     }
 
-    private fun dereferenceVariable(lewaStrona: KotlinParser.DisjunctionContext): WolinStateObject {
-        val simpleIdentifiers = mutableListOf<ParseTree>()
-
-        //println("lewa strona:${dump(lewaStrona,1)}")
-
-        lewaStrona.traverseFilter(simpleIdentifiers) {
-            it is KotlinParser.SimpleIdentifierContext
-        }
-
-        val isArray = lewaStrona.any {
-            it is KotlinParser.ArrayAccessContext
-        }
-
-        val isObject = lewaStrona.any {
-            it is KotlinParser.MemberAccessOperatorContext
-        }
-
-        when {
-            isObject -> {
-                błędzik(lewaStrona,"Nie umiem obsłużyć podstawienia do pola obiektu")
-                return state
-            }
-            isArray -> {
-                state.rem(" left side disjunction - prawie dobrze")
-
-                visitDisjunction(lewaStrona)
-                state.assignStack.assignLeftSideVar = state.currentReg
-                state.assignStack.arrayAssign = true
-
-                return state
-            }
-            else -> {
-//                val ctx = simpleIdentifiers.first() as KotlinParser.SimpleIdentifierContext
-//                val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
-//                state.assignStack.assignLeftSideVar = zmienna
-//                state.switchType(zmienna.type, "by znajdźSimpleIdW")
-                visitDisjunction(lewaStrona)
-                state.assignStack.assignLeftSideVar = state.currentReg
-                state.assignStack.arrayAssign = false
-
-                return state
-            }
-        }
-    }
+//    private fun dereferenceVariable(lewaStrona: KotlinParser.DisjunctionContext): WolinStateObject {
+//        val simpleIdentifiers = mutableListOf<ParseTree>()
+//
+//        //println("lewa strona:${dump(lewaStrona,1)}")
+//
+//        lewaStrona.traverseFilter(simpleIdentifiers) {
+//            it is KotlinParser.SimpleIdentifierContext
+//        }
+//
+//        val isArray = lewaStrona.any {
+//            it is KotlinParser.ArrayAccessContext
+//        }
+//
+//        val isObject = lewaStrona.any {
+//            it is KotlinParser.MemberAccessOperatorContext
+//        }
+//
+//        when {
+//            isObject -> {
+//                błędzik(lewaStrona,"Nie umiem obsłużyć podstawienia do pola obiektu")
+//                return state
+//            }
+//            isArray -> {
+//                state.rem(" left side disjunction - prawie dobrze")
+//
+//                visitDisjunction(lewaStrona)
+//                state.assignStack.assignLeftSideVar = state.currentReg
+//                state.assignStack.arrayAssign = true
+//
+//                return state
+//            }
+//            else -> {
+////                val ctx = simpleIdentifiers.first() as KotlinParser.SimpleIdentifierContext
+////                val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
+////                state.assignStack.assignLeftSideVar = zmienna
+////                state.switchType(zmienna.type, "by znajdźSimpleIdW")
+//                visitDisjunction(lewaStrona)
+//                state.assignStack.assignLeftSideVar = state.currentReg
+//                state.assignStack.arrayAssign = false
+//
+//                return state
+//            }
+//        }
+//    }
 
 
     override fun visitBlock(ctx: KotlinParser.BlockContext): WolinStateObject {
@@ -502,7 +502,7 @@ class WolinVisitor(
         state.assignStack.push(AssignEntry())
 
         state.rem(" lewa strona assignment") // TODO użyć tego rejestru zamiast assignLeftSideVar
-        val leftSide = state.allocReg("For assignment left side")
+        val leftSide = state.allocReg("ASSIGNMENT target")
 
         leftFunction()
 
@@ -518,34 +518,34 @@ class WolinVisitor(
 
         state.rem(" prawa strona assignment")
 
-        val tempSourceReg = state.allocReg("for value that gets assigned to left side")
-        state.assignStack.assignRightSideFinalVar = tempSourceReg
+        val rightFinalReg = state.allocReg("ASSIGNMENT value")
+        state.assignStack.assignRightSideFinalVar = rightFinalReg
         rightFunction()
 
         //state.inferTopOregType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji!
 
-        tempSourceReg.type = destinationType.arrayElementType // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
+        rightFinalReg.type = destinationType.arrayElementType // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
         // typ indeksu, nie faktyczny typ zmiennej
         // więc np x[255] jest ok, ale x[256] daje uword!
         // typ pobierany jest z state.assignStack.assignLeftSideVar
-        tempSourceReg.type.isPointer = false // przy podstawieniu konkretnej wartości
-        tempSourceReg.type.array = false
+        rightFinalReg.type.isPointer = false // przy podstawieniu konkretnej wartości
+        rightFinalReg.type.array = false
 
 //        val sourceReg = state.findVarInVariablaryWithDescoping(tempSourceReg.name)
 //        if (!state.canBeAssigned(sourceReg.type, destinationReg.type) && state.pass == Pass.TRANSLATION) {
 //            throw TypeMismatchException("Attempt to assign ${tempSourceReg.name}:${sourceReg.type} to variable of type ${destinationReg.name}:${destinationReg.type}")
 //        }
 
-        checkTypeAndAddAssignment(ctx, destinationReg, tempSourceReg, "process assignment")
+        checkTypeAndAddAssignment(ctx, destinationReg, rightFinalReg, "process assignment")
 
         if (state.assignStack.arrayAssign) {
             // też niepotrzebne
             //state.code("let ${state.varToAsm(leftSide)} = ${state.varToAsm(tempSourceReg)} // ONLY FOR NON-TRIVIAL LEFT SIDE ASSIGN")
             state.assignStack.arrayAssign = false
         }
-        state.freeReg("for value that gets assigned to left side, type = ${state.currentWolinType}")
+        state.freeReg("ASSIGNMENT value, type = ${state.currentWolinType}")
 
-        state.freeReg("For assignment left side")
+        state.freeReg("ASSIGNMENT target")
 
         state.assignStack.pop()
     }
@@ -705,7 +705,7 @@ class WolinVisitor(
                             błędzik(ctx, "Wrong number of arguments in function call $procName")
 
                         state.switchType(prototyp.type, "function type 1")
-                        state.inferTopOperType()
+                        //state.inferTopOperType()
 
                         state.fnCallAllocRetAndArgs(prototyp)
 
@@ -718,7 +718,7 @@ class WolinVisitor(
                             val found = state.findStackVector(state.callStack, "${prototyp.fullName}.this")
 
                             state.code(
-                                "let SPF(${found.first})${found.second.typeForAsm} = ${state.varToAsm(state.regFromTop(1))}"
+                                "let SPF(${found.first})${found.second.typeForAsm} = ${state.varToAsm(state.currentReg)}"
                             )
                         }
 
@@ -835,9 +835,10 @@ class WolinVisitor(
                     // =================================================================================================
                     prawo.memberAccessOperator() != null -> {
 
-                        val dereferenced = state.allocReg("dereferenced var")
+                        //val dereferenced = state.allocReg("dereferenced var")
 
                         state.rem(" lewa strona deref")
+                        val dereferenced = state.allocReg("next deref level",Typ.ubyte)
                         visitAtomicExpression(atomEx)
 
                         val classDeref = if(state.currentWolinType.isClass) {
@@ -855,28 +856,27 @@ class WolinVisitor(
 
                         state.rem(" prawa strona deref")
 
-                        val reg = state.allocReg("for right side of deref")
+                        //val reg = state.allocReg("for right side of deref")
                         val safeDeref = prawo.memberAccessOperator().QUEST() != null
 
                         val costam = prawo.postfixUnaryExpression()
                         if (safeDeref) {
-                            state.code("evaleq costam[bool] = $reg[ptr], null // safe deref")
+                            state.code("evaleq costam[bool] = ${state.currentReg}[ptr], null // safe deref")
                             state.code("beq costam[bool] = #0, jakis_label[adr] // safe deref")
                         }
 
                         state.rem(" postfix unary w dereferencji")
                         visitPostfixUnaryExpression(costam)
                         if(classDeref) {
-                            if(state.assignStack.isNotEmpty())
-                                checkTypeAndAddAssignment(ctx, state.assignStack.peek().right, reg, "deref assignment")
-                            state.assignStack.peek().left
-                            // let value that gets assigned to left side = reg
+                            //state.currentWolinType.isPointer = true
                             state.rem("tu przywrócić poprzednią klasę")
                             state.classDerefStack.pop()
-                            //state.currentClass = prevClass
+                            state.rem("tutaj powinniśmy przypisać ${state.regFromTop(1)} = ${state.currentReg}")
                         }
-                        state.freeReg("for right side of deref")
-                        state.freeReg("dereferenced var")
+
+                        state.freeReg("next deref level")
+
+                        //state.freeReg("dereferenced var")
                     }
                     // =================================================================================================
                     prawo.arrayAccess() != null -> {
@@ -1501,7 +1501,6 @@ class WolinVisitor(
                 błędzik(ctx, "Nie wiem jak obsłużyć ten simpleIdentifier")
             }
         }
-
 
         return state
     }

@@ -516,6 +516,25 @@ let HEAP(?dest)[ubyte] = SP(?src)[ubyte] -> """
     ldy #{dest}
     sta (__wolin_this_ptr),y"""
 
+// pointer to pointer
+let SP(?dest)[ptr] = HEAP(?src)[ptr] -> """
+    ldy #{src}
+    lda (__wolin_this_ptr),y
+    sta {dest},x
+    iny
+    lda (__wolin_this_ptr),y
+    sta {dest}+1,x"""
+
+// any other value to pointer - get address of the value
+let SP(?dest)[ptr] = HEAP(?src)[?dummy] -> """
+    clc
+    lda __wolin_this_ptr
+    adc {src}
+    sta {dest},x
+    lda __wolin_this_ptr+1
+    adc #0
+    sta {dest}+1,x"""
+
 //============================================
 // kondiszjonalsy
 //============================================

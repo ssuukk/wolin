@@ -22,6 +22,8 @@ class WolinStateObject(val pass: Pass) {
 
     val operStack = SpecStack("SP")
     val callStack = SpecStack("SPF")
+    val classDerefStack = Stack<Zmienna>()
+    val assignStack = AssignStack()
 
     var strings = mutableListOf<String>()
     var floats = mutableListOf<Float>()
@@ -50,8 +52,6 @@ class WolinStateObject(val pass: Pass) {
     val spfUsed get() = functiary.isNotEmpty()
 
     // potencjalnie wymagające stosu
-    val classDerefStack = Stack<Zmienna>()
-    val assignStack = AssignStack()
     var arrayElementSize: Int = 0
     var simpleWhen = true
     var lastWhenEntry = false
@@ -625,7 +625,7 @@ class WolinStateObject(val pass: Pass) {
 //        }
 
         if (variablary[name] != null)
-            rem("Using already known $name")
+            //rem("Using already known ${variablary[name]}")
         else
             rem("$name not yet in variablary")
 

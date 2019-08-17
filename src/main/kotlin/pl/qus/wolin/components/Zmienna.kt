@@ -30,6 +30,7 @@ class Zmienna(
             type.isPointer -> "[ptr]"
             type.array -> "[ptr]"
             type.isFunctional -> "[ptr]"
+            type.isUnit -> "[unit!!!]"
             type.name == "bool" -> "[bool]"
             type.name == "byte" -> "[byte]"
             type.name == "ubyte" -> "[ubyte]"
