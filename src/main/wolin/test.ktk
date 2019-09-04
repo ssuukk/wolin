@@ -10,6 +10,7 @@ fun allocMem(size: uword, count: uword): Any {
     return 30000
 }
 
+
 class Test {
     var x: ubyte = 3
     var y: ubyte = 7
@@ -18,6 +19,10 @@ class Test {
         return x+y
     }
 }
+
+//class Matka {
+//    var dziecko: Test
+//}
 
 
 fun main() {
@@ -28,15 +33,23 @@ fun main() {
     }
 
     border = 8
+
+        val testowa : Test
+
+        testowa = Test()
+
+        border = testowa.suma()
+
+
+    //    testowa.x = 10
+    //    testowa.y = 2
+
 */
-    val testowa : Test
 
-    testowa = Test()
+    while(i<1000) {
+        ekran[i++] = znak++
+    }
 
-    border = testowa.suma()
-
-
-//    testowa.x = 10
-//    testowa.y = 2
+    border = 8
 
 }

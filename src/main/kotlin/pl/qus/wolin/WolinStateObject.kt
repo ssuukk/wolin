@@ -172,6 +172,7 @@ class WolinStateObject(val pass: Pass) {
         zmienna.location = loc ?: nullableTypeLoc
         zmienna.name = nameStitcher(name, fieldType == FieldType.ARGUMENT)
         zmienna.type = type
+        zmienna.type = type
 
         var pomiń = 0
         if (basePackage.isNotEmpty()) pomiń = basePackage.length + 1
@@ -354,7 +355,8 @@ class WolinStateObject(val pass: Pass) {
         return zmienna
     }
 
-    fun varToAsm(zmienna: Zmienna): String = varToAsmNoType(zmienna) + zmienna.typeForAsm
+    fun varToAsm(zmienna: Zmienna, deref: Boolean = false): String = varToAsmNoType(zmienna) +
+            if(deref) "[ptr]" else zmienna.typeForAsm
 
     fun varToAsmNoType(zmienna: Zmienna): String {
 
@@ -620,12 +622,13 @@ class WolinStateObject(val pass: Pass) {
     fun allocReg(comment: String = "", type: Typ = Typ.unit): Zmienna {
         val name = "__wolin_reg$stackVarCounter"
 
-//        if(stackVarCounter == 10) {
+//        if(stackVarCounter == 12) {
 //            println("tu!")
 //        }
 
-        if (variablary[name] != null)
+        if (variablary[name] != null) {
             //rem("Using already known ${variablary[name]}")
+        }
         else
             rem("$name not yet in variablary")
 
@@ -668,7 +671,7 @@ class WolinStateObject(val pass: Pass) {
         dumpStack(operStack)
     }
 
-    fun currentRegToAsm(): String = varToAsm(currentReg)
+    fun currentRegToAsm(deref: Boolean = false): String = varToAsm(currentReg, deref)
 
 
     /*****************************************************************
@@ -693,10 +696,10 @@ class WolinStateObject(val pass: Pass) {
         val top = operStack.peek()
 
         if (top.type == currentWolinType) {
-            rem("SAFE INFER TOP: $top -> no change")
+            rem("top type already set: $top")
         } else if (top.type.isUnit) {
             top.type = currentWolinType
-            rem("SAFE INFER TOP: $top -> $currentWolinType")
+            rem("infer top: $top -> $currentWolinType")
         } else if (!top.type.canBeAssigned(currentWolinType))
             throw RegTypeMismatchException("Attempt to reassign $currentWolinType to $top")
     }

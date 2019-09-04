@@ -27,9 +27,9 @@ class Zmienna(
 
     val typeForAsm: String
         get() = when {
-            type.isPointer -> "[ptr]"
-            type.array -> "[ptr]"
-            type.isFunctional -> "[ptr]"
+            type.isPointer -> "[adr]"
+            type.array -> "[adr]"
+            type.isFunctional -> "[adr]"
             type.isUnit -> "[unit!!!]"
             type.name == "bool" -> "[bool]"
             type.name == "byte" -> "[byte]"
@@ -37,7 +37,7 @@ class Zmienna(
             type.name == "word" -> "[word]"
             type.name == "uword" -> "[uword]"
             type.name == "float" -> "[float]"
-            else -> "[ptr]"
+            else -> "[adr]"
         }
 
     val immediateValue: String get() = when {

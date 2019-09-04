@@ -3,8 +3,8 @@ package pl.qus.wolin.components
 import java.util.*
 
 class AssignEntry {
-    lateinit var left: Zmienna
-    lateinit var right: Zmienna
+    internal lateinit var left: Zmienna
+    internal lateinit var right: Zmienna
     var isArray: Boolean = false
 }
 

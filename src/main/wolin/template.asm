@@ -13,7 +13,7 @@ setup HEADER -> """
 ;* BASIC header
 ;*
 ;* compile with:
-;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg -Ln labels.txt assembler.s
+;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg -g -Ln labels.txt assembler.s
 ;*
 ;**********************************************
             .org 2049
@@ -330,15 +330,6 @@ let SPF(?d)[uword] = #?val[uword] -> """
     lda #>{val}
     sta (__wolin_spf),y"""
 
-// only in constructor?
-let SPF(?d)[ptr] = SP(?s)[uword] -> """
-    ldy #{d}
-    lda {s},x
-    sta (__wolin_spf),y
-    iny
-    lda {s}+1,x
-    sta (__wolin_spf),y"""
-
 // for function call
 let SPF(?d)[byte] = SP(?s)[byte] -> """
     lda {s},x
@@ -493,13 +484,7 @@ setup HEAP = this -> """
     lda (__wolin_spf),y
     sta __wolin_this_ptr+1"""
 
-setup HEAP = ?heap[ptr] -> """
-    lda #<{heap}
-    sta __wolin_this_ptr
-    lda #>{heap}
-    sta __wolin_this_ptr+1"""
-
-setup HEAP = SP(?src)[ptr] -> """
+setup HEAP = SP(?src)[adr] -> """
     lda {src},x
     sta __wolin_this_ptr
     lda {src}+1,x
@@ -515,25 +500,6 @@ let HEAP(?dest)[ubyte] = SP(?src)[ubyte] -> """
     lda {src},x
     ldy #{dest}
     sta (__wolin_this_ptr),y"""
-
-// pointer to pointer
-let SP(?dest)[ptr] = HEAP(?src)[ptr] -> """
-    ldy #{src}
-    lda (__wolin_this_ptr),y
-    sta {dest},x
-    iny
-    lda (__wolin_this_ptr),y
-    sta {dest}+1,x"""
-
-// any other value to pointer - get address of the value
-let SP(?dest)[ptr] = HEAP(?src)[?dummy] -> """
-    clc
-    lda __wolin_this_ptr
-    adc {src}
-    sta {dest},x
-    lda __wolin_this_ptr+1
-    adc #0
-    sta {dest}+1,x"""
 
 //============================================
 // kondiszjonalsy
@@ -633,169 +599,76 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 :"""
 
 //============================================
-// Wskaźniki
+// nowe adresy
 //============================================
 
-// tablice z 8-bitowym indeksem
-//let SP(2)<__wolin_reg2>[ubyte] = 4096(0)[ptr]
-// znaczy:
-// - indeks znajduje się w SP0
-// - pobierz dane z arrStart,SP0
-// - zapisz je w SP2
-let SP(?dstSP)[ubyte] = ?arrStart[ptr], SP(?srcSP)[ubyte] -> """
-    ldy {srcSP},x
-    lda {arrStart},y
-    sta {dstSP},x"""
-
-// kiedy juz optymizator bedzie dzialac, to powyzsze bedzie wygladac tak:
-let ?dstVar[ubyte] = ?arrStart[ptr], #?idx -> """
-    ldy #{idx}
-    lda {arrStart},y
-    sta {dstVar}"""
-
-//let SP(?dstSP)[ptr] = #?val[ubyte]
-
-// let SP(2)<r.temp6>[ptr] = SP(0)<r.temp7>[word] // powinno znaczyć: ustaw zmienną pod adresem znajdującym się w SP(2) na wartość
-// czyli powinniśmy:
-// lda #mlodszy
-// ldy #0
-// sta (miejsce na stosie),y
-// lda #starszy
-// iny
-// sta (miejsce na stosie),y
-
-//let ?adr[ptr] = #?val[uword] -> """
-//    lda #<{val}
-//    sta {adr}
-//    lda #>{val}
-//    sta {adr}+1"""
-
-// wartosc na opStacku = wartosc pobrana z pointera
-// na 65816 jest tryb
-// lda (0,x)
-// sta 0,x
-let SP(?dst)[ubyte] = SP(?src)[ptr] -> """
-    lda ({src},x)
-    sta {dst},x"""
-
-// zmienna pod adresem dst = wartość
-let SP(?dst)[ptr] = SP(?src)[ubyte] -> """
-    lda {src},x
-    sta ({dst},x)
-"""
-
-// zmienna pod adresem dst = wartość
-let SP(?dst)[ptr] = SP(?src)[uword] -> """
-    lda {src},x
-    sta ({dst},x)
-    inc {dst},x
-    bne :+
-    inc {dst}+1,x
-:
-    lda {src}+1,x
-    sta ({dst},x)
-"""
-
-let SP(?dst)[uword] = SP(?src)[ptr] -> """
-    lda ({src},x)
+// dla konstruktora
+let SP(?dst)[adr] = #?val[uword] -> """
+    lda #<{val}
     sta {dst},x
-    inc {src},x
-    bne :+
-    inc {src}+1,x
-:
-    lda ({src},x)
+    lda #>{val}
     sta {dst}+1,x"""
 
-let SP(?src)[uword] = SP(?src)[ptr] -> """
-    ; don't know how to address this:
-    ; SP[uword] = SP[ptr] when src==dst
-"""
-
-let SP(?dst)[ubyte] = SP(?src)[ptr] -> """
-    lda ({src},x)
-    sta {dst},x"""
-
-// do arytmetyki wskaznikow
-let SP(?dst)[uword] = ?src[ptr] -> """
-    lda #<{src}
-    sta {dst},x
-    lda #>{src}
-    sta {dst}+1,x"""
-
-let SP(?dst)[ptr] = SPF(?src)[ptr] -> """
-     ldy #{src}
-     lda (__wolin_spf),y
-     sta {dst},x
-     iny
-     lda (__wolin_spf),y
-     sta {dst}+1,x"""
-
-let SPF(?dst)[ptr] = SP(?src)[ptr] -> """
-    ldy #{dst}
-    lda {src},x
+let SPF(?d)[adr] = SP(?s)[adr] -> """
+    lda {s},x
+    ldy #{d}
     sta (__wolin_spf),y
+    lda {s}+1,x
     iny
-    lda {src}+1,x
     sta (__wolin_spf),y"""
 
+let SP(?d)[adr] = SPF(?s)[adr] -> """
+    ldy #{s}
+    lda (__wolin_spf),y
+    sta {d},x
+    iny
+    lda (__wolin_spf),y
+    sta {d}+1,x"""
+
+/*
+let SP(?d)[adr] = SPF(?s)[adr] -> """
+    ; warning - assuming SP should be set to actual address of src var, this is not simple copy!
+    clc
+    lda __wolin_spf
+    adc #{s}
+    sta {d},x
+    lda _wolin_spf+1
+    sta {d}+1,x
+    bcc :+
+    inc {d}+1,x
+:
+"""
+*/
+
+let SP(?d)[adr] = SP(?s)[adr] -> """
+    lda {s},x
+    sta {d},x
+    lda {s}+1,x
+    sta {d}+1,x"""
+
 // pointer pod adresem = inny pointer pod adresem
-let ?adr[ptr] = ?adr2[ptr] -> """
-    lda {adr2}
+let ?adr[adr] = ?adr2[adr] -> """
+    lda {adr2} ; UWAGA ptr -> ptr
     sta {adr}
     lda {adr+1}
     sta {adr2+1}
 """
 
-// pointer na stosie = inny pointer na stosie
-let SP(?d)[ptr] = SP(?s)[ptr] -> """
-    lda {s},x
-    sta {d},x
-    lda {s}+1,x
-    sta {d}+1,x
-"""
-
-let SP(?d)[ptr] = SP(?s)[ptr] -> """
-    lda {s},x
-    sta {d},x
-    lda {s}+1,x
-    sta {d}+1,x"""
-
-let ?d[ptr] = SP(?s)[ptr] -> """
-    lda {s},x
-    sta {d}
-    lda {s}+1,x
-    sta {d}+1"""
-
-let SP(?d)[ptr] = ?s[adr] -> """
+let SP(?d)[adr] = ?s[adr] -> """
     lda #<{s}
     sta {d},x
     lda #>{s}
     sta {d}+1,x"""
 
-// dowolny adres na null
-let ?adr[ptr] = #0[?dummy] -> """
-    lda #0
-    sta {adr}
-    sta {adr}+1"""
-
-let ?dst[ptr] = SP(?src)[ptr] -> """
-    lda {src},x
-    sta {dst}
-    lda {src}+1,x
-    sta {dst}+1 """
-
-let SP(?dst)[ptr] = ?adr[ptr] -> """
-    lda #<{adr}
-    sta {dst},x
-    lda #>{adr}
-    sta {dst}+1,x"""
-
-// dla konstruktora
-let SP(?dst)[ptr] = #?val[uword] -> """
-    lda #<{val}
-    sta {dst},x
-    lda #>{val}
-    sta {dst}+1,x"""
+// add SP(2)<__wolin_reg15>[adr] = SP(2)<__wolin_reg15>[adr], SP(0)<__wolin_reg16>[uword]
+add SP(?d)[adr] = SP(?s1)[adr], SP(?s2)[uword] -> """
+    clc
+    lda {s1},x
+    adc {s2},x
+    sta {d},x
+    lda {s1}+1,x
+    adc {s2}+1,x
+    sta {d}+1,x"""
 
 //============================================
 // rozmaite funkcje
@@ -1096,3 +969,223 @@ add SPE(?spedst)[ubyte] = SPE(?spesrc)[ubyte],#?val[ubyte] -> """
     ldy #{spedst}
     sta (__wolin_spe),y
 """
+
+
+
+//============================================
+// Wskaźniki
+//============================================
+
+
+// set value pointed by to value pointed by, phew!
+let SP(?d)[ptr] = SP(?s)[adr] -> """
+    lda {s},x
+    sta ({d},x)
+    inc {d},x
+    bne :+
+    inc {d}+1,x
+:
+    lda {s}+1,x
+    sta ({d},x)
+"""
+
+// zmienna pod adresem dst = wartość
+let SP(?dst)[ptr] = SP(?src)[ubyte] -> """
+    lda {src},x
+    sta ({dst},x)
+"""
+
+// tablice z 8-bitowym indeksem
+//let SP(2)<__wolin_reg2>[ubyte] = 4096(0)[ptr]
+// znaczy:
+// - indeks znajduje się w SP0
+// - pobierz dane z arrStart,SP0
+// - zapisz je w SP2
+let SP(?dstSP)[ubyte] = ?arrStart[adr], SP(?srcSP)[ubyte] -> """
+    ldy {srcSP},x
+    lda {arrStart},y
+    sta {dstSP},x"""
+
+
+
+/*
+// only in constructor?
+let SPF(?d)[ptr] = SP(?s)[uword] -> """
+    ldy #{d}
+    lda {s},x
+    sta (__wolin_spf),y
+    iny
+    lda {s}+1,x
+    sta (__wolin_spf),y"""
+
+// pointer to pointer
+let SP(?dest)[ptr] = HEAP(?src)[ptr] -> """
+    ldy #{src} ; UWAGA ptr -> ptr
+    lda (__wolin_this_ptr),y
+    sta {dest},x
+    iny
+    lda (__wolin_this_ptr),y
+    sta {dest}+1,x"""
+
+setup HEAP = ?heap[ptr] -> """
+    lda #<{heap}
+    sta __wolin_this_ptr
+    lda #>{heap}
+    sta __wolin_this_ptr+1"""
+
+// any other value to pointer - get address of the value
+let SP(?dest)[ptr] = HEAP(?src)[?dummy] -> """
+    clc
+    lda __wolin_this_ptr
+    adc {src}
+    sta {dest},x
+    lda __wolin_this_ptr+1
+    adc #0
+    sta {dest}+1,x"""
+
+
+// kiedy juz optymizator bedzie dzialac, to powyzsze bedzie wygladac tak:
+let ?dstVar[ubyte] = ?arrStart[ptr], #?idx -> """
+    ldy #{idx}
+    lda {arrStart},y
+    sta {dstVar}"""
+
+//let SP(?dstSP)[ptr] = #?val[ubyte]
+
+// let SP(2)<r.temp6>[ptr] = SP(0)<r.temp7>[word] // powinno znaczyć: ustaw zmienną pod adresem znajdującym się w SP(2) na wartość
+// czyli powinniśmy:
+// lda #mlodszy
+// ldy #0
+// sta (miejsce na stosie),y
+// lda #starszy
+// iny
+// sta (miejsce na stosie),y
+
+//let ?adr[ptr] = #?val[uword] -> """
+//    lda #<{val}
+//    sta {adr}
+//    lda #>{val}
+//    sta {adr}+1"""
+
+// wartosc na opStacku = wartosc pobrana z pointera
+// na 65816 jest tryb
+// lda (0,x)
+// sta 0,x
+let SP(?dst)[ubyte] = SP(?src)[ptr] -> """
+    lda ({src},x)
+    sta {dst},x"""
+
+
+// zmienna pod adresem dst = wartość
+let SP(?dst)[ptr] = SP(?src)[uword] -> """
+    lda {src},x
+    sta ({dst},x)
+    inc {dst},x
+    bne :+
+    inc {dst}+1,x
+:
+    lda {src}+1,x
+    sta ({dst},x)
+"""
+
+let SP(?dst)[uword] = SP(?src)[ptr] -> """
+    lda ({src},x)
+    sta {dst},x
+    inc {src},x
+    bne :+
+    inc {src}+1,x
+:
+    lda ({src},x)
+    sta {dst}+1,x"""
+
+let SP(?src)[uword] = SP(?src)[ptr] -> """
+    ; don't know how to address this:
+    ; SP[uword] = SP[ptr] when src==dst
+"""
+
+let SP(?dst)[ubyte] = SP(?src)[ptr] -> """
+    lda ({src},x)
+    sta {dst},x"""
+
+// do arytmetyki wskaznikow
+let SP(?dst)[uword] = ?src[ptr] -> """
+    lda #<{src}
+    sta {dst},x
+    lda #>{src}
+    sta {dst}+1,x"""
+
+// set reg to address of SPF variable
+let SP(?dst)[ptr] = SPF(0)[ptr] -> """
+    lda __wolin_spf
+    sta {dst},x
+    lda __wolin_spf+1
+    sta {dst}+1,x"""
+
+// TODO - oddzielne let [ptr] = [deref] i odwrotnie
+
+let SP(?dst)[ptr] = SPF(?src)[ptr] -> """
+    clc
+    lda __wolin_spf
+    adc #{src}
+    sta {dst},x
+    lda __wolin_spf+1
+    adc #0
+    sta {dst}+1,x"""
+
+let SPF(?dst)[ptr] = SP(?src)[ptr] -> """
+    ldy #{dst} ; UWAGA ptr -> ptr
+    lda {src},x
+    sta (__wolin_spf),y
+    iny
+    lda {src}+1,x
+    sta (__wolin_spf),y"""
+
+// pointer na stosie = inny pointer na stosie
+let SP(?d)[ptr] = SP(?s)[ptr] -> """
+    lda {s},x ; UWAGA ptr -> ptr
+    sta {d},x
+    lda {s}+1,x
+    sta {d}+1,x
+"""
+
+let SP(?d)[ptr] = SP(?s)[ptr] -> """
+    lda {s},x ; UWAGA ptr -> ptr
+    sta {d},x
+    lda {s}+1,x
+    sta {d}+1,x"""
+
+let ?d[ptr] = SP(?s)[ptr] -> """
+    lda {s},x ; UWAGA ptr -> ptr
+    sta {d}
+    lda {s}+1,x
+    sta {d}+1"""
+
+// dowolny adres na null
+let ?adr[ptr] = #0[?dummy] -> """
+    lda #0
+    sta {adr}
+    sta {adr}+1"""
+
+let ?dst[ptr] = SP(?src)[ptr] -> """
+    lda {src},x  ; UWAGA ptr -> ptr
+    sta {dst}
+    lda {src}+1,x
+    sta {dst}+1 """
+
+let SP(?dst)[ptr] = ?adr[ptr] -> """
+    lda #<{adr} ; UWAGA ptr -> ptr
+    sta {dst},x
+    lda #>{adr}
+    sta {dst}+1,x"""
+
+let SP(?dst)[ptr] = SP(?src)[adr] -> """
+    lda {src},x
+    sta ({dst},x)
+    inc {dst},x
+    bne :+
+    inc {dst}+1,x
+:
+    lda {src}+1,x
+    sta ({dst},x)
+"""
+*/
