@@ -18,6 +18,6 @@ open class Klasa(val name: String)
     }
 }
 
-class AnyKlasa(): Klasa("Any") {
+class AnyKlasa(): Klasa("any") {
     override fun hasChild(dummy: String): Boolean = true
 }

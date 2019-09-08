@@ -2,10 +2,20 @@ package pl.qus.wolin.components
 
 import pl.qus.wolin.WolinStateObject
 
-class Typ(val name: String, val nulable: Boolean, var isPointer: Boolean = false) {
+class Typ(val name: String, val nulable: Boolean, var pointer: Boolean = false) {
 
     var array: Boolean = false
     var shortIndex: Boolean = false
+
+    val isPointer: Boolean
+        get() {
+            return when {
+                array -> true
+                isFunctional -> true
+                primitives.contains(name) -> pointer
+                else -> true
+            }
+        }
 
     companion object {
         val unit get() = Typ("unit", false)
@@ -80,4 +90,15 @@ class Typ(val name: String, val nulable: Boolean, var isPointer: Boolean = false
 
     val arrayElementType: Typ
         get() = Typ(name, nulable, isPointer)
+
+    val typeForAsm: String
+        get() =
+            when {
+                array -> "any"
+                isFunctional -> "any"
+                isUnit -> "unit"
+                primitives.contains(name) -> name
+                else -> "any"
+            } +"${if(isPointer) "*" else ""}"
+
 }

@@ -525,10 +525,10 @@ class WolinVisitor(
         // typ indeksu, nie faktyczny typ zmiennej
         // więc np x[255] jest ok, ale x[256] daje uword!
         // typ pobierany jest z state.assignStack.assignLeftSideVar
-        rightFinalReg.type.isPointer = false // przy podstawieniu konkretnej wartości
+        rightFinalReg.type.pointer = false // przy podstawieniu konkretnej wartości
         rightFinalReg.type.array = false
 
-        checkTypeAndAddAssignment(ctx, destinationReg, rightFinalReg, "process assignment", RegOper.AMPRESAND, RegOper.VALUE)
+        checkTypeAndAddAssignment(ctx, destinationReg, rightFinalReg, "process assignment", RegOper.AMPRESAND, RegOper.AMPRESAND)
 
         if (state.assignStack.arrayAssign) {
             state.assignStack.arrayAssign = false
@@ -716,7 +716,7 @@ class WolinVisitor(
                             val found = state.findStackVector(state.callStack, "${prototyp.fullName}.this")
 
                             state.code(
-                                "let SPF(${found.first})[${found.second.typeForAsm}] = ${state.varToAsm(state.classDerefStack.peek())}"
+                                "let SPF(${found.first})[${found.second.type.typeForAsm}] = ${state.varToAsm(state.classDerefStack.peek())}"
                             )
                         }
 
@@ -730,7 +730,7 @@ class WolinVisitor(
                             if (prototyp.arguments[i].allocation == AllocType.FIXED) {
                                 // dla argumentów CPU koelejność musi być A, Y, X!!!
                                 state.code(
-                                    "let ${prototyp.arguments[i].location}[${prototyp.arguments[i].typeForAsm}] = ${state.currentRegToAsm()}"
+                                    "let ${prototyp.arguments[i].location}[${prototyp.arguments[i].type.typeForAsm}] = ${state.currentRegToAsm()}"
                                 )
                                 if (prototyp.arguments[i].location?.startsWith("CPU.") == true)
                                     state.code("save ${prototyp.arguments[i].location}")
@@ -738,7 +738,7 @@ class WolinVisitor(
                                 val found = state.findStackVector(state.callStack, prototyp.arguments[i].name)
 
                                 state.code(
-                                    "let SPF(${found.first})[${found.second.typeForAsm}] = ${state.currentRegToAsm()}"
+                                    "let SPF(${found.first})[${found.second.type.typeForAsm}] = ${state.currentRegToAsm()}"
                                 )
                             }
 
@@ -791,7 +791,7 @@ class WolinVisitor(
                                 state.code(
                                     "add ${state.varToAsm(zmienna)} = ${state.varToAsm(
                                         zmienna
-                                    )}, #1[${zmienna.typeForAsm}] // simple id"
+                                    )}, #1[${zmienna.type.typeForAsm}] // simple id"
                                 )
 
                                 state.switchType(zmienna.type, "++ operator")
@@ -800,7 +800,7 @@ class WolinVisitor(
 
                                 parseLiteralConstant(state.currentReg, atomEx.literalConstant())
 
-                                state.code("add ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}[${state.currentReg.typeForAsm}], #1${state.currentReg.typeForAsm}, add // literal const")
+                                state.code("add ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}[${state.currentReg.type.typeForAsm}], #1${state.currentReg.type.typeForAsm}, add // literal const")
                                 //state.currentReg.type = "Ubyte"
                             }
                             else -> błędzik(atomEx, "Nie wiem jak obsłużyć")
@@ -819,7 +819,7 @@ class WolinVisitor(
                                 state.code(
                                     "sub ${state.varToAsm(zmienna)} = ${state.varToAsm(
                                         zmienna
-                                    )}, #1[${zmienna.typeForAsm}] // simple id"
+                                    )}, #1[${zmienna.type.typeForAsm}] // simple id"
                                 )
 
                                 state.switchType(zmienna.type, "-- operator")
@@ -828,7 +828,7 @@ class WolinVisitor(
 
                                 parseLiteralConstant(state.currentReg, atomEx.literalConstant())
 
-                                state.code("sub ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}[${state.currentReg.typeForAsm}], #1${state.currentReg.typeForAsm}, add // literal const")
+                                state.code("sub ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}[${state.currentReg.type.typeForAsm}], #1${state.currentReg.type.typeForAsm}, add // literal const")
                                 //state.currentReg.type = "Ubyte"
                             }
                             else -> błędzik(atomEx, "Nie wiem jak obsłużyć")
@@ -900,7 +900,7 @@ class WolinVisitor(
                         state.codeOn = true
 
                         state.allocReg("arr_deref", state.currentWolinType).apply {
-                            type.isPointer = true
+                            type.pointer = true
                         }
                         state.rem(" LEWA strona array access, czyli co to za zmienna")
                         visitAtomicExpression(atomEx)
@@ -912,7 +912,7 @@ class WolinVisitor(
                         when {
                             state.currentShortArray == null -> {
                                 state.rem(" non-fast array, changing top reg to ptr")
-                                currEntReg.type.isPointer = true
+                                currEntReg.type.pointer = true
 
                                 checkTypeAndAddAssignment(ctx, currEntReg, state.currentReg, "non-fast array", RegOper.VALUE, RegOper.VALUE)
                             }
@@ -924,7 +924,7 @@ class WolinVisitor(
                             }
                             state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.FIXED -> {
                                 state.rem(" allocated fast array, changing top reg to ptr")
-                                currEntReg.type.isPointer = true
+                                currEntReg.type.pointer = true
                                 state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}[adr], ${state.currentRegToAsm()}")
                                 state.currentShortArray = null
                             }
@@ -2002,7 +2002,7 @@ class WolinVisitor(
                 )
             } else {
                 state.code(
-                    "let SPF(${found.first})[${found.second.typeForAsm}] = #${it.immediateValue}[${it.typeForAsm}]"
+                    "let SPF(${found.first})[${found.second.type.typeForAsm}] = #${it.immediateValue}[${it.type.typeForAsm}]"
                 )
             }
         }
@@ -2014,7 +2014,7 @@ class WolinVisitor(
 
         if(constructor)
             //checkTypeAndAddAssignment(ctx, destReg!!, state.callStack.peek(), "easey call", false, false)
-            state.code("let ${state.varToAsmNoType(destReg!!)}[adr] = ${state.varToAsmNoType(state.callStack.peek())}[adr]")
+            state.code("let ${state.varToAsmNoType(destReg!!)}[any*] = ${state.varToAsm(state.callStack.peek())}")
         else if(destReg != null)
             checkTypeAndAddAssignment(ctx, destReg!!, state.callStack.peek(), "easey call", RegOper.VALUE, RegOper.VALUE)
 

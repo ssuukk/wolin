@@ -8,7 +8,7 @@ var znak: ubyte = 0
 var a: ubyte = 1
 var b: ubyte = 2
 
-fun allocMem(size: uword, count: uword): Any {
+fun allocMem(size: uword, count: uword): uword {
     return 30000
 }
 

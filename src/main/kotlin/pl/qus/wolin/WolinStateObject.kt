@@ -59,7 +59,7 @@ class WolinStateObject(val pass: Pass) {
 
     init {
         if (classary.isEmpty()) {
-            classary["Any"] = AnyKlasa()
+            classary["any"] = AnyKlasa()
         }
     }
 
@@ -192,7 +192,7 @@ class WolinStateObject(val pass: Pass) {
             zmienna.fieldType = FieldType.STATIC
 
         if(zmienna.allocation == AllocType.FIXED)
-            zmienna.type.isPointer = true
+            zmienna.type.pointer = true
 
         return zmienna
     }
@@ -360,7 +360,7 @@ class WolinStateObject(val pass: Pass) {
             RegOper.AMPRESAND -> "&"
             RegOper.VALUE -> ""
             RegOper.STAR -> "*"
-        } + varToAsmNoType(zmienna) + "[${zmienna.typeForAsm}]"
+        } + varToAsmNoType(zmienna) + "[${zmienna.type.typeForAsm}]"
 
     fun varToAsmNoType(zmienna: Zmienna): String {
 
@@ -405,7 +405,7 @@ class WolinStateObject(val pass: Pass) {
                     wynik += "${stackPointer + findStackVector(
                         stos,
                         it.name
-                    ).first}[${it.typeForAsm}] (${it.name}) ${it.comment}\n"
+                    ).first}[${it.type.typeForAsm}] (${it.name}) ${it.comment}\n"
                 }
             }
             wynik += "========\n\n"
@@ -823,7 +823,7 @@ class WolinStateObject(val pass: Pass) {
 
         variablary.filter { it.value.fieldType == FieldType.STATIC }.forEach {
             code("label ${it.value.labelName}")
-            code("alloc ${it.value.immediateValue}[${it.value.typeForAsm}]  // ${it.value.name}")
+            code("alloc ${it.value.immediateValue}[${it.value.type.typeForAsm}]  // ${it.value.name}")
         }
 
         strings.forEachIndexed { i, str ->

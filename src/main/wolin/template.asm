@@ -616,13 +616,13 @@ let &SP(?dst)[ubyte*] = &SP(?src)[ubyte*] -> """
 """
 
 // dla konstruktora
-let SP(?dst)[adr] = #?val[uword] -> """
+let SP(?dst)[any*] = #?val[uword] -> """
     lda #<{val}
     sta {dst},x
     lda #>{val}
     sta {dst}+1,x"""
 
-let SPF(?d)[adr] = SP(?s)[adr] -> """
+let SPF(?d)[any*] = SP(?s)[any*] -> """
     lda {s},x
     ldy #{d}
     sta (__wolin_spf),y

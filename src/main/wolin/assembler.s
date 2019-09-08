@@ -144,9 +144,16 @@ __wolin_this_ptr_hi := 176+1
 
     jsr __wolin_pl_qus_wolin_main
 
-; freeSPF<unit>,#0
+; freeSPF<unit>,#2
 
- 
+
+    clc
+    lda __wolin_spf
+    adc #2
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
 
 ; ret
 
@@ -161,6 +168,24 @@ __wolin_pl_qus_wolin_allocMem:
 
     dex
     dex
+
+; letSP(0)<__wolin_reg5>[uword]=#30000[uword]
+
+
+    lda #<30000
+    sta 0,x
+    lda #>30000
+    sta 0+1,x
+
+; letSPF(4)<returnValue>[uword]=SP(0)<__wolin_reg5>[uword]
+
+
+    lda 0,x
+    ldy #4
+    sta (__wolin_spf),y
+    lda 0+1,x
+    iny
+    sta (__wolin_spf),y
 
 ; freeSP<__wolin_reg5>,#2
 
@@ -228,17 +253,7 @@ __wolin_pl_qus_wolin_Test:
 
     jsr __wolin_pl_qus_wolin_allocMem
 
-; letSP(0)<__wolin_reg6>[adr]=SPF(0)<returnValue>[adr]
-
-
-    ldy #0
-    lda (__wolin_spf),y
-    sta 0,x
-    iny
-    lda (__wolin_spf),y
-    sta 0+1,x
-
-; freeSPF<Any>,#2
+; freeSPF<uword>,#2
 
 
     clc
@@ -248,6 +263,16 @@ __wolin_pl_qus_wolin_Test:
     bcc :+
     inc __wolin_spf+1
 :
+
+; letSPF(0)<pl.qus.wolin.Test.returnValue>[any*]=SP(0)<__wolin_reg6>[any*]
+
+
+    lda 0,x
+    ldy #0
+    sta (__wolin_spf),y
+    lda 0+1,x
+    iny
+    sta (__wolin_spf),y
 
 ; freeSP<__wolin_reg6>,#2
 
@@ -399,7 +424,7 @@ __wolin_pl_qus_wolin_main:
     lda __wolin_pl_qus_wolin_b
     sta 0,x
 
-; let&SP(1)<__wolin_reg14>[ubyte]=SP(0)<__wolin_reg15>[ubyte]
+; let&SP(1)<__wolin_reg14>[ubyte]=&SP(0)<__wolin_reg15>[ubyte]
 
 
     lda 0,x

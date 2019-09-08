@@ -36,20 +36,20 @@ alloc SPF, #0
 //  tu podajemy argumenty dla pl.qus.wolin.main
 //  po argumentach dla pl.qus.wolin.main
 call __wolin_pl_qus_wolin_main[adr]
-free SPF <unit>, #0 // free return value of pl.qus.wolin.main from call stack
+free SPF <unit>, #2 // free return value of pl.qus.wolin.main from call stack
 ret
-// switchType to:unit by function declaration
+// switchType to:unit* by function declaration
 
 // ****************************************
-// funkcja: fun pl.qus.wolin.allocMem(pl.qus.wolin.allocMem.size: uword = 0 (), pl.qus.wolin.allocMem.count: uword = 0 ()):Any
+// funkcja: fun pl.qus.wolin.allocMem(pl.qus.wolin.allocMem.size: uword = 0 (), pl.qus.wolin.allocMem.count: uword = 0 ()):uword
 // ****************************************
 label __wolin_pl_qus_wolin_allocMem
 alloc SP<__wolin_reg5>, #2 // for expression
 // switchType to:uword by parse literal constant
-let SP(0)<__wolin_reg5>[any] = #30000[uword] // atomic ex
-let SPF(4)<returnValue>[any] = SP(0)<__wolin_reg5>[any] // przez sprawdzacz typow - jump expression
-// switchType to:Any by return expression
-// top type already set: __wolin_reg5: Any = 65535 (for expression)
+let SP(0)<__wolin_reg5>[uword] = #30000[uword] // atomic ex
+let SPF(4)<returnValue>[uword] = SP(0)<__wolin_reg5>[uword] // przez sprawdzacz typow - jump expression
+// switchType to:uword by return expression
+// top type already set: __wolin_reg5: uword = 0 (for expression)
 free SP<__wolin_reg5>, #2 // for expression
 free SPF, #4 // free fn arguments and locals for pl.qus.wolin.allocMem
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
@@ -74,8 +74,8 @@ let SPF(2)[uword] = #3[uword]
 let SPF(0)[uword] = #1[uword]
 //  po argumentach dla pl.qus.wolin.allocMem
 call __wolin_pl_qus_wolin_allocMem[adr]
-let SP(0)<__wolin_reg6>[adr] = SPF(0)<returnValue>[adr]
-free SPF <Any>, #2 // free return value of pl.qus.wolin.allocMem from call stack
+let SP(0)<__wolin_reg6>[any*] = SPF(0)<returnValue>[uword]
+free SPF <uword>, #2 // free return value of pl.qus.wolin.allocMem from call stack
 //  tutaj kod na przepisanie z powyższego rejestru do zwrotki konstruktora
 let SPF(0)<pl.qus.wolin.Test.returnValue>[any*] = SP(0)<__wolin_reg6>[any*] // przez sprawdzacz typow - zwrotka alloc do zwrotki konstruktora
 setup HEAP = SP(0)<__wolin_reg6>[any*]
@@ -97,10 +97,10 @@ free SP<__wolin_reg8>, #1 // for var pl.qus.wolin.Test.y init expression
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // return from constructor
 ret
-// switchType to:unit by function declaration
+// switchType to:unit* by function declaration
 
 // ****************************************
-// funkcja: fun pl.qus.wolin.Test.suma(pl.qus.wolin.Test.suma.this: pl.qus.wolin.Test = 65535 ()):ubyte
+// funkcja: fun pl.qus.wolin.Test.suma(pl.qus.wolin.Test.suma.this: pl.qus.wolin.Test* = 0 ()):ubyte
 // ****************************************
 label __wolin_pl_qus_wolin_Test_suma
 setup HEAP = this
@@ -124,7 +124,7 @@ free SPF, #2 // free fn arguments and locals for pl.qus.wolin.Test.suma
 // return from function body
 ret
 
-// switchType to:unit by function declaration
+// switchType to:unit* by function declaration
 
 // ****************************************
 // funkcja: fun pl.qus.wolin.main():unit
@@ -140,13 +140,13 @@ let SP(0)<__wolin_reg14>[ubyte] = *__wolin_pl_qus_wolin_a<pl.qus.wolin.a>[ubyte]
 alloc SP<__wolin_reg15>, #1 // ASSIGNMENT value
 let SP(0)<__wolin_reg15>[ubyte] = *__wolin_pl_qus_wolin_b<pl.qus.wolin.b>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.b
-let &SP(1)<__wolin_reg14>[ubyte] = SP(0)<__wolin_reg15>[ubyte] // przez sprawdzacz typow - process assignment
+let &SP(1)<__wolin_reg14>[ubyte] = &SP(0)<__wolin_reg15>[ubyte] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg15>, #1 // ASSIGNMENT value, type = ubyte
 free SP<__wolin_reg14>, #1 // ASSIGNMENT target
 // == ASSIGNMENT END =======================================
 // 
-// switchType to:unit by assignment
-// top type already set: __wolin_reg13: unit = 65535 (for expression)
+// switchType to:unit* by assignment
+// top type already set: __wolin_reg13: unit* = 0 (for expression)
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // return from function body
 ret
