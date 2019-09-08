@@ -23,6 +23,12 @@ public interface PseudoAsmParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitJocker(PseudoAsmParser.JockerContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link PseudoAsmParser#referencer}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReferencer(PseudoAsmParser.ReferencerContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link PseudoAsmParser#operand}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

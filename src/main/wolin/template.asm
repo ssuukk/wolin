@@ -83,7 +83,7 @@ alloc ?val[word] -> """    .word {val}"""
 alloc ?val[uword] -> """    .word {val}"""
 alloc ?val[float] -> """    .float {val}"""
 alloc ?val[bool] -> """    .byte {val}"""
-alloc ?val[ptr] -> """    .word {val}"""
+alloc ?val[adr] -> """    .word {val}"""
 
 //============================================
 // SP, stos programowy oparty na X, wspiera dużo instrukcji, do 70 wordów
@@ -602,6 +602,19 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // nowe adresy
 //============================================
 
+let SP(?dst)[ubyte*] = *?src[ubyte] -> """
+    lda #<{src}
+    sta {dst},x
+    lda #>{src}
+    sta {dst}+1,x
+"""
+
+// bajt pod adresem zapisanym na SP dst = bajt pod adresem zapisanym na SP src
+let &SP(?dst)[ubyte*] = &SP(?src)[ubyte*] -> """
+    lda (src,x)
+    sta (dst,x)
+"""
+
 // dla konstruktora
 let SP(?dst)[adr] = #?val[uword] -> """
     lda #<{val}
@@ -688,7 +701,7 @@ ret -> """    rts"""
 
 call ?a[adr] -> """    jsr {a}"""
 
-call ?a[ptr] -> """
+call ?a[deref] -> """
     lda {a}
     sta __wolin_indirect_jsr+1
     lda {a}+1
@@ -697,7 +710,7 @@ call ?a[ptr] -> """
 
 goto ?a[adr] -> """    jmp {a}"""
 
-goto ?a[ptr] -> """    jmp ({a})"""
+goto ?a[deref] -> """    jmp ({a})"""
 
 crash -> """    brk"""
 
@@ -944,15 +957,6 @@ add SP(?d)[uword] = SP(?s1)[uword], SP(?s2)[uword] -> """
     adc {s2}+1,x
     sta {d}+1,x"""
 
-add SP(?d)[ptr] = SP(?s1)[ptr],SP(?s2)[uword] -> """
-    clc
-    lda {s1},x
-    adc {s2},x
-    sta {d},x
-    lda {s1}+1,x
-    adc {s2}+1,x
-    sta {d}+1,x"""
-
 add SPE(?spesrc)[ubyte] = SPE(?spesrc)[ubyte],#?val[ubyte] -> """
     clc
     ldy #{spesrc}
@@ -977,8 +981,19 @@ add SPE(?spedst)[ubyte] = SPE(?spesrc)[ubyte],#?val[ubyte] -> """
 //============================================
 
 
-// set value pointed by to value pointed by, phew!
-let SP(?d)[ptr] = SP(?s)[adr] -> """
+// set value pointed by to value
+let SP(?d)[deref] = SP(?s)[adr] -> """
+    lda {s},x
+    sta ({d},x)
+    inc {d},x
+    bne :+
+    inc {d}+1,x
+:
+    lda {s}+1,x
+    sta ({d},x)
+"""
+
+let SP(?d)[deref] = SP(?s)[uword] -> """
     lda {s},x
     sta ({d},x)
     inc {d},x
@@ -990,17 +1005,13 @@ let SP(?d)[ptr] = SP(?s)[adr] -> """
 """
 
 // zmienna pod adresem dst = wartość
-let SP(?dst)[ptr] = SP(?src)[ubyte] -> """
+let SP(?dst)[deref] = SP(?src)[ubyte] -> """
     lda {src},x
     sta ({dst},x)
 """
 
+
 // tablice z 8-bitowym indeksem
-//let SP(2)<__wolin_reg2>[ubyte] = 4096(0)[ptr]
-// znaczy:
-// - indeks znajduje się w SP0
-// - pobierz dane z arrStart,SP0
-// - zapisz je w SP2
 let SP(?dstSP)[ubyte] = ?arrStart[adr], SP(?srcSP)[ubyte] -> """
     ldy {srcSP},x
     lda {arrStart},y
@@ -1010,7 +1021,7 @@ let SP(?dstSP)[ubyte] = ?arrStart[adr], SP(?srcSP)[ubyte] -> """
 
 /*
 // only in constructor?
-let SPF(?d)[ptr] = SP(?s)[uword] -> """
+let SPF(?d)[deref] = SP(?s)[uword] -> """
     ldy #{d}
     lda {s},x
     sta (__wolin_spf),y
@@ -1019,7 +1030,7 @@ let SPF(?d)[ptr] = SP(?s)[uword] -> """
     sta (__wolin_spf),y"""
 
 // pointer to pointer
-let SP(?dest)[ptr] = HEAP(?src)[ptr] -> """
+let SP(?dest)[deref] = HEAP(?src)[deref] -> """
     ldy #{src} ; UWAGA ptr -> ptr
     lda (__wolin_this_ptr),y
     sta {dest},x
@@ -1027,14 +1038,14 @@ let SP(?dest)[ptr] = HEAP(?src)[ptr] -> """
     lda (__wolin_this_ptr),y
     sta {dest}+1,x"""
 
-setup HEAP = ?heap[ptr] -> """
+setup HEAP = ?heap[deref] -> """
     lda #<{heap}
     sta __wolin_this_ptr
     lda #>{heap}
     sta __wolin_this_ptr+1"""
 
 // any other value to pointer - get address of the value
-let SP(?dest)[ptr] = HEAP(?src)[?dummy] -> """
+let SP(?dest)[deref] = HEAP(?src)[?dummy] -> """
     clc
     lda __wolin_this_ptr
     adc {src}
@@ -1045,14 +1056,14 @@ let SP(?dest)[ptr] = HEAP(?src)[?dummy] -> """
 
 
 // kiedy juz optymizator bedzie dzialac, to powyzsze bedzie wygladac tak:
-let ?dstVar[ubyte] = ?arrStart[ptr], #?idx -> """
+let ?dstVar[ubyte] = ?arrStart[deref], #?idx -> """
     ldy #{idx}
     lda {arrStart},y
     sta {dstVar}"""
 
-//let SP(?dstSP)[ptr] = #?val[ubyte]
+//let SP(?dstSP)[deref] = #?val[ubyte]
 
-// let SP(2)<r.temp6>[ptr] = SP(0)<r.temp7>[word] // powinno znaczyć: ustaw zmienną pod adresem znajdującym się w SP(2) na wartość
+// let SP(2)<r.temp6>[deref] = SP(0)<r.temp7>[word] // powinno znaczyć: ustaw zmienną pod adresem znajdującym się w SP(2) na wartość
 // czyli powinniśmy:
 // lda #mlodszy
 // ldy #0
@@ -1061,7 +1072,7 @@ let ?dstVar[ubyte] = ?arrStart[ptr], #?idx -> """
 // iny
 // sta (miejsce na stosie),y
 
-//let ?adr[ptr] = #?val[uword] -> """
+//let ?adr[deref] = #?val[uword] -> """
 //    lda #<{val}
 //    sta {adr}
 //    lda #>{val}
@@ -1071,13 +1082,13 @@ let ?dstVar[ubyte] = ?arrStart[ptr], #?idx -> """
 // na 65816 jest tryb
 // lda (0,x)
 // sta 0,x
-let SP(?dst)[ubyte] = SP(?src)[ptr] -> """
+let SP(?dst)[ubyte] = SP(?src)[deref] -> """
     lda ({src},x)
     sta {dst},x"""
 
 
 // zmienna pod adresem dst = wartość
-let SP(?dst)[ptr] = SP(?src)[uword] -> """
+let SP(?dst)[deref] = SP(?src)[uword] -> """
     lda {src},x
     sta ({dst},x)
     inc {dst},x
@@ -1088,7 +1099,7 @@ let SP(?dst)[ptr] = SP(?src)[uword] -> """
     sta ({dst},x)
 """
 
-let SP(?dst)[uword] = SP(?src)[ptr] -> """
+let SP(?dst)[uword] = SP(?src)[deref] -> """
     lda ({src},x)
     sta {dst},x
     inc {src},x
@@ -1098,32 +1109,30 @@ let SP(?dst)[uword] = SP(?src)[ptr] -> """
     lda ({src},x)
     sta {dst}+1,x"""
 
-let SP(?src)[uword] = SP(?src)[ptr] -> """
+let SP(?src)[uword] = SP(?src)[deref] -> """
     ; don't know how to address this:
-    ; SP[uword] = SP[ptr] when src==dst
+    ; SP[uword] = SP[deref] when src==dst
 """
 
-let SP(?dst)[ubyte] = SP(?src)[ptr] -> """
+let SP(?dst)[ubyte] = SP(?src)[deref] -> """
     lda ({src},x)
     sta {dst},x"""
 
 // do arytmetyki wskaznikow
-let SP(?dst)[uword] = ?src[ptr] -> """
+let SP(?dst)[uword] = ?src[deref] -> """
     lda #<{src}
     sta {dst},x
     lda #>{src}
     sta {dst}+1,x"""
 
 // set reg to address of SPF variable
-let SP(?dst)[ptr] = SPF(0)[ptr] -> """
+let SP(?dst)[deref] = SPF(0)[deref] -> """
     lda __wolin_spf
     sta {dst},x
     lda __wolin_spf+1
     sta {dst}+1,x"""
 
-// TODO - oddzielne let [ptr] = [deref] i odwrotnie
-
-let SP(?dst)[ptr] = SPF(?src)[ptr] -> """
+let SP(?dst)[deref] = SPF(?src)[deref] -> """
     clc
     lda __wolin_spf
     adc #{src}
@@ -1132,7 +1141,7 @@ let SP(?dst)[ptr] = SPF(?src)[ptr] -> """
     adc #0
     sta {dst}+1,x"""
 
-let SPF(?dst)[ptr] = SP(?src)[ptr] -> """
+let SPF(?dst)[deref] = SP(?src)[deref] -> """
     ldy #{dst} ; UWAGA ptr -> ptr
     lda {src},x
     sta (__wolin_spf),y
@@ -1141,44 +1150,44 @@ let SPF(?dst)[ptr] = SP(?src)[ptr] -> """
     sta (__wolin_spf),y"""
 
 // pointer na stosie = inny pointer na stosie
-let SP(?d)[ptr] = SP(?s)[ptr] -> """
+let SP(?d)[deref] = SP(?s)[deref] -> """
     lda {s},x ; UWAGA ptr -> ptr
     sta {d},x
     lda {s}+1,x
     sta {d}+1,x
 """
 
-let SP(?d)[ptr] = SP(?s)[ptr] -> """
+let SP(?d)[deref] = SP(?s)[deref] -> """
     lda {s},x ; UWAGA ptr -> ptr
     sta {d},x
     lda {s}+1,x
     sta {d}+1,x"""
 
-let ?d[ptr] = SP(?s)[ptr] -> """
+let ?d[deref] = SP(?s)[deref] -> """
     lda {s},x ; UWAGA ptr -> ptr
     sta {d}
     lda {s}+1,x
     sta {d}+1"""
 
 // dowolny adres na null
-let ?adr[ptr] = #0[?dummy] -> """
+let ?adr[deref] = #0[?dummy] -> """
     lda #0
     sta {adr}
     sta {adr}+1"""
 
-let ?dst[ptr] = SP(?src)[ptr] -> """
+let ?dst[deref] = SP(?src)[deref] -> """
     lda {src},x  ; UWAGA ptr -> ptr
     sta {dst}
     lda {src}+1,x
     sta {dst}+1 """
 
-let SP(?dst)[ptr] = ?adr[ptr] -> """
+let SP(?dst)[deref] = ?adr[deref] -> """
     lda #<{adr} ; UWAGA ptr -> ptr
     sta {dst},x
     lda #>{adr}
     sta {dst}+1,x"""
 
-let SP(?dst)[ptr] = SP(?src)[adr] -> """
+let SP(?dst)[deref] = SP(?src)[adr] -> """
     lda {src},x
     sta ({dst},x)
     inc {dst},x
@@ -1188,4 +1197,15 @@ let SP(?dst)[ptr] = SP(?src)[adr] -> """
     lda {src}+1,x
     sta ({dst},x)
 """
+
+add SP(?d)[deref] = SP(?s1)[deref],SP(?s2)[uword] -> """
+    clc
+    lda {s1},x
+    adc {s2},x
+    sta {d},x
+    lda {s1}+1,x
+    adc {s2}+1,x
+    sta {d}+1,x"""
+
+
 */

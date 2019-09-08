@@ -5,6 +5,8 @@ var ekran: ubyte[]^1024
 
 var i: uword = 0
 var znak: ubyte = 0
+var a: ubyte = 1
+var b: ubyte = 2
 
 fun allocMem(size: uword, count: uword): Any {
     return 30000
@@ -45,11 +47,9 @@ fun main() {
     //    testowa.y = 2
 
 */
+    //val a: uword[uword]^5000
 
-    while(i<1000) {
-        ekran[i++] = znak++
-    }
+    //i = a[10]
 
-    border = 8
-
+    a = b
 }

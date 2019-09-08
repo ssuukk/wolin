@@ -28,6 +28,16 @@ public interface PseudoAsmParserListener extends ParseTreeListener {
 	 */
 	void exitJocker(PseudoAsmParser.JockerContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link PseudoAsmParser#referencer}.
+	 * @param ctx the parse tree
+	 */
+	void enterReferencer(PseudoAsmParser.ReferencerContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link PseudoAsmParser#referencer}.
+	 * @param ctx the parse tree
+	 */
+	void exitReferencer(PseudoAsmParser.ReferencerContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link PseudoAsmParser#operand}.
 	 * @param ctx the parse tree
 	 */

@@ -12,6 +12,7 @@ class Typ(val name: String, val nulable: Boolean, var isPointer: Boolean = false
         val bool get() = Typ("bool", false)
         val ubyte get() = Typ("ubyte", false)
         val uword get() = Typ("uword", false)
+        val float get() = Typ("float", false)
 
         fun byName(name: String, state: WolinStateObject): Typ {
             // TODO - musimy znaleźć dany typ w skołpie!!!
@@ -74,8 +75,6 @@ class Typ(val name: String, val nulable: Boolean, var isPointer: Boolean = false
     fun canBeAssigned(other: Any?): Boolean = if (other is Typ) {
         other.name == this.name && other.nulable == this.nulable
     } else super.equals(other)
-
-
 
     override fun toString(): String = name + if (nulable) "?" else "" + if (isPointer) "*" else ""
 

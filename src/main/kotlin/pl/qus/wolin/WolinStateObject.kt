@@ -355,8 +355,12 @@ class WolinStateObject(val pass: Pass) {
         return zmienna
     }
 
-    fun varToAsm(zmienna: Zmienna, deref: Boolean = false): String = varToAsmNoType(zmienna) +
-            if(deref) "[ptr]" else zmienna.typeForAsm
+    fun varToAsm(zmienna: Zmienna, deref: RegOper = RegOper.VALUE): String =
+        when(deref) {
+            RegOper.AMPRESAND -> "&"
+            RegOper.VALUE -> ""
+            RegOper.STAR -> "*"
+        } + varToAsmNoType(zmienna) + "[${zmienna.typeForAsm}]"
 
     fun varToAsmNoType(zmienna: Zmienna): String {
 
@@ -401,7 +405,7 @@ class WolinStateObject(val pass: Pass) {
                     wynik += "${stackPointer + findStackVector(
                         stos,
                         it.name
-                    ).first}${it.typeForAsm} (${it.name}) ${it.comment}\n"
+                    ).first}[${it.typeForAsm}] (${it.name}) ${it.comment}\n"
                 }
             }
             wynik += "========\n\n"
@@ -638,7 +642,9 @@ class WolinStateObject(val pass: Pass) {
             fieldType = FieldType.OP_STACK
         )
 
-        if (!type.isUnit && rejestr.type.isUnit)
+        if (pass == Pass.SYMBOLS)
+            rejestr.type = Typ.unit
+        else if (!type.isUnit && rejestr.type.isUnit)
             rejestr.type = type
 
         rejestr.comment = comment
@@ -671,7 +677,7 @@ class WolinStateObject(val pass: Pass) {
         dumpStack(operStack)
     }
 
-    fun currentRegToAsm(deref: Boolean = false): String = varToAsm(currentReg, deref)
+    fun currentRegToAsm(deref: RegOper = RegOper.VALUE): String = varToAsm(currentReg, deref)
 
 
     /*****************************************************************
@@ -693,6 +699,9 @@ class WolinStateObject(val pass: Pass) {
 //    }
 
     fun inferTopOperType() {
+        if(pass == Pass.SYMBOLS)
+            return
+
         val top = operStack.peek()
 
         if (top.type == currentWolinType) {
@@ -723,12 +732,7 @@ class WolinStateObject(val pass: Pass) {
             }
 
         return when {
-            typeName == "byte" -> "byte"
-            typeName == "ubyte" -> "ubyte"
-            typeName == "word" -> "word"
-            typeName == "uword" -> "uword"
-            typeName == "bool" -> "bool"
-            typeName == "float" -> "float"
+            primitives.contains(typeName) -> typeName
             typeName.contains("->") -> typeName
             fromClasses != null -> fromClasses.name
             else -> throw Exception("Can't find type $typeName")
@@ -791,7 +795,7 @@ class WolinStateObject(val pass: Pass) {
 
         val call = when {
             proc.location != 0 -> "call ${proc.location}[adr] // ${proc.fullName}\n"
-            lambda -> "call ${proc.labelName}[ptr] // lambda call\n"
+            lambda -> "call ${proc.labelName}[deref] // lambda call\n"
             else -> "call ${proc.labelName}[adr]\n"
         }
 
@@ -819,7 +823,7 @@ class WolinStateObject(val pass: Pass) {
 
         variablary.filter { it.value.fieldType == FieldType.STATIC }.forEach {
             code("label ${it.value.labelName}")
-            code("alloc ${it.value.immediateValue}${it.value.typeForAsm}  // ${it.value.name}")
+            code("alloc ${it.value.immediateValue}[${it.value.typeForAsm}]  // ${it.value.name}")
         }
 
         strings.forEachIndexed { i, str ->

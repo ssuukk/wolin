@@ -34,6 +34,8 @@ AT: '@' ;
 ARROW: '->' ;
 MOD: '%' ;
 DOLLAR: '$' ;
+REFERENCE: '*' ;
+DEREFERENCE: '&' ;
 
 QUOTE_OPEN: '"' -> pushMode(LineString) ;
 TRIPLE_QUOTE_OPEN: '"""' -> pushMode(MultiLineString) ;

@@ -4,9 +4,18 @@ import org.antlr.v4.runtime.ANTLRInputStream
 import org.antlr.v4.runtime.CommonTokenStream
 import pl.qus.wolin.exception.NoRuleException
 import java.io.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 object Main {
     /*
+
+
+Register types
+[ubyte/uword...] - just the value
+[adr] - literal memory address
+[loc] - obtain actual memory location of the data
+[deref] - target is located at memory stored in the register
 
 C64 - dostępna pamięć:
 
@@ -273,7 +282,7 @@ label __wolin_pl_qus_wolin_test_main
 alloc SP<__wolin_reg2>, #1 // for value that gets assigned to left side
 alloc SP<__wolin_reg3>, #1 // arr_deref
 let SP(0)<__wolin_reg3>[ubyte] = #5[ubyte] // atomic ex
-let SP(1)<__wolin_reg2>[ubyte] = pl.qus.wolin.test.oneByteSmallArray[ptr], SP(0)<__wolin_reg3>[ubyte]
+let SP(1)<__wolin_reg2>[ubyte] = pl.qus.wolin.test.oneByteSmallArray[deref], SP(0)<__wolin_reg3>[ubyte]
 free SP<__wolin_reg3>, #1 // arr_deref
 let __wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte] = SP(0)<__wolin_reg2>[ubyte] // przez sprawdzacz typów
 free SP<__wolin_reg2>, #1 // for value that gets assigned to left side, type = ubyte
@@ -285,7 +294,7 @@ label __wolin_pl_qus_wolin_test_main
 alloc SP<__wolin_reg3>, #1 // arr_deref
 let SP(0)<__wolin_reg3>[ubyte] = #5[ubyte] // atomic ex
 free SP<__wolin_reg3>, #1 // arr_deref ---> ZA WCZEŚNIE ZWALNIANE!!!
-let __wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte] = pl.qus.wolin.test.oneByteSmallArray[ptr], SP(0)<__wolin_reg3>[ubyte]
+let __wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte] = pl.qus.wolin.test.oneByteSmallArray[deref], SP(0)<__wolin_reg3>[ubyte]
 ret
 
 poprawka:
@@ -293,7 +302,7 @@ poprawka:
 label __wolin_pl_qus_wolin_test_main
 alloc SP<__wolin_reg3>, #1 // arr_deref
 let SP(0)<__wolin_reg3>[ubyte] = #5[ubyte] // atomic ex
-let __wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte] = pl.qus.wolin.test.oneByteSmallArray[ptr], SP(0)<__wolin_reg3>[ubyte]
+let __wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte] = pl.qus.wolin.test.oneByteSmallArray[deref], SP(0)<__wolin_reg3>[ubyte]
 free SP<__wolin_reg3>, #1 // arr_deref ---> PRZESUWAMY DEALLOKACJĘ
 ret
 

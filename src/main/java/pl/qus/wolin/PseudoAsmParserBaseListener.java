@@ -40,6 +40,18 @@ public class PseudoAsmParserBaseListener implements PseudoAsmParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterReferencer(PseudoAsmParser.ReferencerContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitReferencer(PseudoAsmParser.ReferencerContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterOperand(PseudoAsmParser.OperandContext ctx) { }
 	/**
 	 * {@inheritDoc}

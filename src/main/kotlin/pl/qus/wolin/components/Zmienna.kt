@@ -26,19 +26,19 @@ class Zmienna(
     val labelName: String get() = "__wolin_${name.replace(".","_")}"
 
     val typeForAsm: String
-        get() = when {
-            type.isPointer -> "[adr]"
-            type.array -> "[adr]"
-            type.isFunctional -> "[adr]"
-            type.isUnit -> "[unit!!!]"
-            type.name == "bool" -> "[bool]"
-            type.name == "byte" -> "[byte]"
-            type.name == "ubyte" -> "[ubyte]"
-            type.name == "word" -> "[word]"
-            type.name == "uword" -> "[uword]"
-            type.name == "float" -> "[float]"
-            else -> "[adr]"
-        }
+        get() =
+            when {
+            type.array -> "any"
+            type.isFunctional -> "any"
+            type.isUnit -> "unit"
+            type.name == "bool" -> "bool"
+            type.name == "byte" -> "byte"
+            type.name == "ubyte" -> "ubyte"
+            type.name == "word" -> "word"
+            type.name == "uword" -> "uword"
+            type.name == "float" -> "float"
+            else -> "any"
+        } +"${if(type.isPointer) "*" else ""}"
 
     val immediateValue: String get() = when {
         type.name == "bool" -> if(intValue == 0L) "0" else "1"

@@ -164,7 +164,7 @@ class WolinVisitor(
         }
 
         if(state.assignStack.isNotEmpty() && state.pass == Pass.TRANSLATION && !blockValue.type.isUnit) {
-            checkTypeAndAddAssignment(ctx, state.assignStack.assignRightSideFinalVar, blockValue, "visit block", false, false)
+            checkTypeAndAddAssignment(ctx, state.assignStack.assignRightSideFinalVar, blockValue, "visit block", RegOper.VALUE, RegOper.VALUE)
         }
 
         state.freeReg(
@@ -528,7 +528,7 @@ class WolinVisitor(
         rightFinalReg.type.isPointer = false // przy podstawieniu konkretnej wartości
         rightFinalReg.type.array = false
 
-        checkTypeAndAddAssignment(ctx, destinationReg, rightFinalReg, "process assignment", true, false)
+        checkTypeAndAddAssignment(ctx, destinationReg, rightFinalReg, "process assignment", RegOper.AMPRESAND, RegOper.VALUE)
 
         if (state.assignStack.arrayAssign) {
             state.assignStack.arrayAssign = false
@@ -716,7 +716,7 @@ class WolinVisitor(
                             val found = state.findStackVector(state.callStack, "${prototyp.fullName}.this")
 
                             state.code(
-                                "let SPF(${found.first})${found.second.typeForAsm} = ${state.varToAsm(state.classDerefStack.peek())}"
+                                "let SPF(${found.first})[${found.second.typeForAsm}] = ${state.varToAsm(state.classDerefStack.peek())}"
                             )
                         }
 
@@ -730,7 +730,7 @@ class WolinVisitor(
                             if (prototyp.arguments[i].allocation == AllocType.FIXED) {
                                 // dla argumentów CPU koelejność musi być A, Y, X!!!
                                 state.code(
-                                    "let ${prototyp.arguments[i].location}${prototyp.arguments[i].typeForAsm} = ${state.currentRegToAsm()}"
+                                    "let ${prototyp.arguments[i].location}[${prototyp.arguments[i].typeForAsm}] = ${state.currentRegToAsm()}"
                                 )
                                 if (prototyp.arguments[i].location?.startsWith("CPU.") == true)
                                     state.code("save ${prototyp.arguments[i].location}")
@@ -738,7 +738,7 @@ class WolinVisitor(
                                 val found = state.findStackVector(state.callStack, prototyp.arguments[i].name)
 
                                 state.code(
-                                    "let SPF(${found.first})${found.second.typeForAsm} = ${state.currentRegToAsm()}"
+                                    "let SPF(${found.first})[${found.second.typeForAsm}] = ${state.currentRegToAsm()}"
                                 )
                             }
 
@@ -764,7 +764,7 @@ class WolinVisitor(
                         state.fnCallReleaseArgs(prototyp)
 
                         if (!prototyp.type.isUnit) {
-                            checkTypeAndAddAssignment(ctx, state.currentReg, state.callStack.peek(), "copy return parameter", false, false)
+                            checkTypeAndAddAssignment(ctx, state.currentReg, state.callStack.peek(), "copy return parameter", RegOper.VALUE, RegOper.VALUE)
                             //state.code("let ${state.currentRegToAsm()} = ${state.varToAsm(state.callStack.peek())}// copy return parameter - TODO sprawdzić co jeśli wywołanie funkcji było bez podstawienia!!!")
                         }
 
@@ -786,12 +786,12 @@ class WolinVisitor(
                                     ?: throw Exception("No identifier for ++")
                                 val zmienna = state.findVarInVariablaryWithDescoping(identifier)
 
-                                checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "operator ++", false, false)
+                                checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "operator ++", RegOper.VALUE, RegOper.VALUE)
 
                                 state.code(
                                     "add ${state.varToAsm(zmienna)} = ${state.varToAsm(
                                         zmienna
-                                    )}, #1${zmienna.typeForAsm} // simple id"
+                                    )}, #1[${zmienna.typeForAsm}] // simple id"
                                 )
 
                                 state.switchType(zmienna.type, "++ operator")
@@ -800,7 +800,7 @@ class WolinVisitor(
 
                                 parseLiteralConstant(state.currentReg, atomEx.literalConstant())
 
-                                state.code("add ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}${state.currentReg.typeForAsm}, #1${state.currentReg.typeForAsm}, add // literal const")
+                                state.code("add ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}[${state.currentReg.typeForAsm}], #1${state.currentReg.typeForAsm}, add // literal const")
                                 //state.currentReg.type = "Ubyte"
                             }
                             else -> błędzik(atomEx, "Nie wiem jak obsłużyć")
@@ -814,12 +814,12 @@ class WolinVisitor(
                                     ?: throw Exception("No identifier for --")
                                 val zmienna = state.findVarInVariablaryWithDescoping(identifier)
 
-                                checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "operator --", false, false)
+                                checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "operator --", RegOper.VALUE, RegOper.VALUE)
 
                                 state.code(
                                     "sub ${state.varToAsm(zmienna)} = ${state.varToAsm(
                                         zmienna
-                                    )}, #1${zmienna.typeForAsm} // simple id"
+                                    )}, #1[${zmienna.typeForAsm}] // simple id"
                                 )
 
                                 state.switchType(zmienna.type, "-- operator")
@@ -828,7 +828,7 @@ class WolinVisitor(
 
                                 parseLiteralConstant(state.currentReg, atomEx.literalConstant())
 
-                                state.code("sub ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}${state.currentReg.typeForAsm}, #1${state.currentReg.typeForAsm}, add // literal const")
+                                state.code("sub ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}[${state.currentReg.typeForAsm}], #1${state.currentReg.typeForAsm}, add // literal const")
                                 //state.currentReg.type = "Ubyte"
                             }
                             else -> błędzik(atomEx, "Nie wiem jak obsłużyć")
@@ -864,7 +864,7 @@ class WolinVisitor(
                         val safeDeref = prawo.memberAccessOperator().QUEST() != null
 
                         if (safeDeref) {
-                            state.code("evaleq costam[bool] = ${state.currentReg}[ptr], null // safe deref")
+                            state.code("evaleq costam[bool] = ${state.currentReg}[loc], null // safe deref")
                             state.code("beq costam[bool] = #0, jakis_label[adr] // safe deref")
                         }
 
@@ -914,8 +914,7 @@ class WolinVisitor(
                                 state.rem(" non-fast array, changing top reg to ptr")
                                 currEntReg.type.isPointer = true
 
-                                checkTypeAndAddAssignment(ctx, currEntReg, state.currentReg, "non-fast array", false, false)
-                                //state.code("let ${state.varToAsm(currEntReg)} = ${state.varToAsmNoType(state.currentReg)}[ptr]")
+                                checkTypeAndAddAssignment(ctx, currEntReg, state.currentReg, "non-fast array", RegOper.VALUE, RegOper.VALUE)
                             }
                             state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.NORMAL -> {
                                 //state.rem(" allocated fast array, changing top reg to ptr")
@@ -926,7 +925,7 @@ class WolinVisitor(
                             state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.FIXED -> {
                                 state.rem(" allocated fast array, changing top reg to ptr")
                                 currEntReg.type.isPointer = true
-                                state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}[ptr], ${state.currentRegToAsm()}")
+                                state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}[adr], ${state.currentRegToAsm()}")
                                 state.currentShortArray = null
                             }
 
@@ -1070,7 +1069,7 @@ class WolinVisitor(
 
                 state.allocReg("for statement this")
 
-                checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "this expression", false, false)
+                checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "this expression", RegOper.VALUE, RegOper.VALUE)
 
             }
             else -> błędzik(ctx, "Uknown this reference!")
@@ -1272,7 +1271,7 @@ class WolinVisitor(
         state.code("label ${labelMaker("whenEndLabel", state.whenCounter++)}")
 
         if(state.assignStack.isNotEmpty())
-            checkTypeAndAddAssignment(ctx, state.assignStack.assignRightSideFinalVar, valueForAssign, "when assignment", true, false)
+            checkTypeAndAddAssignment(ctx, state.assignStack.assignRightSideFinalVar, valueForAssign, "when assignment", RegOper.AMPRESAND, RegOper.VALUE)
 
         state.freeReg("for value if when assigned")
 
@@ -1402,7 +1401,7 @@ class WolinVisitor(
         state.code("label $endIfLabel")
 
         if(state.assignStack.isNotEmpty())
-            checkTypeAndAddAssignment(ctx, state.assignStack.assignRightSideFinalVar, valueForAssign, "assign if expression result", true, false)
+            checkTypeAndAddAssignment(ctx, state.assignStack.assignRightSideFinalVar, valueForAssign, "assign if expression result", RegOper.AMPRESAND, RegOper.VALUE)
 
         state.freeReg("for value when if assigned")
 
@@ -1452,7 +1451,7 @@ class WolinVisitor(
 
                 val zwrotka = state.callStack[0]
 
-                checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "jump expression", false, false)
+                checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "jump expression", RegOper.VALUE, RegOper.VALUE)
 
                 state.switchType(state.currentFunction!!.type, "return expression")
             }
@@ -1493,13 +1492,14 @@ class WolinVisitor(
                     } else {
                         if (zmienna.allocation == AllocType.FIXED && zmienna.type.array) {
                             state.code(
-                                "let ${state.currentRegToAsm()} = ${zmienna.location}[adr] // simple id from fixed array var"
+                                "let ${state.currentRegToAsm()} = ${zmienna.location}[adr] // simple id - fixed array var"
                             )
-                        } else {
-                            checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "simple id from var", false, false)
-//                            state.code(
-//                                "let ${state.currentRegToAsm()} = ${state.varToAsm(zmienna)} // simple id from var"
-//                            )
+                        }
+                        else if (state.assignStack.processingLeftSide) {
+                            checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "//simple id - assign in progress", RegOper.VALUE, RegOper.STAR)
+                        }
+                        else {
+                            checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "simple id from var", RegOper.VALUE, RegOper.STAR)
                         }
                     }
 
@@ -1659,7 +1659,7 @@ class WolinVisitor(
             easeyCall(ctx, funkcjaAlloc, state.currentReg, true)
 
         state.rem(" tutaj kod na przepisanie z powyższego rejestru do zwrotki konstruktora")
-        checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "zwrotka alloc do zwrotki konstruktora", false, false)
+        checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "zwrotka alloc do zwrotki konstruktora", RegOper.VALUE, RegOper.VALUE)
 
         state.code("setup HEAP = ${state.currentRegToAsm()}")
 
@@ -1668,7 +1668,7 @@ class WolinVisitor(
         state.initializedClassFields().forEach {
             println("Aktualna klasa: ${state!!.currentClass!!.name}")
             state.rem("inicjalizacja zmiennej ${it.name}")
-            if(state.pass != Pass.SYMBOLS) doInitCode(it)
+            doInitCode(it)
         }
 
         state.fnDeclFreeStackAndRet(konstruktor)
@@ -1841,7 +1841,7 @@ class WolinVisitor(
             state.code("")
             state.code("label __wolin_throw_exception")
             state.code("bne SPE = __wolin_spe_top, __wolin_process_exception[adr] // jesli mamy blok catch, to go obslugujemy")
-            state.code("let __wolin_exception_ptr[ptr] = #0[uword]")
+            state.code("let __wolin_exception_ptr[adr] = 0[adr]")
             state.code("crash")
 
             state.code("")
@@ -1851,7 +1851,7 @@ class WolinVisitor(
             state.code("let SPC[ubyte] = SPE(2)[ubyte] // przywrócenie stosu CPU, takiego jak był w bloku try")
             state.code("let SP[ubyte] = SPE(3)[ubyte] // przywrócenie stosu wolina")
             state.code("free SPE, #5")
-            state.code("goto __wolin_spe_zp_vector[ptr]")
+            state.code("goto __wolin_spe_zp_vector[deref]")
         }
 
         return state
@@ -1895,10 +1895,10 @@ class WolinVisitor(
         if (const.BinLiteral() != null) {
 
         } else if (const.BooleanLiteral() != null) {
-            reg.type = Typ.byName("bool", state)
+            reg.type = Typ.bool
             if (const.text.toLowerCase() == "true") reg.intValue = 1 else reg.intValue = 0
         } else if (const.CharacterLiteral() != null) {
-            reg.type = Typ.byName("ubyte", state)
+            reg.type = Typ.ubyte
             reg.intValue = const.text.first().toLong()
         } else if (const.HexLiteral() != null) {
             parseNumberGuessType(reg, const.text.drop(2), 16)
@@ -1910,7 +1910,7 @@ class WolinVisitor(
             reg.intValue = 0L
             reg.type = Typ.byName("any?", state)
         } else if (const.RealLiteral() != null) {
-            reg.type = Typ.byName("float", state)
+            reg.type = Typ.float
             reg.floatValue = 3.14f
             state.floats.add(3.14f)
         } else if (const.stringLiteral() != null) {
@@ -2002,7 +2002,7 @@ class WolinVisitor(
                 )
             } else {
                 state.code(
-                    "let SPF(${found.first})${found.second.typeForAsm} = #${it.immediateValue}${it.typeForAsm}"
+                    "let SPF(${found.first})[${found.second.typeForAsm}] = #${it.immediateValue}[${it.typeForAsm}]"
                 )
             }
         }
@@ -2016,7 +2016,7 @@ class WolinVisitor(
             //checkTypeAndAddAssignment(ctx, destReg!!, state.callStack.peek(), "easey call", false, false)
             state.code("let ${state.varToAsmNoType(destReg!!)}[adr] = ${state.varToAsmNoType(state.callStack.peek())}[adr]")
         else if(destReg != null)
-            checkTypeAndAddAssignment(ctx, destReg!!, state.callStack.peek(), "easey call", false, false)
+            checkTypeAndAddAssignment(ctx, destReg!!, state.callStack.peek(), "easey call", RegOper.VALUE, RegOper.VALUE)
 
         state.fnCallReleaseRet(functionToCall)
 
@@ -2081,7 +2081,7 @@ class WolinVisitor(
         }
     }
 
-    fun checkTypeAndAddAssignment(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna, comment: String, derefDo: Boolean, derefCo: Boolean) {
+    fun checkTypeAndAddAssignment(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna, comment: String, derefDo: RegOper, derefCo: RegOper) {
         if (state.pass == Pass.TRANSLATION) {
             val można =
                 state.canBeAssigned(doJakiej.type, co.type) //|| doJakiej.type.isPointer || co.type.name == "uword"
@@ -2095,12 +2095,16 @@ class WolinVisitor(
     }
 
     fun doInitCode(zmienna: Zmienna) {
-        state.allocReg("for var ${zmienna.name} init expression")
+        val nowy=state.allocReg("for var ${zmienna.name} init expression")
+
+        //println("$zmienna -> $nowy")
 
         visitExpression(zmienna.initExpression!!)
-        state.inferTopOperType()
 
-        state.code("let ${state.varToAsm(zmienna)} = ${state.currentRegToAsm()} // podstawic wynik inicjalizacji expression do zmiennej ${zmienna.name}")
+        if(state.pass != Pass.SYMBOLS) {
+            state.inferTopOperType()
+            state.code("let ${state.varToAsm(zmienna)} = ${state.currentRegToAsm()} // podstawic wynik inicjalizacji expression do zmiennej ${zmienna.name}")
+        }
 
         state.freeReg("for var ${zmienna.name} init expression")
     }

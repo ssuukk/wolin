@@ -9,8 +9,11 @@ pseudoAsmFile
 jocker
     : QUEST simpleIdentifier;
 
+referencer
+    : (REFERENCE | DEREFERENCE);
+
 operand
-	: value name* typeName*;
+	: referencer* value name* typeName*;
 
 value
     : (addressed | immediate | floatimmediate | stringimmediate );
@@ -38,7 +41,7 @@ name
     ;
 
 typeName
-    : LSQUARE (jocker | identifier) RSQUARE
+    : LSQUARE (jocker | identifier referencer*) RSQUARE
     ;
 
 instrukcja
