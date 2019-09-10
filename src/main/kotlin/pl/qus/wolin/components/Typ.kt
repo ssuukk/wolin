@@ -2,10 +2,14 @@ package pl.qus.wolin.components
 
 import pl.qus.wolin.WolinStateObject
 
-class Typ(val name: String, val nulable: Boolean, var pointer: Boolean = false) {
-
-    var array: Boolean = false
+data class Typ(
+    val name: String,
+    val nulable: Boolean,
+    var pointer: Boolean = false,
+    var array: Boolean = false,
     var shortIndex: Boolean = false
+
+) {
 
     val isPointer: Boolean
         get() {
@@ -16,6 +20,12 @@ class Typ(val name: String, val nulable: Boolean, var pointer: Boolean = false) 
                 else -> true
             }
         }
+
+    fun copy(): Typ {
+        return Typ(
+            name, nulable, pointer, array, shortIndex
+        )
+    }
 
     companion object {
         val unit get() = Typ("unit", false)

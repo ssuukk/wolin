@@ -104,21 +104,20 @@ ret
 // ****************************************
 label __wolin_pl_qus_wolin_Test_suma
 setup HEAP = this
-alloc SP<__wolin_reg10>, #1 // for expression
-let SP(0)<__wolin_reg10>[ubyte] = *HEAP(2)<pl.qus.wolin.Test.x>[ubyte] // przez sprawdzacz typow - simple id from var
+alloc SP<__wolin_reg10>, #2 // for expression
+let SP(0)<__wolin_reg10>[ubyte*] = *HEAP(2)<pl.qus.wolin.Test.x>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.Test.x
-// top type already set: __wolin_reg10: ubyte = 0 (for expression)
-alloc SP<__wolin_reg11>, #1 // RIGHT adding operator
-let SP(0)<__wolin_reg11>[ubyte] = *HEAP(1)<pl.qus.wolin.Test.y>[ubyte] // przez sprawdzacz typow - simple id from var
+// top type already set: __wolin_reg10: ubyte* = 0 (for expression)
+alloc SP<__wolin_reg11>, #2 // RIGHT adding operator
+let SP(0)<__wolin_reg11>[ubyte*] = *HEAP(1)<pl.qus.wolin.Test.y>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.Test.y
-// top type already set: __wolin_reg11: ubyte = 0 (RIGHT adding operator)
-add SP(1)<__wolin_reg10>[ubyte] = SP(1)<__wolin_reg10>[ubyte], SP(0)<__wolin_reg11>[ubyte]
-free SP<__wolin_reg11>, #1 // RIGHT adding operator
-// top type already set: __wolin_reg10: ubyte = 0 (for expression)
-let SPF(2)<returnValue>[ubyte] = SP(0)<__wolin_reg10>[ubyte] // przez sprawdzacz typow - jump expression
+// top type already set: __wolin_reg11: ubyte* = 0 (RIGHT adding operator)
+add SP(2)<__wolin_reg10>[ubyte*] = SP(2)<__wolin_reg10>[ubyte*], SP(0)<__wolin_reg11>[ubyte*]
+free SP<__wolin_reg11>, #2 // RIGHT adding operator
+// top type already set: __wolin_reg10: ubyte* = 0 (for expression)
+let SPF(2)<returnValue>[ubyte] = SP(0)<__wolin_reg10>[ubyte*] // przez sprawdzacz typow - jump expression
 // switchType to:ubyte by return expression
-// top type already set: __wolin_reg10: ubyte = 0 (for expression)
-free SP<__wolin_reg10>, #1 // for expression
+free SP<__wolin_reg10>, #2 // for expression
 free SPF, #2 // free fn arguments and locals for pl.qus.wolin.Test.suma
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // return from function body
@@ -132,17 +131,17 @@ ret
 label __wolin_pl_qus_wolin_main
 // 
 // == ASSIGNMENT LEFT =======================================
-alloc SP<__wolin_reg14>, #1 // ASSIGNMENT target
-let SP(0)<__wolin_reg14>[ubyte] = *__wolin_pl_qus_wolin_a<pl.qus.wolin.a>[ubyte] // przez sprawdzacz typow - simple id from var
+alloc SP<__wolin_reg14>, #2 // ASSIGNMENT target
+let SP(0)<__wolin_reg14>[ubyte*] = *__wolin_pl_qus_wolin_a<pl.qus.wolin.a>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.a
-// top type already set: __wolin_reg14: ubyte = 0 (ASSIGNMENT target)
+// top type already set: __wolin_reg14: ubyte* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
-alloc SP<__wolin_reg15>, #1 // ASSIGNMENT value
-let SP(0)<__wolin_reg15>[ubyte] = *__wolin_pl_qus_wolin_b<pl.qus.wolin.b>[ubyte] // przez sprawdzacz typow - simple id from var
+alloc SP<__wolin_reg15>, #2 // ASSIGNMENT value
+let SP(0)<__wolin_reg15>[ubyte*] = *__wolin_pl_qus_wolin_b<pl.qus.wolin.b>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.b
-let &SP(1)<__wolin_reg14>[ubyte] = &SP(0)<__wolin_reg15>[ubyte] // przez sprawdzacz typow - process assignment
-free SP<__wolin_reg15>, #1 // ASSIGNMENT value, type = ubyte
-free SP<__wolin_reg14>, #1 // ASSIGNMENT target
+let &SP(2)<__wolin_reg14>[ubyte*] = &SP(0)<__wolin_reg15>[ubyte*] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg15>, #2 // ASSIGNMENT value, type = ubyte*
+free SP<__wolin_reg14>, #2 // ASSIGNMENT target
 // == ASSIGNMENT END =======================================
 // 
 // switchType to:unit* by assignment

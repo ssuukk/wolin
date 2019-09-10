@@ -1,9 +1,10 @@
 package pl.qus.wolin
 
 import pl.qus.wolin.exception.NoRuleException
+import java.lang.Exception
 
 class RuleMatcherVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
-    var counter : Int = 0
+    var counter: Int = 0
 
     val state = PseudoAsmStateObject()
 
@@ -12,10 +13,8 @@ class RuleMatcherVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
         state.matched = null
 
         ctx.linia()?.iterator()?.let { linie ->
-
             while (linie.hasNext()) {
                 val template = linie.next()
-
 
                 matched(template, state.assemblerLine!!)
 
@@ -44,7 +43,6 @@ let SP(?a)[uword] = SP(?b)[uword]
  sta {b}+1,x
  */
 
-
         state.pary.clear()
 
         if (template.instrukcja().text == data.instrukcja().text) {
@@ -53,7 +51,6 @@ let SP(?a)[uword] = SP(?b)[uword]
 
         if (template.target(0) != null && data.target(0) != null) {
             val targetMatch = operandsMatch(template.target(0)?.operand(), data.target(0)?.operand())
-
 
             if (targetMatch.first && state.matched != null) {
                 state.matched = template
@@ -68,7 +65,6 @@ let SP(?a)[uword] = SP(?b)[uword]
         if (template.arg(0) != null && data.arg(0) != null) {
             val arg1Match = operandsMatch(template.arg(0)?.operand(), data.arg(0)?.operand())
 
-
             if (arg1Match.first && state.matched != null) {
                 state.matched = template
                 state.pary.addAll(arg1Match.second)
@@ -79,7 +75,6 @@ let SP(?a)[uword] = SP(?b)[uword]
         if (template.arg(1) != null && data.arg(1) != null) {
             val arg2Match = operandsMatch(template.arg(1)?.operand(), data.arg(1)?.operand())
 
-
             if (arg2Match.first && state.matched != null) {
                 state.matched = template
                 state.pary.addAll(arg2Match.second)
@@ -88,18 +83,37 @@ let SP(?a)[uword] = SP(?b)[uword]
         }
     }
 
+    private fun testReferencers(
+        ref1: PseudoAsmParser.ReferencerContext?,
+        ref2: PseudoAsmParser.ReferencerContext?
+    ): Boolean {
+
+        val deref1 = ref1?.DEREFERENCE()?.symbol?.text
+        val deref2 = ref2?.DEREFERENCE()?.symbol?.text
+
+        val ref1 = ref1?.REFERENCE()?.symbol?.text
+        val ref2 = ref2?.REFERENCE()?.symbol?.text
+
+        return deref1 == deref2 || ref1 == ref2
+    }
+
     private fun operandsMatch(
         templateOp: PseudoAsmParser.OperandContext?,
-        dataOp: PseudoAsmParser.OperandContext?
+                                      dataOp: PseudoAsmParser.OperandContext?
+
     ): Pair<Boolean, MutableList<Pair<String, String?>>> {
         val pary = mutableListOf<Pair<String, String?>>()
 
         return if (templateOp != null && dataOp != null) {
             var match = true
 
+            match = match && testReferencers(templateOp.referencer().getOrNull(0), dataOp.referencer().getOrNull(0))
+
+            match = match && testReferencers(templateOp.typeName(0)?.referencer()?.getOrNull(0), dataOp.typeName(0)?.referencer()?.getOrNull(0))
+
             // typ się zgadza?
             if (templateOp.typeName(0)?.jocker() == null)
-                match = templateOp.typeName(0)?.text == dataOp.typeName(0)?.text
+                match = match && templateOp.typeName(0)?.text == dataOp.typeName(0)?.text
             else
                 pary.add(Pair(templateOp.typeName(0)!!.jocker()!!.simpleIdentifier()!!.text, dataOp.typeName(0)?.text))
 
@@ -125,7 +139,8 @@ let SP(?a)[uword] = SP(?b)[uword]
 
             } else {
                 val value =
-                    dataOp.value().addressed()?.absAddress()?.IntegerLiteral()?.text ?: dataOp.value()?.addressed()?.identifier()?.text
+                    dataOp.value().addressed()?.absAddress()?.IntegerLiteral()?.text
+                        ?: dataOp.value()?.addressed()?.identifier()?.text
                 pary.add(
                     Pair(
                         templateOp.value()?.addressed()?.jocker()!!.simpleIdentifier()!!.text,
@@ -153,7 +168,10 @@ let SP(?a)[uword] = SP(?b)[uword]
 
     fun processParams(template: PseudoAsmParser.LiniaContext, data: PseudoAsmParser.LiniaContext): Boolean {
         //var mosAsm = template.assemblerBody(0)?.multiLineStringLiteral()?.multiLineStringContent(0)?.text!!
-        var mosAsm = template.assemblerBody(0)?.multiLineStringLiteral()?.children?.drop(1)?.dropLast(1)?.map{it.text}?.joinToString("")!!
+        var mosAsm =
+            template.assemblerBody(0)?.multiLineStringLiteral()?.children?.drop(1)?.dropLast(1)?.map { it.text }?.joinToString(
+                ""
+            )!!
         state.pary
             .filter { it.second != null }
             .map { it as Pair<String, String> }
@@ -161,8 +179,8 @@ let SP(?a)[uword] = SP(?b)[uword]
                 mosAsm = mosAsm.replace("{${it.first}}", it.second)
             }
 
-        if(mosAsm.contains("{counter}")) {
-            mosAsm = mosAsm.replace("{counter}","$counter")
+        if (mosAsm.contains("{counter}")) {
+            mosAsm = mosAsm.replace("{counter}", "$counter")
             counter++
         }
 

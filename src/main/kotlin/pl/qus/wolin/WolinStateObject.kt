@@ -172,7 +172,6 @@ class WolinStateObject(val pass: Pass) {
         zmienna.location = loc ?: nullableTypeLoc
         zmienna.name = nameStitcher(name, fieldType == FieldType.ARGUMENT)
         zmienna.type = type
-        zmienna.type = type
 
         var pomiń = 0
         if (basePackage.isNotEmpty()) pomiń = basePackage.length + 1
@@ -471,7 +470,7 @@ class WolinStateObject(val pass: Pass) {
 
         toVariablary(retZmienna)
 
-        funkcja.type = retZmienna.type
+        funkcja.type = retZmienna.type.copy()
 
             args.forEachIndexed { index, argType ->
             val lambdaArg =
@@ -623,12 +622,14 @@ class WolinStateObject(val pass: Pass) {
 
     fun regFromTop(ile: Int): Zmienna = operStack.asReversed()[ile]
 
-    fun allocReg(comment: String = "", type: Typ = Typ.unit): Zmienna {
+    fun allocReg(comment: String = "", typex: Typ = Typ.unit): Zmienna {
         val name = "__wolin_reg$stackVarCounter"
 
 //        if(stackVarCounter == 12) {
 //            println("tu!")
 //        }
+
+        val type = typex.copy()
 
         if (variablary[name] != null) {
             //rem("Using already known ${variablary[name]}")
@@ -687,7 +688,7 @@ class WolinStateObject(val pass: Pass) {
     fun forceTopOregType(wolinType: Typ) {
         val top = operStack.peek()
 
-        top.type = wolinType
+        top.type = wolinType.copy()
         rem("FORCE TOP: $top -> $wolinType")
     }
 
@@ -707,14 +708,15 @@ class WolinStateObject(val pass: Pass) {
         if (top.type == currentWolinType) {
             rem("top type already set: $top")
         } else if (top.type.isUnit) {
-            top.type = currentWolinType
+            top.type = currentWolinType.copy()
             rem("infer top: $top -> $currentWolinType")
         } else if (!top.type.canBeAssigned(currentWolinType))
             throw RegTypeMismatchException("Attempt to reassign $currentWolinType to $top")
     }
 
-    fun switchType(newType: Typ, reason: String) {
-        currentWolinType = newType
+    fun switchType(newType: Typ, reason: String, pointerize: Boolean = false) {
+        currentWolinType = newType.copy()
+        currentWolinType.pointer = pointerize
         code("// switchType to:$newType by $reason")
     }
 

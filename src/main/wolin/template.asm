@@ -484,7 +484,7 @@ setup HEAP = this -> """
     lda (__wolin_spf),y
     sta __wolin_this_ptr+1"""
 
-setup HEAP = SP(?src)[adr] -> """
+setup HEAP = SP(?src)[any*] -> """
     lda {src},x
     sta __wolin_this_ptr
     lda {src}+1,x

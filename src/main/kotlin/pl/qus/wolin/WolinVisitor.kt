@@ -508,7 +508,7 @@ class WolinVisitor(
         state.inferTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji! ROBIONE
 
         val destinationReg = state.assignStack.assignLeftSideVar
-        val destinationType = destinationReg.type
+        val destinationType = destinationReg.type.copy()
 
         //state.currentReg.type.isPointer = true
         //state.inferTopOregType()
@@ -521,12 +521,12 @@ class WolinVisitor(
 
         //state.inferTopOregType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji!
 
-        rightFinalReg.type = destinationType.arrayElementType // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
+        rightFinalReg.type = destinationType.arrayElementType.copy() // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
         // typ indeksu, nie faktyczny typ zmiennej
         // więc np x[255] jest ok, ale x[256] daje uword!
         // typ pobierany jest z state.assignStack.assignLeftSideVar
-        rightFinalReg.type.pointer = false // przy podstawieniu konkretnej wartości
-        rightFinalReg.type.array = false
+//        rightFinalReg.type.pointer = false // przy podstawieniu konkretnej wartości
+//        rightFinalReg.type.array = false
 
         checkTypeAndAddAssignment(ctx, destinationReg, rightFinalReg, "process assignment", RegOper.AMPRESAND, RegOper.AMPRESAND)
 
@@ -849,7 +849,7 @@ class WolinVisitor(
                             state.rem("to jest klasa zmieniamy chwilowo aktualną")
                             state.rem("jesli tak, to na gorze heapu jest uniqid klasy")
                             //val akt = state.regFromTop(1)
-                            dereferenced.type = state.currentWolinType
+                            dereferenced.type = state.currentWolinType.copy()
                             state.classDerefStack.push(dereferenced)
                             true
                         } else {
@@ -988,7 +988,7 @@ class WolinVisitor(
                 }
 
                 state.rem("**ARRAY Changing current type to prevReg type $prevReg")
-                state.currentWolinType = prevReg.type
+                state.currentWolinType = prevReg.type.copy()
 
                 state.rem(" after index")
 
@@ -1246,7 +1246,7 @@ class WolinVisitor(
         val valueForAssign = state.allocReg("for value if when assigned")
 
         if(state.assignStack.isNotEmpty())
-            valueForAssign.type = state.assignStack.assignLeftSideVar.type
+            valueForAssign.type = state.assignStack.assignLeftSideVar.type.copy()
 
 
 //        if (!state.simpleWhen)
@@ -1367,7 +1367,7 @@ class WolinVisitor(
         val valueForAssign = state.allocReg("for value when if assigned")
 
         if(state.assignStack.isNotEmpty())
-            valueForAssign.type = state.assignStack.assignLeftSideVar.type
+            valueForAssign.type = state.assignStack.assignLeftSideVar.type.copy()
 
 
         val elseLabel = labelMaker("afterIfExpression", state.labelCounter)
@@ -1503,7 +1503,7 @@ class WolinVisitor(
                         }
                     }
 
-                    state.switchType(zmienna.type, "type from ${zmienna.name}")
+                    state.switchType(zmienna.type, "type from ${zmienna.name}", true)
                 } catch (ex: Exception) {
                     błędzik(ctx, "Unknown variable near ${ctx.parent.parent.text}")
                 }
@@ -1541,7 +1541,7 @@ class WolinVisitor(
 
             val zwrotka = state.createVar("returnValue", ctx.type(0), null, FieldType.ARGUMENT)
 
-            nowa.type = zwrotka.type
+            nowa.type = zwrotka.type.copy()
 
             nowa
         }
