@@ -2082,12 +2082,23 @@ class WolinVisitor(
     }
 
     fun checkTypeAndAddAssignment(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna, comment: String, derefDo: RegOper, derefCo: RegOper) {
+
+        val finalDerefDo = if(derefDo == RegOper.STAR && doJakiej.type.isPointer)
+            RegOper.VALUE
+        else
+            derefDo
+
+        val finalDerefCo = if(derefCo == RegOper.STAR && co.type.isPointer)
+            RegOper.VALUE
+        else
+            derefCo
+
         if (state.pass == Pass.TRANSLATION) {
             val można =
                 state.canBeAssigned(doJakiej.type, co.type) //|| doJakiej.type.isPointer || co.type.name == "uword"
 
             if (można) {
-                state.code("let ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(co, derefCo)} // przez sprawdzacz typow - $comment")
+                state.code("let ${state.varToAsm(doJakiej, finalDerefDo)} = ${state.varToAsm(co, finalDerefCo)} // przez sprawdzacz typow - $comment")
             } else {
                 błędzik(ctx, "Nie można przypisać ${co} do zmiennej $doJakiej")
             }

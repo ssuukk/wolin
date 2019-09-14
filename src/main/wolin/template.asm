@@ -602,6 +602,13 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // nowe adresy
 //============================================
 
+let SP(?dst)[ubyte*] = ?val[ubyte*] -> """
+    lda #<{val}
+    sta {dst},x
+    lda #>{val}
+    sta {dst}+1,x
+"""
+
 let SP(?dst)[ubyte*] = *?src[ubyte] -> """
     lda #<{src}
     sta {dst},x
@@ -611,8 +618,8 @@ let SP(?dst)[ubyte*] = *?src[ubyte] -> """
 
 // bajt pod adresem zapisanym na SP dst = bajt pod adresem zapisanym na SP src
 let &SP(?dst)[ubyte*] = &SP(?src)[ubyte*] -> """
-    lda (src,x)
-    sta (dst,x)
+    lda ({src},x)
+    sta ({dst},x)
 """
 
 // dla konstruktora
@@ -980,6 +987,32 @@ add SPE(?spedst)[ubyte] = SPE(?spesrc)[ubyte],#?val[ubyte] -> """
 // Wskaźniki
 //============================================
 
+let SP(?dst)[any*]=SPF(?src)[uword] -> """
+    ldy #{src}
+    lda __wolin_spf,y
+    sta {dst}
+    iny
+    lda __wolin_spf,y
+    sta {dst}+1
+"""
+
+// set reg to address of SPF variable
+let SP(?dst)[any*] = &SPF(0)[?dummy] -> """
+    lda __wolin_spf
+    sta {dst},x
+    lda __wolin_spf+1
+    sta {dst}+1,x"""
+
+let SP(?dst)[any*] = &SPF(?src)[?dummy] -> """
+    clc
+    lda __wolin_spf
+    adc #{src}
+    sta {dst},x
+    lda __wolin_spf+1
+    adc #0
+    sta {dst}+1,x"""
+
+
 
 // set value pointed by to value
 let SP(?d)[deref] = SP(?s)[adr] -> """
@@ -1123,22 +1156,6 @@ let SP(?dst)[uword] = ?src[deref] -> """
     lda #<{src}
     sta {dst},x
     lda #>{src}
-    sta {dst}+1,x"""
-
-// set reg to address of SPF variable
-let SP(?dst)[deref] = SPF(0)[deref] -> """
-    lda __wolin_spf
-    sta {dst},x
-    lda __wolin_spf+1
-    sta {dst}+1,x"""
-
-let SP(?dst)[deref] = SPF(?src)[deref] -> """
-    clc
-    lda __wolin_spf
-    adc #{src}
-    sta {dst},x
-    lda __wolin_spf+1
-    adc #0
     sta {dst}+1,x"""
 
 let SPF(?dst)[deref] = SP(?src)[deref] -> """

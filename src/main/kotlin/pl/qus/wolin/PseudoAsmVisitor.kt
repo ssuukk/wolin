@@ -84,17 +84,17 @@ let SP(?a)[uword] = SP(?b)[uword]
     }
 
     private fun testReferencers(
-        ref1: PseudoAsmParser.ReferencerContext?,
-        ref2: PseudoAsmParser.ReferencerContext?
+        r1: PseudoAsmParser.ReferencerContext?,
+        r2: PseudoAsmParser.ReferencerContext?
     ): Boolean {
 
-        val deref1 = ref1?.DEREFERENCE()?.symbol?.text
-        val deref2 = ref2?.DEREFERENCE()?.symbol?.text
+        val deref1 = r1?.DEREFERENCE()?.symbol?.text
+        val deref2 = r2?.DEREFERENCE()?.symbol?.text
 
-        val ref1 = ref1?.REFERENCE()?.symbol?.text
-        val ref2 = ref2?.REFERENCE()?.symbol?.text
+        val ref1 = r1?.REFERENCE()?.symbol?.text
+        val ref2 = r2?.REFERENCE()?.symbol?.text
 
-        return deref1 == deref2 || ref1 == ref2
+        return deref1 == deref2 && ref1 == ref2
     }
 
     private fun operandsMatch(
@@ -106,6 +106,15 @@ let SP(?a)[uword] = SP(?b)[uword]
 
         return if (templateOp != null && dataOp != null) {
             var match = true
+
+//            if(templateOp.referencer().firstOrNull()?.text == "&") {
+//                val a = templateOp.text
+//                val b = dataOp.text
+//
+//                println("tu!")
+//            }
+//
+//            println("${templateOp.referencer().firstOrNull()?.text} vs ${dataOp.referencer().firstOrNull()?.text}")
 
             match = match && testReferencers(templateOp.referencer().getOrNull(0), dataOp.referencer().getOrNull(0))
 

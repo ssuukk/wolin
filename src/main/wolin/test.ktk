@@ -1,12 +1,14 @@
 package pl.qus.wolin
 
+var a: ubyte = 1
+var b: ubyte = 2
 var border: ubyte^53280
+
+/*
 var ekran: ubyte[]^1024
 
 var i: uword = 0
 var znak: ubyte = 0
-var a: ubyte = 1
-var b: ubyte = 2
 
 fun allocMem(size: uword, count: uword): uword {
     return 30000
@@ -25,7 +27,7 @@ class Test {
 //class Matka {
 //    var dziecko: Test
 //}
-
+*/
 
 fun main() {
 /*
@@ -46,10 +48,13 @@ fun main() {
     //    testowa.x = 10
     //    testowa.y = 2
 
-*/
     //val a: uword[uword]^5000
 
     //i = a[10]
 
+*/
+
     a = b
+
+    border = a
 }
