@@ -321,7 +321,7 @@ class WolinVisitor(
                             { visitNamedInfix(ctx.namedInfix(1)) },
                             { wynik, lewa, prawa ->
                                 state.code(
-                                    "evalless ${state.varToAsm(wynik)} = ${state.varToAsm(lewa)}, ${state.varToAsm(
+                                    "evalless ${state.varToAsm(wynik)} = ${state.varToAsmAutoDeref(lewa)}, ${state.varToAsmAutoDeref(
                                         prawa
                                     )}"
                                 )
@@ -336,7 +336,7 @@ class WolinVisitor(
                             { visitNamedInfix(ctx.namedInfix(1)) },
                             { wynik, lewa, prawa ->
                                 state.code(
-                                    "evalless ${state.varToAsm(wynik)} = ${state.varToAsm(prawa)}, ${state.varToAsm(
+                                    "evalless ${state.varToAsmAutoDeref(wynik)} = ${state.varToAsmAutoDeref(prawa)}, ${state.varToAsm(
                                         lewa
                                     )}"
                                 )
@@ -786,7 +786,7 @@ class WolinVisitor(
                                     ?: throw Exception("No identifier for ++")
                                 val zmienna = state.findVarInVariablaryWithDescoping(identifier)
 
-                                checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "operator ++", RegOper.VALUE, RegOper.VALUE)
+                                checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "operator ++", RegOper.VALUE, RegOper.STAR)
 
                                 state.code(
                                     "add ${state.varToAsm(zmienna)} = ${state.varToAsm(
@@ -961,22 +961,20 @@ class WolinVisitor(
                 visitExpression(ctx.expression(0))
 
                 if (state.currentShortArray == null)
-                    state.forceTopOregType(Typ.uword) // typ indeksu
+                    state.forceTopOregType(Typ.uword.apply { this.pointer = true }) // typ indeksu
                 else
-                    state.forceTopOregType(Typ.ubyte) // typ indeksu
+                    state.forceTopOregType(Typ.ubyte.apply { this.pointer = true }) // typ indeksu
 
 
                 // ARRAYCODE
                 if (state.currentShortArray == null) {
                     when {
                         state.arrayElementSize > 1 -> {
-                            state.rem(" long index, multi-byte per element array")
-                            state.code("mul ${state.currentRegToAsm()} = ${state.currentRegToAsm()}, #${state.arrayElementSize}")
-                            state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()}")
+                            state.code("mul ${state.currentRegToAsm()} = ${state.currentRegToAsm()}, #${state.arrayElementSize} // long index, multi-byte per element array")
+                            state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()} // long index, contd.")
                         }
                         else -> {
-                            state.rem(" long index, single byte per element array")
-                            state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()}")
+                            state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.varToAsmAutoDeref(state.currentReg)} // long index, single byte per element array")
                         }
                     }
 
@@ -1492,7 +1490,7 @@ class WolinVisitor(
                     } else {
                         if (zmienna.allocation == AllocType.FIXED && zmienna.type.array) {
                             state.code(
-                                "let ${state.currentRegToAsm()} = ${zmienna.location}[adr] // simple id - fixed array var"
+                                "let ${state.currentRegToAsm()} = ${zmienna.location}[${zmienna.type.typeForAsm}] // simple id - fixed array var"
                             )
                         }
                         else if (state.assignStack.processingLeftSide) {
@@ -2100,7 +2098,7 @@ class WolinVisitor(
             if (można) {
                 state.code("let ${state.varToAsm(doJakiej, finalDerefDo)} = ${state.varToAsm(co, finalDerefCo)} // przez sprawdzacz typow - $comment")
             } else {
-                błędzik(ctx, "Nie można przypisać ${co} do zmiennej $doJakiej")
+                błędzik(ctx, "Nie można przypisać $co do zmiennej $doJakiej")
             }
         }
     }

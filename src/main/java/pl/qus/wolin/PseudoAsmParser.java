@@ -975,7 +975,7 @@ public class PseudoAsmParser extends Parser {
 			{
 			setState(137);
 			match(LSQUARE);
-			setState(146);
+			setState(140);
 			switch (_input.LA(1)) {
 			case QUEST:
 				{
@@ -987,24 +987,24 @@ public class PseudoAsmParser extends Parser {
 				{
 				setState(139);
 				identifier();
-				setState(143);
-				_errHandler.sync(this);
-				_la = _input.LA(1);
-				while (_la==REFERENCE || _la==DEREFERENCE) {
-					{
-					{
-					setState(140);
-					referencer();
-					}
-					}
-					setState(145);
-					_errHandler.sync(this);
-					_la = _input.LA(1);
-				}
 				}
 				break;
 			default:
 				throw new NoViableAltException(this);
+			}
+			setState(145);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			while (_la==REFERENCE || _la==DEREFERENCE) {
+				{
+				{
+				setState(142);
+				referencer();
+				}
+				}
+				setState(147);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
 			}
 			setState(148);
 			match(RSQUARE);
@@ -1771,7 +1771,7 @@ public class PseudoAsmParser extends Parser {
 		"\3\6\3\6\3\6\5\6c\n\6\3\7\3\7\3\7\5\7h\n\7\3\7\3\7\3\7\3\7\7\7n\n\7\f"+
 		"\7\16\7q\13\7\3\b\3\b\5\bu\n\b\3\t\3\t\3\t\5\tz\n\t\3\n\3\n\3\n\5\n\177"+
 		"\n\n\3\13\3\13\3\13\5\13\u0084\n\13\3\f\3\f\3\r\3\r\3\r\3\r\3\16\3\16"+
-		"\3\16\3\16\7\16\u0090\n\16\f\16\16\16\u0093\13\16\5\16\u0095\n\16\3\16"+
+		"\3\16\5\16\u008f\n\16\3\16\7\16\u0092\n\16\f\16\16\16\u0095\13\16\3\16"+
 		"\3\16\3\17\3\17\3\20\3\20\3\20\3\20\3\20\3\20\7\20\u00a1\n\20\f\20\16"+
 		"\20\u00a4\13\20\7\20\u00a6\n\20\f\20\16\20\u00a9\13\20\3\20\3\20\7\20"+
 		"\u00ad\n\20\f\20\16\20\u00b0\13\20\3\20\3\20\3\20\3\20\3\20\3\20\7\20"+
@@ -1805,10 +1805,10 @@ public class PseudoAsmParser extends Parser {
 		"\2\u0081\u0084\5\4\3\2\u0082\u0084\5.\30\2\u0083\u0081\3\2\2\2\u0083\u0082"+
 		"\3\2\2\2\u0084\25\3\2\2\2\u0085\u0086\7\34\2\2\u0086\27\3\2\2\2\u0087"+
 		"\u0088\7\t\2\2\u0088\u0089\5$\23\2\u0089\u008a\7\n\2\2\u008a\31\3\2\2"+
-		"\2\u008b\u0094\7\r\2\2\u008c\u0095\5\4\3\2\u008d\u0091\5$\23\2\u008e\u0090"+
-		"\5\6\4\2\u008f\u008e\3\2\2\2\u0090\u0093\3\2\2\2\u0091\u008f\3\2\2\2\u0091"+
-		"\u0092\3\2\2\2\u0092\u0095\3\2\2\2\u0093\u0091\3\2\2\2\u0094\u008c\3\2"+
-		"\2\2\u0094\u008d\3\2\2\2\u0095\u0096\3\2\2\2\u0096\u0097\7\16\2\2\u0097"+
+		"\2\u008b\u008e\7\r\2\2\u008c\u008f\5\4\3\2\u008d\u008f\5$\23\2\u008e\u008c"+
+		"\3\2\2\2\u008e\u008d\3\2\2\2\u008f\u0093\3\2\2\2\u0090\u0092\5\6\4\2\u0091"+
+		"\u0090\3\2\2\2\u0092\u0095\3\2\2\2\u0093\u0091\3\2\2\2\u0093\u0094\3\2"+
+		"\2\2\u0094\u0096\3\2\2\2\u0095\u0093\3\2\2\2\u0096\u0097\7\16\2\2\u0097"+
 		"\33\3\2\2\2\u0098\u0099\5&\24\2\u0099\35\3\2\2\2\u009a\u00a7\5\34\17\2"+
 		"\u009b\u009c\5 \21\2\u009c\u009d\7\17\2\2\u009d\u00a2\5\"\22\2\u009e\u009f"+
 		"\7\20\2\2\u009f\u00a1\5\"\22\2\u00a0\u009e\3\2\2\2\u00a1\u00a4\3\2\2\2"+
@@ -1839,7 +1839,7 @@ public class PseudoAsmParser extends Parser {
 		"-\3\2\2\2\u00ee\u00f2\7\30\2\2\u00ef\u00f1\5\60\31\2\u00f0\u00ef\3\2\2"+
 		"\2\u00f1\u00f4\3\2\2\2\u00f2\u00f0\3\2\2\2\u00f2\u00f3\3\2\2\2\u00f3\u00f5"+
 		"\3\2\2\2\u00f4\u00f2\3\2\2\2\u00f5\u00f6\7%\2\2\u00f6/\3\2\2\2\u00f7\u00f8"+
-		"\t\3\2\2\u00f8\61\3\2\2\2\35\65<ANU[bgoty~\u0083\u0091\u0094\u00a2\u00a7"+
+		"\t\3\2\2\u00f8\61\3\2\2\2\35\65<ANU[bgoty~\u0083\u008e\u0093\u00a2\u00a7"+
 		"\u00ae\u00b9\u00c0\u00c5\u00cf\u00d6\u00db\u00e5\u00e7\u00f2";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());

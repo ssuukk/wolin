@@ -602,19 +602,24 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // nowe adresy
 //============================================
 
-let SP(?dst)[ubyte*] = ?val[ubyte*] -> """
+
+let SP(?dst)[?dummy *] = ?val[?dummy*] -> """
     lda #<{val}
     sta {dst},x
     lda #>{val}
-    sta {dst}+1,x
-"""
+    sta {dst}+1,x"""
 
-let SP(?dst)[ubyte*] = *?src[ubyte] -> """
+let SP(?dst)[?dummy *] = *?src[?dummy] -> """
     lda #<{src}
     sta {dst},x
     lda #>{src}
-    sta {dst}+1,x
-"""
+    sta {dst}+1,x"""
+
+let SP(?dst)[?dummy *] = SP(?src)[?dummy *] -> """
+    lda {src},x
+    sta {dst},x
+    lda {src}+1,x
+    sta {dst}+1,x"""
 
 // bajt pod adresem zapisanym na SP dst = bajt pod adresem zapisanym na SP src
 let &SP(?dst)[ubyte*] = &SP(?src)[ubyte*] -> """

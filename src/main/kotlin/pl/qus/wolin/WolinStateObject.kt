@@ -354,6 +354,9 @@ class WolinStateObject(val pass: Pass) {
         return zmienna
     }
 
+    fun varToAsmAutoDeref(zmienna: Zmienna): String =
+        ""+(if(zmienna.type.isPointer) "&" else "") + varToAsmNoType(zmienna) + "[${zmienna.type.typeForAsm}]"
+
     fun varToAsm(zmienna: Zmienna, deref: RegOper = RegOper.VALUE): String =
         when(deref) {
             RegOper.AMPRESAND -> "&"

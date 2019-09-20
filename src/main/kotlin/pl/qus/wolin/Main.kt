@@ -4,8 +4,6 @@ import org.antlr.v4.runtime.ANTLRInputStream
 import org.antlr.v4.runtime.CommonTokenStream
 import pl.qus.wolin.exception.NoRuleException
 import java.io.*
-import java.text.SimpleDateFormat
-import java.util.*
 
 object Main {
     /*
@@ -131,7 +129,7 @@ SP(x)<r.temp12> MUSI PRZEJść W: SP(x-n)<r.temp12>
 
 odejmowanie kończymy, gdy napotkamy
 
-free <r.temp13>
+`free <r.temp13>
 
 
 
@@ -353,6 +351,27 @@ http://wilsonminesco.com/StructureMacros/
             FileInputStream(File("src/main/wolin/assembler.asm")),
             FileInputStream(File("src/main/wolin/template.asm"))
         )
+
+        optimize(
+            FileInputStream(File("src/main/wolin/assembler.asm"))
+        )
+    }
+
+    private fun optimize(asmStream: InputStream) {
+        val asmLexer = PseudoAsmLexer(ANTLRInputStream(asmStream))
+        val asmTokens = CommonTokenStream(asmLexer)
+        val asmParser = PseudoAsmParser(asmTokens)
+        val asmContext = asmParser.pseudoAsmFile()
+        val visitor = OptimizerVisitor()
+
+        // zebrać wszystkie rejestry
+        visitor.gatherRegs(asmContext)
+        // sprawdzić które kwalifikują się do usunięcia
+        visitor.markRemovableRegisters(asmContext)
+
+        visitor.dumpRedundantRegs()
+
+        visitor.replaceInFile(asmContext,0)
     }
 
     private fun translateAsm(asmStream: InputStream, templateStream: InputStream) {

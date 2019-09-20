@@ -41,7 +41,7 @@ name
     ;
 
 typeName
-    : LSQUARE (jocker | identifier referencer*) RSQUARE
+    : LSQUARE (jocker | identifier) referencer* RSQUARE
     ;
 
 instrukcja
