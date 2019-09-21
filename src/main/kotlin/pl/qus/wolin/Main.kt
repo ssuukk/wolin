@@ -347,17 +347,20 @@ http://wilsonminesco.com/StructureMacros/
 
         parseWolinek(FileInputStream(File("src/main/wolin/test.ktk")))
 
-        translateAsm(
+        optimize(
             FileInputStream(File("src/main/wolin/assembler.asm")),
+            FileOutputStream(File("src/main/wolin/assembler_opt.asm"))
+        )
+
+
+        translateAsm(
+            FileInputStream(File("src/main/wolin/assembler_opt.asm")),
             FileInputStream(File("src/main/wolin/template.asm"))
         )
 
-        optimize(
-            FileInputStream(File("src/main/wolin/assembler.asm"))
-        )
     }
 
-    private fun optimize(asmStream: InputStream) {
+    private fun optimize(asmStream: InputStream, outStream: OutputStream) {
         val asmLexer = PseudoAsmLexer(ANTLRInputStream(asmStream))
         val asmTokens = CommonTokenStream(asmLexer)
         val asmParser = PseudoAsmParser(asmTokens)
@@ -375,8 +378,22 @@ http://wilsonminesco.com/StructureMacros/
 
         visitor.removeAndShift(asmContext)
 
-        asmContext.linia().iterator().forEach {
-            println(it.text)
+        outStream.use {
+
+            asmContext.linia().iterator().forEach {
+                var linia = it.instrukcja().text + " "
+                if (it.target(0) != null)
+                    linia += "${it.target(0).text} = "
+
+                if (it.arg(0) != null)
+                    linia += "${it.arg(0).text}"
+
+                if (it.arg(1) != null)
+                    linia += ", ${it.arg(1).text}"
+
+                outStream.write(linia.toByteArray())
+                outStream.write(10)
+            }
         }
     }
 

@@ -1,6 +1,8 @@
 package pl.qus.wolin
 
+import org.antlr.v4.runtime.CommonToken
 import org.antlr.v4.runtime.tree.TerminalNodeImpl
+import java.lang.ClassCastException
 
 class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
     val state = PseudoAsmStateObject()
@@ -53,6 +55,9 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
 
                 val instrukcja = template.instrukcja().simpleIdentifier().text
 
+                val targetDeref = template.target(0)?.operand()?.referencer(0)?.text
+
+
                 if (instrukcja != "alloc" && instrukcja != "free") {
                     if (firstArg != null) {
                         println("Nie można usunąć ${firstArg.numer}")
@@ -68,6 +73,11 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
                         println("Nie można usunąć ${target.numer}")
                         registers[target.numer]?.canBeRemoved = false
                     }
+
+                    if (targetDeref == "&") {
+                        println("Nie można usunąć ${target!!.numer}")
+                        registers[target!!.numer]?.canBeRemoved = false
+                    }
                 }
             }
         }
@@ -80,7 +90,7 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
                 while (linieIterator.hasNext()) {
                     val linia = linieIterator.next()
 
-                    if(linia is PseudoAsmParser.LiniaContext) {
+                    if (linia is PseudoAsmParser.LiniaContext) {
 
                         // jeśli free/alloc lub przypisanie do danego rejestru, to usunąć i przesunąć wektory
 
@@ -104,7 +114,7 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
                         } else if (instrukja == "let" && target?.numer == removedRegistr.numer && linia.arg().size == 1) {
                             println("usuwam pierwsze podstawienie do ${removedRegistr.numer}")
                             linieIterator.remove()
-                        } else {
+                        } else if (state.insideOptimizedReg == removedRegistr.numer) {
                             // todo - przesunąć rejestry
                             /*
                             przy wyrugowaniu rejestru wszystkie odwołania do rejestrów leżących POD NIM na stosie muszą mieć zmniejszane indeksy
@@ -125,6 +135,34 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
 
                             // jeśli target, arg1 albo arg2 to SP(x)<__wolin_regYY> gdzie YY < removedRegister.numer
                             // to x = x-removedRegister.size
+
+                            val firstArg = extractReg(linia, 0)
+                            val secondArg = extractReg(linia, 1)
+                            val target = extractTarget(linia)
+
+                            if (firstArg != null && firstArg.numer < removedRegistr.numer) {
+                                val vector = extractSPVector(linia.arg(0).operand()) - removedRegistr.wielkość
+                                changeVector(
+                                    (linia.children[3] as PseudoAsmParser.ArgContext).children[0] as PseudoAsmParser.OperandContext,
+                                    vector
+                                )
+                            }
+
+                            if (secondArg != null && secondArg.numer < removedRegistr.numer) {
+                                val vector = extractSPVector(linia.arg(1).operand()) - removedRegistr.wielkość
+                                changeVector(
+                                    (linia.children[5] as PseudoAsmParser.ArgContext).children[0] as PseudoAsmParser.OperandContext,
+                                    vector
+                                )
+                            }
+
+                            if (target != null && target.numer < removedRegistr.numer) {
+                                val vector = extractSPVector(linia.target(0).operand()) - removedRegistr.wielkość
+                                changeVector(
+                                    (linia.children[1] as PseudoAsmParser.TargetContext).children[0] as PseudoAsmParser.OperandContext,
+                                    vector
+                                )
+                            }
                         }
                     }
                 }
@@ -132,7 +170,21 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
         }
     }
 
-    private fun replaceAllOccurencesOfSingleAssignRegistersWithTheirValues(ctx: PseudoAsmParser.PseudoAsmFileContext, regNr: Int) {
+    private fun changeVector(operand: PseudoAsmParser.OperandContext, vector: Int) {
+        val indeks =
+            if (operand.children[0] is PseudoAsmParser.ReferencerContext)
+                (((operand.children[1] as PseudoAsmParser.ValueContext).children[0] as PseudoAsmParser.AddressedContext).children[2] as PseudoAsmParser.IndexContext)
+            else
+                (((operand.children[0] as PseudoAsmParser.ValueContext).children[0] as PseudoAsmParser.AddressedContext).children[2] as PseudoAsmParser.IndexContext)
+
+        val node = indeks.children[0] as TerminalNodeImpl
+        (node.symbol as CommonToken).text = vector.toString()
+    }
+
+    private fun replaceAllOccurencesOfSingleAssignRegistersWithTheirValues(
+        ctx: PseudoAsmParser.PseudoAsmFileContext,
+        regNr: Int
+    ) {
         state.replaced = false
 
         ctx.linia()?.iterator()?.let { linie ->
@@ -212,6 +264,7 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
                 val firstArg = extractReg(linia, 0)
                 val target = extractTarget(linia)
 
+
                 if (instrukcja == "alloc") {
                     if (firstArg?.numer == nr) {
                         state.insideOptimizedReg = nr
@@ -222,11 +275,6 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
                     }
                 } else if (state.insideOptimizedReg == nr && target?.numer == nr) {
                     // sprawdzić, czy jest to proste podstawienie, jeśli nie - ustawić redundant na false
-
-                    if(nr == 4) {
-                        val li = linia.text
-                        println("tu!")
-                    }
 
                     when {
                         linia.arg().size > 1 -> target.singleAssign = false
@@ -269,6 +317,11 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
             else -> null
         }
 
+    }
+
+    private fun extractSPVector(ctx: PseudoAsmParser.OperandContext): Int {
+        val wektor = ctx.value()?.addressed()?.index(0)?.text
+        return Integer.parseInt(wektor)
     }
 
     private fun createReg(template: PseudoAsmParser.LiniaContext): Register? {

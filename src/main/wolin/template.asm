@@ -502,6 +502,19 @@ let HEAP(?dest)[ubyte] = SP(?src)[ubyte] -> """
     sta (__wolin_this_ptr),y"""
 
 //============================================
+// Memory
+//============================================
+let ?dst[uword] = #?val[ubyte] -> """
+    lda #<{val}
+    sta {dst}
+    lda #0
+    sta {dst}+1"""
+
+let ?dst[ubyte] = #?val[ubyte] -> """
+    lda #{val}
+    sta {dst}"""
+
+//============================================
 // kondiszjonalsy
 //============================================
 
@@ -563,7 +576,8 @@ evaleq SP(?dest)[bool] = SP(?left)[uword], SP(?right)[ubyte] -> """
     bne :+
     lda #1 ; rowne
     sta {dest},x
-:"""
+:
+"""
 
 evalless SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     lda #1 ; mniejsze
@@ -573,7 +587,22 @@ evalless SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     bcc :+
     lda #0 ; jednak wieksze
     sta {dest},x
-:"""
+:
+"""
+
+evalless SP(?dest)[bool] = ?adr[uword], #?val[uword] -> """
+    lda #1 ; mniejsze
+    sta {dest},x
+    lda {adr}+1
+    cmp #>{val}
+    bcc :+ ; mniejsze
+    lda {adr}
+    cmp #<{val}
+    bcc :+ ; mniejsze
+    lda #0 ; jednak wieksze
+    sta {dest},x
+:
+"""
 
 evalless SP(?dest)[bool] = SP(?left)[uword], SP(?right)[uword] -> """
     lda #1 ; mniejsze
@@ -602,6 +631,9 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // nowe adresy
 //============================================
 
+let &SP(?dst)[ubyte*] = ?adr[ubyte] -> """
+    lda {adr}
+    sta ({dst},x)"""
 
 let SP(?dst)[?dummy *] = ?val[?dummy*] -> """
     lda #<{val}
@@ -693,6 +725,15 @@ add SP(?d)[adr] = SP(?s1)[adr], SP(?s2)[uword] -> """
     sta {d},x
     lda {s1}+1,x
     adc {s2}+1,x
+    sta {d}+1,x"""
+
+add SP(?d)[?dummy *] = SP(?s)[?dummy *], ?adr[uword] -> """
+    clc
+    lda {s},x
+    adc {adr}
+    sta {d},x
+    lda {s}+1,x
+    adc {adr}+1
     sta {d}+1,x"""
 
 //============================================
