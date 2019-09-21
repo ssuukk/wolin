@@ -1,7 +1,8 @@
 package pl.qus.wolin
 
 class PseudoAsmStateObject {
-    var insideOptimizedReg: Boolean = false
+    var replaced: Boolean = false
+    var insideOptimizedReg: Int = -1
     var assemblerLine: PseudoAsmParser.LiniaContext? = null
     var matched: PseudoAsmParser.LiniaContext? = null
     var tekstProgramu: String = ""

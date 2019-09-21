@@ -365,13 +365,19 @@ http://wilsonminesco.com/StructureMacros/
         val visitor = OptimizerVisitor()
 
         // zebrać wszystkie rejestry
-        visitor.gatherRegs(asmContext)
+        visitor.gatherAllSPRegs(asmContext)
         // sprawdzić które kwalifikują się do usunięcia
-        visitor.markRemovableRegisters(asmContext)
+        visitor.markSingleAssignmentRegs(asmContext)
 
-        visitor.dumpRedundantRegs()
+        visitor.replaceSingleAssignmentRegWithItsValue(asmContext)
 
-        visitor.replaceInFile(asmContext,0)
+        visitor.checkAllOccurencesReplaced(asmContext)
+
+        visitor.removeAndShift(asmContext)
+
+        asmContext.linia().iterator().forEach {
+            println(it.text)
+        }
     }
 
     private fun translateAsm(asmStream: InputStream, templateStream: InputStream) {
@@ -404,6 +410,34 @@ http://wilsonminesco.com/StructureMacros/
             it.write(templateVisitor.state.dumpCode().toByteArray())
         }
     }
+
+
+    private fun translateAsm(asmContext: PseudoAsmParser.PseudoAsmFileContext, templateStream: InputStream) {
+        val templateLexer = PseudoAsmLexer(ANTLRInputStream(templateStream))
+        val templateTokens = CommonTokenStream(templateLexer)
+        val templateParser = PseudoAsmParser(templateTokens)
+        val templateContext = templateParser.pseudoAsmFile()
+        val templateVisitor = RuleMatcherVisitor()
+
+        asmContext.linia().forEach {
+            templateVisitor.state.assemblerLine = it
+            try {
+                templateVisitor.visit(templateContext)
+            } catch (ex: NoRuleException) {
+                println("No rule for parsing:${ex.message}")
+            } catch (ex: Exception) {
+                println("Syntax error in rule file")
+                throw ex
+            }
+        }
+
+        val ostream = BufferedOutputStream(FileOutputStream(File("src/main/wolin/assembler.s")))
+
+        ostream.use {
+            it.write(templateVisitor.state.dumpCode().toByteArray())
+        }
+    }
+
 
     private fun parseWolinek(istream: InputStream) {
         // Get our lexer
