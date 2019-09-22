@@ -83,6 +83,35 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
         }
     }
 
+    fun consolidateAllocs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
+        ctx.children.iterator().let { linieIterator ->
+            while (linieIterator.hasNext()) {
+                val linia = linieIterator.next()
+
+                if (linia is PseudoAsmParser.LiniaContext) {
+
+                    // jeśli free/alloc lub przypisanie do danego rejestru, to usunąć i przesunąć wektory
+
+                    val instrukja = linia.instrukcja().simpleIdentifier().text
+
+                    /*
+freeSP<>,#4  // x = x+4
+allocSP<>,#2 // x = x-2
+
+// suma = 4 - 2 = 2 -> freeSP #2
+
+freeSP<>,#2  // x = x-4
+allocSP<>,#4 // x = x+2
+
+// suma = -4 + 2 = -2 -> allocSP #2
+
+ */
+                    //linieIterator.
+                }
+            }
+        }
+    }
+
     fun removeAndShift(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         registers.filter { it.value.canBeRemoved }.map { it.value }.forEach { removedRegistr ->
 
@@ -264,6 +293,12 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
                 val firstArg = extractReg(linia, 0)
                 val target = extractTarget(linia)
 
+                if(target?.numer == 7) {
+                    println("tu")
+                }
+
+                val nazwa = linia.arg(0)?.operand()?.name(0)?.identifier()?.simpleIdentifier(0)?.text // __wolin_reg3
+
 
                 if (instrukcja == "alloc") {
                     if (firstArg?.numer == nr) {
@@ -278,7 +313,8 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
 
                     when {
                         linia.arg().size > 1 -> target.singleAssign = false
-                        instrukcja == "let" -> {
+                        instrukcja == "let" && nazwa != "returnValue" -> {
+                            // first arg == null -> not SP reg, shouldn't be opimized
                             target.singleAssign = true
                             target.argContext = linia.arg(0)
                         }
@@ -334,6 +370,7 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
 
             reg.numer = Integer.parseInt(nazwa!!.substring(11))
             reg.wielkość = Integer.parseInt(wielkość!!)
+            reg.name = nazwa
             reg
         } else null
     }
@@ -351,6 +388,7 @@ class Register {
     var canBeRemoved: Boolean = true // czy naprawdę można go usunąć
     var argContext: PseudoAsmParser.ArgContext? = null // jaką zawiera wartość
     var singleAssign: Boolean = true // czy można usunąć
+    var name: String = ""
 
     override fun toString(): String {
         return "reg $numer, redundant=$singleAssign, content=${argContext?.text}"

@@ -8,12 +8,9 @@ import java.io.*
 object Main {
     /*
 
-
-Register types
-[ubyte/uword...] - just the value
-[adr] - literal memory address
-[loc] - obtain actual memory location of the data
-[deref] - target is located at memory stored in the register
+******************************************
+C64 specific
+******************************************
 
 C64 - dostępna pamięć:
 
@@ -36,9 +33,12 @@ wordy do wykorzystania:
 potencjalnie do wykorzystania:
 197-246 - edytor
 
-
+******************************************
+6502 specific
+******************************************
 
 TRYBY ADRESOWANIA
+=================
 
 d,x	Zero page indexed	val = PEEK((arg + X) % 256)	4 - dużo instrukcji
 d,y	Zero page indexed	val = PEEK((arg + Y) % 256)	4 - tylko LDA/STA
@@ -55,15 +55,54 @@ tabela wskaźników? wygląda bezużytecznie...
 pobierz bajt z adresu = adres w d + y
 czyli np. czytanie stringu
 
+TIPSY
+=====
 
-try catch na podstawie
+1.  An automatic compare-to-zero instruction is built into the following 65c02 instructions:
+LDA, LDX, LDY,
+INC, INX, INY,
+DEC, DEX, DEY,
+INA, DEA,
+AND, ORA, EOR,
+ASL, LSR, ROL, ROR,
+PLA, PLX, PLY,
+SBC, ADC,
+TAX, TXA, TAY, TYA, and TSX.
+
+This means that, for example, a CMP #0 after an LDA is redundant, a wasted instruction.  The only time a 65c02 (CMOS) needs a compare-to-zero instruction after one of these is if you want to compare a register that was not involved in the previous instruction; for example,
+
+
+        DEY
+        CPX  #0
+
+http://wilsonminesco.com/6502primer/PgmTips.html
+
+
+ILLEGAL OPCODES
+===============
+
+http://www.zimmers.net/anonftp/pub/cbm/documents/chipdata/64doc
+
+USEFUL MACROS
+=============
+
+http://wilsonminesco.com/StructureMacros/
+
+
+TRY-CATCH
+=========
+
 http://www.c64os.com/post?p=76
 
 
 BUGI
+====
 
- jmp ($xxFF) - fail, bo pobierze starszy bajt z $xx00
+jmp ($xxFF) - fail, bo pobierze starszy bajt z $xx00
 
+******************************************
+Multiplication
+******************************************
 
 mnożenie ruskich wieśniaków 13*238
 
@@ -84,7 +123,9 @@ https://en.wikipedia.org/wiki/Division_algorithm#Restoring_division
 de facto opisane tu:
 https://www.atariarchives.org/roots/chapter_10.php
 
-
+******************************************
+Wolin
+******************************************
 
 	1) scope funkcji
 
@@ -102,54 +143,6 @@ https://www.atariarchives.org/roots/chapter_10.php
 
 		pl.qus.a
 
-
-
-
-OPTYMALIZACJE
-
-Propozycja algorytmu:
-
-1) wyszykujemy w całym pliku rejestry do wyrugowania i zapamiętujemy je
-
-2) w kolejnym przejściu rugujemy rejestry, przesuwamy indeksy, zapisujemy plik i próbujemy ponownie
-
-
-OGÓLNE:
-
-przy wyrugowaniu rejestru wszystkie odwołania do rejestrów leżących POD NIM na stosie muszą mieć zmniejszane indeksy
-o rozmiar tego rejestru aż do momentu, kiedy tenże rejestr byłby faktycznie zwolniony
-
-np:
-
-było:
-alloc <r.temp13>, #n, ale usunęliśmy
-
-po tym allocu
-SP(x)<r.temp12> MUSI PRZEJść W: SP(x-n)<r.temp12>
-
-odejmowanie kończymy, gdy napotkamy
-
-`free <r.temp13>
-
-
-
-
-UWAGA: jeśli między allokacją a zwolnieniem jest skok do procedury, to trzeba dobrze to zbadać!
-
-1. jeśli między allokacją i zwolnieniem rejestru SP nie ma do niego żadnego podstawienia - usunąć allokacje i zwolnienie.
-
-2. jeśli między allokacją i zwolnieniem jest tylko jedno podstawienie do rejestru i jest to stała lub val, to używać wszędzie tej stałej zamiast rejestru:
-
-alloc temp
-let temp = #4
-mul x = x, temp
-add y = y, temp
-free temp
-
-daje:
-
-mul x = x, #4
-add y = y, #4
 
 3. skonsolidować następujące po sobie W CIĄGU dealokacje/alllokacje (NIC nie moze byc miedzy nimi, zwlaszcza label):
 
@@ -272,72 +265,6 @@ add SPF(2)<lambdaReturn>[ubyte] = SPF(1)<pl.qus.wolin.test.lambda_function_0.a>[
 free SPF, #2 // free fn arguments and locals for lambda_function_0
 
 ret
-
-
-6. Ciekawy przypadek optymalizacji, rugując zmienną reg2 trzeba przenieść deallokację reg3:
-
-label __wolin_pl_qus_wolin_test_main
-alloc SP<__wolin_reg2>, #1 // for value that gets assigned to left side
-alloc SP<__wolin_reg3>, #1 // arr_deref
-let SP(0)<__wolin_reg3>[ubyte] = #5[ubyte] // atomic ex
-let SP(1)<__wolin_reg2>[ubyte] = pl.qus.wolin.test.oneByteSmallArray[deref], SP(0)<__wolin_reg3>[ubyte]
-free SP<__wolin_reg3>, #1 // arr_deref
-let __wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte] = SP(0)<__wolin_reg2>[ubyte] // przez sprawdzacz typów
-free SP<__wolin_reg2>, #1 // for value that gets assigned to left side, type = ubyte
-ret
-
-dalej:
-
-label __wolin_pl_qus_wolin_test_main
-alloc SP<__wolin_reg3>, #1 // arr_deref
-let SP(0)<__wolin_reg3>[ubyte] = #5[ubyte] // atomic ex
-free SP<__wolin_reg3>, #1 // arr_deref ---> ZA WCZEŚNIE ZWALNIANE!!!
-let __wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte] = pl.qus.wolin.test.oneByteSmallArray[deref], SP(0)<__wolin_reg3>[ubyte]
-ret
-
-poprawka:
-
-label __wolin_pl_qus_wolin_test_main
-alloc SP<__wolin_reg3>, #1 // arr_deref
-let SP(0)<__wolin_reg3>[ubyte] = #5[ubyte] // atomic ex
-let __wolin_pl_qus_wolin_test_b<pl.qus.wolin.test.b>[ubyte] = pl.qus.wolin.test.oneByteSmallArray[deref], SP(0)<__wolin_reg3>[ubyte]
-free SP<__wolin_reg3>, #1 // arr_deref ---> PRZESUWAMY DEALLOKACJĘ
-ret
-
-
-
-
-TIPSY
-
-1.  An automatic compare-to-zero instruction is built into the following 65c02 instructions:
-LDA, LDX, LDY,
-INC, INX, INY,
-DEC, DEX, DEY,
-INA, DEA,
-AND, ORA, EOR,
-ASL, LSR, ROL, ROR,
-PLA, PLX, PLY,
-SBC, ADC,
-TAX, TXA, TAY, TYA, and TSX.
-
-This means that, for example, a CMP #0 after an LDA is redundant, a wasted instruction.  The only time a 65c02 (CMOS) needs a compare-to-zero instruction after one of these is if you want to compare a register that was not involved in the previous instruction; for example,
-
-
-        DEY
-        CPX  #0
-
-http://wilsonminesco.com/6502primer/PgmTips.html
-
-
-
-Fajny opis z illegalami u Bo:
-
-http://www.zimmers.net/anonftp/pub/cbm/documents/chipdata/64doc
-
-Makra do długich skoków itp:
-
-http://wilsonminesco.com/StructureMacros/
-
      */
 
 

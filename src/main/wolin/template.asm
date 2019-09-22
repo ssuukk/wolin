@@ -322,6 +322,11 @@ free SPF, #?count -> """
     inc __wolin_spf+1
 :"""
 
+let SPF(?d)[ubyte] = #?val[ubyte] -> """
+    ldy #{d}
+    lda #{val}
+    sta (__wolin_spf),y"""
+
 let SPF(?d)[uword] = #?val[uword] -> """
     ldy #{d}
     lda #<{val}

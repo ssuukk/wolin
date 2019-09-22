@@ -18,72 +18,81 @@ let __wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte] = SP(0)<__wolin_reg1>[ub
 free SP<__wolin_reg1>, #1 // for var pl.qus.wolin.znak init expression
 //  main function entry
 //  otwarcie stosu na wywolanie pl.qus.wolin.main
-alloc SPF, #0
+alloc SPF, #1
 //  tu podajemy argumenty dla pl.qus.wolin.main
 //  po argumentach dla pl.qus.wolin.main
 call __wolin_pl_qus_wolin_main[adr]
-free SPF <unit>, #2 // free return value of pl.qus.wolin.main from call stack
+free SPF <unit>, #0 // free return value of pl.qus.wolin.main from call stack
 ret
-// switchType to:unit* by function declaration
+// switchType to:unit by function declaration
+
+// ****************************************
+// funkcja: fun pl.qus.wolin.suma(pl.qus.wolin.suma.a: ubyte = 0 (), pl.qus.wolin.suma.b: ubyte = 0 ()):ubyte
+// ****************************************
+label __wolin_pl_qus_wolin_suma
+alloc SP<__wolin_reg3>, #2 // for expression
+let SP(0)<__wolin_reg3>[ubyte*] = *SPF(1)<pl.qus.wolin.suma.a>[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.suma.a
+// top type already set: __wolin_reg3: ubyte* = 0 (for expression)
+alloc SP<__wolin_reg4>, #2 // RIGHT adding operator
+let SP(0)<__wolin_reg4>[ubyte*] = *SPF(0)<pl.qus.wolin.suma.b>[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.suma.b
+// top type already set: __wolin_reg4: ubyte* = 0 (RIGHT adding operator)
+add &SP(2)<__wolin_reg3>[ubyte*] = &SP(2)<__wolin_reg3>[ubyte*], &SP(0)<__wolin_reg4>[ubyte*]
+free SP<__wolin_reg4>, #2 // RIGHT adding operator
+// top type already set: __wolin_reg3: ubyte* = 0 (for expression)
+let SPF(2)<returnValue>[ubyte] = SP(0)<__wolin_reg3>[ubyte*] // przez sprawdzacz typow - jump expression
+// switchType to:ubyte by return expression
+free SP<__wolin_reg3>, #2 // for expression
+free SPF, #2 // free fn arguments and locals for pl.qus.wolin.suma
+// caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
+// return from function body
+ret
+
+// switchType to:unit by function declaration
 
 // ****************************************
 // funkcja: fun pl.qus.wolin.main():unit
 // ****************************************
 label __wolin_pl_qus_wolin_main
-alloc SP<__wolin_reg4>, #1 // for while condition
-label __wolin_lab_loopStart_1
-alloc SP<__wolin_reg5>, #2 // LEFT for <
-let SP(0)<__wolin_reg5>[uword*] = *__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword] // przez sprawdzacz typow - simple id from var
-// switchType to:uword by type from pl.qus.wolin.i
-// top type already set: __wolin_reg5: uword* = 0 (LEFT for <)
-alloc SP<__wolin_reg6>, #2 // RIGHT for <
-// switchType to:uword by parse literal constant
-let SP(0)<__wolin_reg6>[uword] = #1000[uword] // atomic ex
-// top type already set: __wolin_reg6: uword = 0 (RIGHT for <)
-evalless SP(4)<__wolin_reg4>[bool] = &SP(2)<__wolin_reg5>[uword*], SP(0)<__wolin_reg6>[uword]
-free SP<__wolin_reg6>, #2 // RIGHT for <
-free SP<__wolin_reg5>, #2 // LEFT for <
-// top type already set: __wolin_reg4: bool = 0 (for while condition)
-bne SP(0)<__wolin_reg4>[bool] = #1[bool], __wolin_lab_loopEnd_1<label_po_if>[adr]
+alloc SP<__wolin_reg6>, #1 // for declaration valx:ubyte=suma(2,2)
+alloc SP<__wolin_reg7>, #1 // for var pl.qus.wolin.main..x init expression
+// switchType to:ubyte by function type 1
 // 
-// == ASSIGNMENT LEFT =======================================
-alloc SP<__wolin_reg9>, #2 // ASSIGNMENT target
-alloc SP<__wolin_reg10>, #2 // arr_deref
-//  LEWA strona array access, czyli co to za zmienna
-let SP(0)<__wolin_reg10>[ubyte*] = 1024[ubyte*] // simple id - fixed array var
-// switchType to:ubyte* by type from pl.qus.wolin.ekran
-//  PRAWA strona array access, czyli indeks w nawiasach
-alloc SP<__wolin_reg11>, #2 // For calculating index
-let SP(0)<__wolin_reg11>[uword*] = *__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword] // przez sprawdzacz typow - operator ++
-add __wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword] = __wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword], #1[uword] // simple id
-// switchType to:uword by ++ operator
-// FORCE TOP: __wolin_reg11: uword* = 0 (For calculating index) -> uword*
-add SP(2)<__wolin_reg10>[ubyte*] = SP(2)<__wolin_reg10>[ubyte*], &SP(0)<__wolin_reg11>[uword*] // long index, single byte per element array
-free SP<__wolin_reg11>, #2 // For calculating index
-// **ARRAY Changing current type to prevReg type __wolin_reg10: ubyte* = 0 (arr_deref)
-//  after index
-// dereference value at topRegister
-//  kod obsługi tablicy
-//  non-fast array, changing top reg to ptr
-let SP(2)<__wolin_reg9>[ubyte*] = SP(0)<__wolin_reg10>[ubyte*] // przez sprawdzacz typow - non-fast array
-free SP<__wolin_reg10>, #2 // arr_deref
-// top type already set: __wolin_reg9: ubyte* = 0 (ASSIGNMENT target)
-// == ASSIGNMENT RIGHT =======================================
-alloc SP<__wolin_reg12>, #2 // ASSIGNMENT value
-let SP(0)<__wolin_reg12>[ubyte*] = *__wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte] // przez sprawdzacz typow - operator ++
-add __wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte] = __wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte], #1[ubyte] // simple id
-// switchType to:ubyte by ++ operator
-let &SP(2)<__wolin_reg9>[ubyte*] = &SP(0)<__wolin_reg12>[ubyte*] // przez sprawdzacz typow - process assignment
-free SP<__wolin_reg12>, #2 // ASSIGNMENT value, type = ubyte
-free SP<__wolin_reg9>, #2 // ASSIGNMENT target
-// == ASSIGNMENT END =======================================
+// == FN_CALL: pl.qus.wolin.suma ========
+alloc SPF, #3
+// == FN_CALL: ARG #0 (2) pl.qus.wolin.suma
+alloc SP<__wolin_reg8>, #1 // for call argument 0
+// Prze visit vALUE
+//  obliczenia dla parametru 2
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg8>[ubyte] = #2[ubyte] // atomic ex
+// po visit value
+let SPF(1)[ubyte] = SP(0)<__wolin_reg8>[ubyte]
+free SP<__wolin_reg8>, #1 // for call argument 0, type = ubyte
+// == FN_CALL: ARG #1 (2) pl.qus.wolin.suma
+alloc SP<__wolin_reg9>, #1 // for call argument 1
+// Prze visit vALUE
+//  obliczenia dla parametru 2
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg9>[ubyte] = #2[ubyte] // atomic ex
+// po visit value
+let SPF(0)[ubyte] = SP(0)<__wolin_reg9>[ubyte]
+free SP<__wolin_reg9>, #1 // for call argument 1, type = ubyte
+// switchType to:ubyte by function type 2
+// switchType to:ubyte by function call
+call __wolin_pl_qus_wolin_suma[adr]
+
+let SP(0)<__wolin_reg7>[ubyte] = SPF(0)<returnValue>[ubyte] // przez sprawdzacz typow - copy return parameter
+free SPF <ubyte>, #1
+// == FN_CALL END: pl.qus.wolin.suma ========
 // 
-// switchType to:unit* by assignment
-// top type already set: __wolin_reg8: unit* = 0 (for expression)
-goto __wolin_lab_loopStart_1[adr]
-label __wolin_lab_loopEnd_1
-free SP<__wolin_reg4>, #1 // for while condition
-// top type already set: __wolin_reg3: unit* = 0 (for expression)
+// top type already set: __wolin_reg7: ubyte = 0 (for var pl.qus.wolin.main..x init expression)
+let SPF(0)<pl.qus.wolin.main..x>[ubyte] = SP(0)<__wolin_reg7>[ubyte] // podstawic wynik inicjalizacji expression do zmiennej pl.qus.wolin.main..x
+free SP<__wolin_reg7>, #1 // for var pl.qus.wolin.main..x init expression
+// top type already set: __wolin_reg6: ubyte = 0 (for declaration valx:ubyte=suma(2,2))
+free SP<__wolin_reg6>, #1 // for declaration valx:ubyte=suma(2,2)
+free SPF, #1 // free fn arguments and locals for pl.qus.wolin.main
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // return from function body
 ret

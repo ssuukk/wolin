@@ -8,6 +8,10 @@ var i: uword = 0
 
 var znak: ubyte = 0
 
+fun suma(a: ubyte, b: ubyte): ubyte {
+    return a+b
+}
+
 /*
 
 fun allocMem(size: uword, count: uword): uword {
@@ -31,7 +35,6 @@ class Test {
 
 fun main() {
 /*
-    val x: ubyte// = suma(2,2) // TODO - bez ubyte x jest typu ptr!
 
     border = 8
 
@@ -49,9 +52,12 @@ fun main() {
 
     //i = a[10]
 
-*/
-
     while(i<1000) {
         ekran[i++] = znak++
     }
+
+*/
+
+    val x: ubyte = suma(2,2) // TODO - bez ubyte x jest typu ptr!
+
 }

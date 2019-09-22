@@ -2064,7 +2064,7 @@ class WolinVisitor(
     fun simpleResultFunction(op: String, ret: Typ): (Zmienna, Zmienna) -> Typ {
         return { left, right ->
 
-            state.code("$op ${state.varToAsm(left)} = ${state.varToAsm(left)}, ${state.varToAsm(right)}")
+            state.code("$op ${state.varToAsmAutoDeref(left)} = ${state.varToAsmAutoDeref(left)}, ${state.varToAsmAutoDeref(right)}")
 
             ret
         }
@@ -2073,7 +2073,7 @@ class WolinVisitor(
     fun simpleResultFunction(op: String): (Zmienna, Zmienna) -> Typ {
         return { left, right ->
 
-            state.code("$op ${state.varToAsm(left)} = ${state.varToAsm(left)}, ${state.varToAsm(right)}")
+            state.code("$op ${state.varToAsmAutoDeref(left)} = ${state.varToAsmAutoDeref(left)}, ${state.varToAsmAutoDeref(right)}")
 
             state.currentWolinType
         }
