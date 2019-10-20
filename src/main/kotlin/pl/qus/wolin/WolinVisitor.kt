@@ -521,7 +521,11 @@ class WolinVisitor(
 
         //state.inferTopOregType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji!
 
-        rightFinalReg.type = destinationType.arrayElementType.copy() // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
+        //rightFinalReg.type = destinationType.arrayElementType.copy() // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
+        rightFinalReg.type = state.currentWolinType.copy() // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
+
+
+
         // typ indeksu, nie faktyczny typ zmiennej
         // więc np x[255] jest ok, ale x[256] daje uword!
         // typ pobierany jest z state.assignStack.assignLeftSideVar
@@ -1449,7 +1453,12 @@ class WolinVisitor(
 
                 val zwrotka = state.callStack[0]
 
-                checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "jump expression", RegOper.VALUE, RegOper.VALUE)
+                val refType = if(zwrotka.type.isPointer)
+                    RegOper.VALUE
+                else
+                    RegOper.AMPRESAND
+
+                checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "jump expression", RegOper.VALUE, refType)
 
                 state.switchType(state.currentFunction!!.type, "return expression")
             }
@@ -1693,7 +1702,7 @@ class WolinVisitor(
             null,
             AllocType.NORMAL,
             fieldType = FieldType.CLASS,
-            type = Typ.ubyte
+            typexxx = Typ.ubyte
         ).apply {
             intValue = classUniqId.toLong()
         }
@@ -2086,7 +2095,13 @@ class WolinVisitor(
         else
             derefDo
 
+        if(co.name == "__wolin_reg8") {
+            println("tu!")
+        }
+
         val finalDerefCo = if(derefCo == RegOper.STAR && co.type.isPointer)
+            RegOper.VALUE
+        else if(derefCo == RegOper.AMPRESAND && !co.type.isPointer)
             RegOper.VALUE
         else
             derefCo

@@ -9,7 +9,7 @@ class Zmienna(
     var allocation: AllocType,
     var comment: String = "",
     var fieldType: FieldType,
-    var type: Typ = Typ.unit,
+    private var typexxx: Typ = Typ.unit,
     var initExpression: KotlinParser.ExpressionContext? = null
 )
 
@@ -18,6 +18,18 @@ class Zmienna(
     var stringValue: String = ""
     var floatValue: Float = 0f
     var inClass: Klasa? = null
+
+    var type: Typ
+        get() {
+            return typexxx
+        }
+        set(value) {
+            if(name == "__wolin_reg8") {
+                println("tu!")
+            }
+            typexxx = value
+        }
+
 
     override fun toString(): String {
         return "$name: $type = $immediateValue ($comment)"

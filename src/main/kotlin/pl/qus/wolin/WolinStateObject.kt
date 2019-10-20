@@ -105,7 +105,7 @@ class WolinStateObject(val pass: Pass) {
                 name = nameStitcher(name),
                 allocation = AllocType.NORMAL,
                 fieldType = fieldType,
-                type = Typ.unit
+                typexxx = Typ.unit
             )
         }
 
@@ -225,7 +225,7 @@ class WolinStateObject(val pass: Pass) {
         //isArgument: Boolean,
         fieldType: FieldType
     ): Zmienna {
-        val zmienna = Zmienna("", allocation = alloc, fieldType = fieldType, type = typ)
+        val zmienna = Zmienna("", allocation = alloc, fieldType = fieldType, typexxx = typ)
 
         zmienna.immutable = fieldType == FieldType.ARGUMENT
         zmienna.name = nameStitcher(name, fieldType == FieldType.ARGUMENT)
@@ -468,7 +468,7 @@ class WolinStateObject(val pass: Pass) {
                 null,
                 AllocType.NORMAL,
                 fieldType = FieldType.LOCAL,
-                type = Typ.byName(retVal, this)
+                typexxx = Typ.byName(retVal, this)
             )
 
         toVariablary(retZmienna)
@@ -483,7 +483,7 @@ class WolinStateObject(val pass: Pass) {
                     null,
                     AllocType.NORMAL,
                     fieldType = FieldType.LOCAL,
-                    type = Typ.byName(argType, this)
+                    typexxx = Typ.byName(argType, this)
                 )
 
             toVariablary(lambdaArg)
@@ -507,7 +507,7 @@ class WolinStateObject(val pass: Pass) {
                     immutable = false,
                     allocation = AllocType.NORMAL,
                     fieldType = FieldType.LOCAL,
-                    type = funkcja.type
+                    typexxx = funkcja.type
                 )
             )
             zliczacz += funkcja.type.sizeOnStack
@@ -551,7 +551,7 @@ class WolinStateObject(val pass: Pass) {
                     immutable = false,
                     allocation = AllocType.NORMAL,
                     fieldType = FieldType.LOCAL,
-                    type = funkcja.type
+                    typexxx = funkcja.type
                 )
             )
         }

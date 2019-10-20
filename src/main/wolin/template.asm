@@ -636,6 +636,27 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // nowe adresy
 //============================================
 
+let &SP(?dst)[ubyte*] = SP(?src)[ubyte] -> """
+    lda {src},x
+    sta ({dst},x)"""
+
+// load addr of fnstack reg into SP
+let SP(?dst)[ubyte*] = *SPF(?src)[ubyte] -> """
+    clc
+    lda __wolin_spf
+    adc #{src}
+    sta {dst},x
+    lda __wolin_spf+1
+    adc #0
+    sta {dst}+1,x"""
+
+// load val pointed by SP into fnstack reg
+let SPF(?dst)[ubyte] = &SP(?src)[ubyte*] -> """
+    lda ({src},x)
+    ldy #{dst}
+    sta (__wolin_spf),y
+"""
+
 let &SP(?dst)[ubyte*] = ?adr[ubyte] -> """
     lda {adr}
     sta ({dst},x)"""
@@ -721,6 +742,15 @@ let SP(?d)[adr] = ?s[adr] -> """
     sta {d},x
     lda #>{s}
     sta {d}+1,x"""
+
+
+add &SP(?d)[ubyte*] = &SP(?d)[ubyte*], SPF(?s)[ubyte] -> """
+    clc
+    lda ({d},x)
+    ldy #{s}
+    adc (__wolin_spf), y
+    sta ({d},x)
+"""
 
 // add SP(2)<__wolin_reg15>[adr] = SP(2)<__wolin_reg15>[adr], SP(0)<__wolin_reg16>[uword]
 add SP(?d)[adr] = SP(?s1)[adr], SP(?s2)[uword] -> """

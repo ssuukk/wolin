@@ -58,6 +58,5 @@ fun main() {
 
 */
 
-    val x: ubyte = suma(2,2) // TODO - bez ubyte x jest typu ptr!
-
+    border = suma(2,2) // TODO - bez ubyte x jest typu ptr!
 }

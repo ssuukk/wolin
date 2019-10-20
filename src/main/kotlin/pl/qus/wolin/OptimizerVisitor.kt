@@ -83,6 +83,32 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
         }
     }
 
+
+    fun optimizeReturns() {
+        /*
+label __wolin_pl_qus_wolin_suma
+alloc SP<__wolin_reg3>, #2
+let SP(0)<__wolin_reg3>[ubyte*] = *SPF(1)<pl.qus.wolin.suma.a>[ubyte]
+add &SP(0)<__wolin_reg3>[ubyte*] = &SP(0)<__wolin_reg3>[ubyte*], SPF(0)<pl.qus.wolin.suma.b>[ubyte]
+let SPF(2)<returnValue>[ubyte] = SP(0)<__wolin_reg3>[ubyte*]
+free SP<__wolin_reg3>, #2
+free SPF, #2
+ret
+
+1. sprawdzamy, co jest podstawiane do <returnValue> -- reg3
+
+2. zastępujemy wszystkie wystąpienia reg3 przez returnValue i usuwamy to podstawienie:
+
+label __wolin_pl_qus_wolin_suma
+let SPF(2)<returnValue>[ubyte] = *SPF(1)<pl.qus.wolin.suma.a>[ubyte]
+add &SP(0)<__wolin_reg3>[ubyte*] = SPF(2)<returnValue>[ubyte], SPF(0)<pl.qus.wolin.suma.b>[ubyte]
+free SPF, #2
+ret
+
+
+         */
+    }
+
     fun consolidateAllocs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         ctx.children.iterator().let { linieIterator ->
             while (linieIterator.hasNext()) {
@@ -292,10 +318,6 @@ allocSP<>,#4 // x = x+2
 
                 val firstArg = extractReg(linia, 0)
                 val target = extractTarget(linia)
-
-                if(target?.numer == 7) {
-                    println("tu")
-                }
 
                 val nazwa = linia.arg(0)?.operand()?.name(0)?.identifier()?.simpleIdentifier(0)?.text // __wolin_reg3
 
