@@ -506,6 +506,12 @@ let HEAP(?dest)[ubyte] = SP(?src)[ubyte] -> """
     ldy #{dest}
     sta (__wolin_this_ptr),y"""
 
+let HEAP(?dest)[ubyte] = #?val[ubyte] -> """
+    lda #{val}
+    ldy #{dest}
+    sta (__wolin_this_ptr),y"""
+
+
 //============================================
 // Memory
 //============================================
@@ -636,6 +642,16 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // nowe adresy
 //============================================
 
+
+
+let SP(?dst)[any*] = SPF(?src)[any*] -> """
+    ldy #{src}
+    lda (__wolin_spf),y
+    sta {src},x
+    iny
+    lda (__wolin_spf),y
+    sta {src}+1,x"""
+
 let &SP(?dst)[ubyte*] = SP(?src)[ubyte] -> """
     lda {src},x
     sta ({dst},x)"""
@@ -649,6 +665,17 @@ let SP(?dst)[ubyte*] = *SPF(?src)[ubyte] -> """
     lda __wolin_spf+1
     adc #0
     sta {dst}+1,x"""
+
+
+let SP(?dst)[ubyte*] = *HEAP(?src)[ubyte] -> """
+    clc
+    lda __wolin_this_ptr
+    adc #{src}
+    sta {dst},x
+    lda __wolin_this_ptr+1
+    adc #0
+    sta {dst}+1,x"""
+
 
 // load val pointed by SP into fnstack reg
 let SPF(?dst)[ubyte] = &SP(?src)[ubyte*] -> """
@@ -751,6 +778,15 @@ add &SP(?d)[ubyte*] = &SP(?d)[ubyte*], SPF(?s)[ubyte] -> """
     adc (__wolin_spf), y
     sta ({d},x)
 """
+
+add &SP(?d)[ubyte*] = &SP(?d)[ubyte*], HEAP(?s)[ubyte] -> """
+    clc
+    lda ({d},x)
+    ldy #{s}
+    adc (__wolin_this_ptr), y
+    sta ({d},x)
+"""
+
 
 // add SP(2)<__wolin_reg15>[adr] = SP(2)<__wolin_reg15>[adr], SP(0)<__wolin_reg16>[uword]
 add SP(?d)[adr] = SP(?s1)[adr], SP(?s2)[uword] -> """

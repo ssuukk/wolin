@@ -8,18 +8,11 @@ var i: uword = 0
 
 var znak: ubyte = 0
 
-fun suma(a: ubyte, b: ubyte): ubyte {
-    return a+b
-}
-
-/*
-
 fun allocMem(size: uword, count: uword): uword {
     return 30000
 }
 
-
-class Test {
+class SomeClass {
     var x: ubyte = 3
     var y: ubyte = 7
 
@@ -28,23 +21,16 @@ class Test {
     }
 }
 
-//class Matka {
-//    var dziecko: Test
-//}
-*/
-
 fun main() {
-/*
 
-    border = 8
 
-        val testowa : Test
+        val testowa : SomeClass
 
-        testowa = Test()
+        testowa = SomeClass()
 
         border = testowa.suma()
 
-
+/*
     //    testowa.x = 10
     //    testowa.y = 2
 
@@ -58,5 +44,4 @@ fun main() {
 
 */
 
-    border = suma(2,2) // TODO - bez ubyte x jest typu ptr!
 }
