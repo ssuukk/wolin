@@ -252,6 +252,8 @@ allocSP<>,#4 // x = x+2
         ctx: PseudoAsmParser.PseudoAsmFileContext,
         regNr: Int
     ) {
+        // TODO - tu trzeba zwiększać przesunięcia zapamiętanych rejestrów stosu funkcji przy wywołaniach
+
         state.replaced = false
 
         ctx.linia()?.iterator()?.let { linie ->
@@ -263,8 +265,35 @@ allocSP<>,#4 // x = x+2
 
                 val instrukcja = linia.instrukcja().simpleIdentifier().text
 
-                if (instrukcja != "free" && instrukcja != "alloc") {
+                if (instrukcja == "free") {
+                    val spfDelta = extractAllocSize(linia, "SPF")
+                    if(spfDelta!=null) {
+                        registers.forEach {
+                            try {
+                                // TODO sprawdzić, czy to na SPF, jak tak - przesunąć
+                                val v = extractSPVector(it.value.argContext!!.operand())
+                                println("przesuwamy zapisane w rejestrach spfy!")
+                            } catch (ex: Exception) {
 
+                            }
+                        }
+                    }
+                }
+                else if (instrukcja == "alloc") {
+                    val spfDelta = extractAllocSize(linia, "SPF")
+                    if(spfDelta!=null) {
+                        registers.forEach {
+                            try {
+                                // TODO sprawdzić, czy to na SPF, jak tak - przesunąć
+                                val v = extractSPVector(it.value.argContext!!.operand())
+                                println("przesuwamy zapisane w rejestrach spfy!")
+                            } catch (ex: Exception) {
+
+                            }
+                        }
+                    }
+                }
+                else if (instrukcja != "free" && instrukcja != "alloc") {
                     if (firstArg?.numer == regNr) {
                         println("Mogę zastąpić tu pierwszy:${linia.text}")
                         try {
@@ -296,6 +325,10 @@ allocSP<>,#4 // x = x+2
         destination: PseudoAsmParser.ArgContext,
         source: PseudoAsmParser.ArgContext
     ): PseudoAsmParser.ArgContext {
+
+        val s = source.text
+        val d = destination.text
+
         if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == "*") {
             // &(destination) a source jest *X -> X
             ((source.children[0] as PseudoAsmParser.OperandContext).children[0] as PseudoAsmParser.ReferencerContext).children.clear()
@@ -386,7 +419,16 @@ allocSP<>,#4 // x = x+2
             }
             else -> null
         }
+    }
 
+    private fun extractAllocSize(template: PseudoAsmParser.LiniaContext, stack: String): Int? {
+        val stos = template.arg(0)?.operand()?.value()?.addressed()?.identifier()?.simpleIdentifier(0)?.text // SP
+        val wielkość = template.arg(1)?.operand()?.value()?.immediate()
+
+        return when (stos) {
+            stack -> wielkość?.IntegerLiteral()!!.text.toInt()
+            else -> null
+        }
     }
 
     private fun extractSPVector(ctx: PseudoAsmParser.OperandContext): Int {
