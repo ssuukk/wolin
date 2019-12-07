@@ -1104,6 +1104,33 @@ add SPE(?spedst)[ubyte] = SPE(?spesrc)[ubyte],#?val[ubyte] -> """
 // Wskaźniki
 //============================================
 
+let &SP(?dst)[any*]=&SP(?src)[any*] -> """
+    ; take value that is located at address stored in {src}
+    lda ({src},x)
+    ; store it at address stored in {dst}
+    sta ({dst},x)
+
+    inc {src},x
+    bne :+
+    inc {src}+1,x
+:
+    lda ({src},x)
+    sta ({dst},x)
+"""
+
+let SPF(?dst)[any*]=SPF(?src)[any*] -> """
+    ldy #{src}
+    lda __wolin_spf,y
+    ldy #{dst}
+    sta __wolin_spf,y
+    ldy #{src}
+    iny
+    lda __wolin_spf,y
+    ldy #{dst}
+    iny
+    sta __wolin_spf,y
+"""
+
 let SP(?dst)[any*]=SPF(?src)[uword] -> """
     ldy #{src}
     lda __wolin_spf,y

@@ -357,6 +357,22 @@ __wolin_pl_qus_wolin_main:
     inc __wolin_spf+1
 :
 
+; let&SP(2)<__wolin_reg13>[any*]=&SP(0)<__wolin_reg14>[any*]
+
+
+    ; take value that is located at address stored in 0
+    lda (0,x)
+    ; store it at address stored in 2
+    sta (2,x)
+
+    inc 0,x
+    bne :+
+    inc 0+1,x
+:
+    lda (0,x)
+    sta (2,x)
+
+
 ; freeSP<__wolin_reg14>,#2
 
 
@@ -397,6 +413,21 @@ __wolin_pl_qus_wolin_main:
     bcs :+
     dec __wolin_spf+1
 :
+
+; letSPF(0)[any*]=SPF(2)<pl.qus.wolin.main..testowa>[any*]
+
+
+    ldy #2
+    lda __wolin_spf,y
+    ldy #0
+    sta __wolin_spf,y
+    ldy #2
+    iny
+    lda __wolin_spf,y
+    ldy #0
+    iny
+    sta __wolin_spf,y
+
 
 ; call__wolin_pl_qus_wolin_SomeClass_suma[adr]
 
