@@ -272,13 +272,19 @@ ret
     fun main(args: Array<String>) {
 // gradlew generateGrammarSource
 
+//        val fi = File("//storage2/pron/obrazy/todo2/_rary")
+//        val list = fi.list()
+//        val katalogi = list.filter { !it.endsWith(".rar") }
+//        val rary = list.filter { it.endsWith(".rar") }.map { it.dropLast(4) }
+//        val rozpakowane = rary.filter { katalogi.contains(it) }
+//        rozpakowane.forEach { File("//storage2/pron/obrazy/todo2/_rary/$it.rar").delete() }
+
         parseWolinek(FileInputStream(File("src/main/wolin/test.ktk")))
 
         optimize(
             FileInputStream(File("src/main/wolin/assembler.asm")),
             FileOutputStream(File("src/main/wolin/assembler_opt.asm"))
         )
-
 
         translateAsm(
             FileInputStream(File("src/main/wolin/assembler_opt.asm")),
@@ -298,9 +304,9 @@ ret
         visitor.gatherAllSPRegs(asmContext)
         // sprawdzić które kwalifikują się do usunięcia
         visitor.markSingleAssignmentRegs(asmContext)
-
+        // tu można wygenerować ponownie plik tekstowy, pewnie nawet trzeba, tu się przesuwa funkcyjne rejestry
         visitor.replaceSingleAssignmentRegWithItsValue(asmContext)
-
+        // sprawdzić, czy dany rejestr występuje tylko jako free/alloc +ew. let rejestr =, tylko flaguje
         visitor.checkAllOccurencesReplaced(asmContext)
 
         visitor.removeAndShift(asmContext)

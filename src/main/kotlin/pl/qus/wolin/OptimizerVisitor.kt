@@ -1,8 +1,11 @@
 package pl.qus.wolin
 
-import org.antlr.v4.runtime.CommonToken
+import org.antlr.v4.runtime.*
+import org.antlr.v4.runtime.tree.ParseTree
+import org.antlr.v4.runtime.tree.TerminalNode
 import org.antlr.v4.runtime.tree.TerminalNodeImpl
-import java.lang.ClassCastException
+import sun.awt.SunHints
+import javax.smartcardio.TerminalFactory
 
 class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
     val state = PseudoAsmStateObject()
@@ -68,7 +71,6 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
                 val instrukcja = template.instrukcja().simpleIdentifier().text
 
                 val targetDeref = template.target(0)?.operand()?.referencer(0)?.text
-
 
                 if (instrukcja != "alloc" && instrukcja != "free") {
                     if (firstArg != null) {
@@ -268,11 +270,18 @@ allocSP<>,#4 // x = x+2
                 if (instrukcja == "free") {
                     val spfDelta = extractAllocSize(linia, "SPF")
                     if(spfDelta!=null) {
-                        registers.forEach {
+                        registers.forEach { spfRegContext ->
                             try {
                                 // TODO sprawdzić, czy to na SPF, jak tak - przesunąć
-                                val v = extractSPVector(it.value.argContext!!.operand())
-                                println("przesuwamy zapisane w rejestrach spfy!")
+                                val reg = extractStackType(spfRegContext.value.argContext!!.operand())
+                                if(reg == "SPF") {
+                                    val operandContext = spfRegContext.value.argContext?.children?.get(0) as PseudoAsmParser.OperandContext
+                                    val currentVector = extractSPVector(spfRegContext.value.argContext!!.operand())
+                                    val newVector = currentVector-spfDelta
+                                    println("przesuwam rejestrze ${spfRegContext.key} wektor SPF: $newVector!")
+                                    changeVector(operandContext, newVector)
+                                    spfRegContext.value.argContext?.children?.set(0,copy(operandContext))
+                                }
                             } catch (ex: Exception) {
 
                             }
@@ -282,22 +291,36 @@ allocSP<>,#4 // x = x+2
                 else if (instrukcja == "alloc") {
                     val spfDelta = extractAllocSize(linia, "SPF")
                     if(spfDelta!=null) {
-                        registers.forEach {
+                        registers.forEach { spfRegContext ->
                             try {
                                 // TODO sprawdzić, czy to na SPF, jak tak - przesunąć
-                                val v = extractSPVector(it.value.argContext!!.operand())
-                                println("przesuwamy zapisane w rejestrach spfy!")
+                                val reg = extractStackType(spfRegContext.value.argContext!!.operand())
+                                if(reg == "SPF") {
+                                    val operandContext = spfRegContext.value.argContext?.children?.get(0) as PseudoAsmParser.OperandContext
+                                    val currentVector = extractSPVector(spfRegContext.value.argContext!!.operand())
+                                    val newVector = currentVector+spfDelta
+                                    println("przesuwam rejestrze ${spfRegContext.key} wektor SPF: $newVector!")
+                                    changeVector(operandContext, newVector)
+                                    spfRegContext.value.argContext?.children?.set(0,copy(operandContext))
+                                }
                             } catch (ex: Exception) {
 
                             }
                         }
                     }
                 }
-                else if (instrukcja != "free" && instrukcja != "alloc") {
+                else /*if (instrukcja != "free" && instrukcja != "alloc")*/ {
                     if (firstArg?.numer == regNr) {
                         println("Mogę zastąpić tu pierwszy:${linia.text}")
                         try {
+                            if(regNr == 18) {
+                                println("tu!")
+                            }
                             val correctedFirstArg = replaceInArg(linia.arg(0), registers[regNr]!!.argContext!!)
+
+                            val kopia = PseudoAsmParser.ArgContext(correctedFirstArg.ruleContext as ParserRuleContext, correctedFirstArg.invokingState)
+                            kopia.copyFrom(correctedFirstArg)
+
                             linia.children[3] = correctedFirstArg
                             print("Po zastąpieniu:${linia.text}")
                             state.replaced = true
@@ -328,6 +351,7 @@ allocSP<>,#4 // x = x+2
 
         val s = source.text
         val d = destination.text
+
 
         if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == "*") {
             // &(destination) a source jest *X -> X
@@ -421,8 +445,13 @@ allocSP<>,#4 // x = x+2
         }
     }
 
+    private fun extractStackType(ctx: PseudoAsmParser.OperandContext): String? {
+        return ctx.value()?.addressed()?.identifier()?.simpleIdentifier(0)?.text
+    }
+
+
     private fun extractAllocSize(template: PseudoAsmParser.LiniaContext, stack: String): Int? {
-        val stos = template.arg(0)?.operand()?.value()?.addressed()?.identifier()?.simpleIdentifier(0)?.text // SP
+        val stos = template.arg(0)?.operand()?.value()?.addressed()?.identifier()?.simpleIdentifier(0)?.text
         val wielkość = template.arg(1)?.operand()?.value()?.immediate()
 
         return when (stos) {
@@ -456,7 +485,74 @@ allocSP<>,#4 // x = x+2
             println(it.value)
         }
     }
+
+
+
+    fun copy(ctx: ParseTree): ParseTree {
+        return when (ctx) {
+            is ParserRuleContext -> {
+                val nowa = ctx.javaClass.getDeclaredConstructor(ParserRuleContext::class.java, Int::class.java)
+                    .newInstance(ctx.parent, ctx.invokingState) // dodać argsy
+                nowa.copyFrom(ctx)
+                nowa.children = ctx.children?.map { copy(it) }?.toMutableList()
+
+                nowa
+            }
+            is TerminalNode -> {
+                val kopia = object: Token {
+                    val textCopy = ctx.text.substring(0)
+
+                    override fun getTokenSource(): TokenSource {
+                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    }
+
+                    override fun getType(): Int {
+                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    }
+
+                    override fun getStopIndex(): Int {
+                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    }
+
+                    override fun getText(): String {
+                        return textCopy
+                    }
+
+                    override fun getChannel(): Int {
+                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    }
+
+                    override fun getTokenIndex(): Int {
+                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    }
+
+                    override fun getCharPositionInLine(): Int {
+                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    }
+
+                    override fun getStartIndex(): Int {
+                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    }
+
+                    override fun getLine(): Int {
+                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    }
+
+                    override fun getInputStream(): CharStream {
+                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    }
+
+                }
+                TerminalNodeImpl(kopia)
+            }
+            else -> {
+                TODO()
+            }
+        }
+    }
+
 }
+
 
 class Register {
     var numer: Int = -1
