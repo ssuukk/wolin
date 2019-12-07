@@ -165,11 +165,11 @@ __wolin_pl_qus_wolin_SomeClass:
 
 
     ldy #0
-    lda __wolin_spf,y
-    sta 0
+    lda (__wolin_spf),y
+    sta 0,x
     iny
-    lda __wolin_spf,y
-    sta 0+1
+    lda (__wolin_spf),y
+    sta 0+1,x
 
 
 ; freeSPF<uword>,#2
@@ -418,15 +418,15 @@ __wolin_pl_qus_wolin_main:
 
 
     ldy #2
-    lda __wolin_spf,y
+    lda (__wolin_spf),y
     ldy #0
-    sta __wolin_spf,y
+    sta (__wolin_spf),y
     ldy #2
     iny
-    lda __wolin_spf,y
+    lda (__wolin_spf),y
     ldy #0
     iny
-    sta __wolin_spf,y
+    sta (__wolin_spf),y
 
 
 ; call__wolin_pl_qus_wolin_SomeClass_suma[adr]

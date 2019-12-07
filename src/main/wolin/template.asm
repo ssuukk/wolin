@@ -1120,24 +1120,24 @@ let &SP(?dst)[any*]=&SP(?src)[any*] -> """
 
 let SPF(?dst)[any*]=SPF(?src)[any*] -> """
     ldy #{src}
-    lda __wolin_spf,y
+    lda (__wolin_spf),y
     ldy #{dst}
-    sta __wolin_spf,y
+    sta (__wolin_spf),y
     ldy #{src}
     iny
-    lda __wolin_spf,y
+    lda (__wolin_spf),y
     ldy #{dst}
     iny
-    sta __wolin_spf,y
+    sta (__wolin_spf),y
 """
 
-let SP(?dst)[any*]=SPF(?src)[uword] -> """
+let SP(?dst)[any*] = SPF(?src)[uword] -> """
     ldy #{src}
-    lda __wolin_spf,y
-    sta {dst}
+    lda (__wolin_spf),y
+    sta {dst},x
     iny
-    lda __wolin_spf,y
-    sta {dst}+1
+    lda (__wolin_spf),y
+    sta {dst}+1,x
 """
 
 // set reg to address of SPF variable
