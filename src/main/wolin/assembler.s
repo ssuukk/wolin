@@ -79,10 +79,6 @@ __wolin_this_ptr_hi := 176+1
 
     jsr __wolin_pl_qus_wolin_main
 
-; freeSPF<pl.qus.wolin.main.__returnValue>,#0
-
- 
-
 ; ret
 
     rts
@@ -155,34 +151,23 @@ __wolin_pl_qus_wolin_SummingClass:
 
     jsr __wolin_pl_qus_wolin_allocMem
 
-; freeSPF<pl.qus.wolin.allocMem.__returnValue>,#2
+; letSPF(2)<pl.qus.wolin.SummingClass.__returnValue>[any*]=SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
 
 
-    clc
-    lda __wolin_spf
-    adc #2
-    sta __wolin_spf
-    bcc :+
-    inc __wolin_spf+1
-:
-
-; letSPF(0)<pl.qus.wolin.SummingClass.pl.qus.wolin.SummingClass.__returnValue>[any*]=SPF(2)<pl.qus.wolin.allocMem.__returnValue>[uword]
-
-
-    ldy #2
-    lda (__wolin_spf),y
     ldy #0
-    sta (__wolin_spf),y
-    ldy #2+1
     lda (__wolin_spf),y
+    ldy #2
+    sta (__wolin_spf),y
     ldy #0+1
+    lda (__wolin_spf),y
+    ldy #2+1
     sta (__wolin_spf),y
 
 
-; setupHEAP=SPF(2)<pl.qus.wolin.allocMem.__returnValue>[uword]
+; setupHEAP=SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
 
 
-    ldy #2 ; this pointer from SPF to this pointer on ZP
+    ldy #0 ; this pointer from SPF to this pointer on ZP
     lda (__wolin_spf),y
     sta __wolin_this_ptr
     iny
@@ -202,6 +187,17 @@ __wolin_pl_qus_wolin_SummingClass:
     lda #7
     ldy #1
     sta (__wolin_this_ptr),y
+
+; freeSPF<pl.qus.wolin.allocMem.__returnValue>,#2
+
+
+    clc
+    lda __wolin_spf
+    adc #2
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
 
 ; ret
 
@@ -318,26 +314,15 @@ __wolin_pl_qus_wolin_main:
 
     jsr __wolin_pl_qus_wolin_SummingClass
 
-; letSP(0)<__wolin_reg14>[any*]=SPF(2)<pl.qus.wolin.SummingClass.__returnValue>[any*]
+; letSP(0)<__wolin_reg14>[any*]=SPF(0)<pl.qus.wolin.SummingClass.__returnValue>[any*]
 
 
-    ldy #2
+    ldy #0
     lda (__wolin_spf),y
     sta 0,x
     iny
     lda (__wolin_spf),y
     sta 0+1,x
-
-; freeSPF<pl.qus.wolin.SummingClass.__returnValue>,#2
-
-
-    clc
-    lda __wolin_spf
-    adc #2
-    sta __wolin_spf
-    bcc :+
-    inc __wolin_spf+1
-:
 
 ; let&SP(2)<__wolin_reg13>[any*]=&SP(0)<__wolin_reg14>[any*]
 
@@ -411,7 +396,21 @@ __wolin_pl_qus_wolin_main:
 
     jsr __wolin_pl_qus_wolin_SummingClass_suma
 
-; freeSPF<pl.qus.wolin.SummingClass.suma.__returnValue>,#1
+; let&SP(0)<__wolin_reg16>[ubyte*]=SPF(0)<pl.qus.wolin.SummingClass.suma.__returnValue>[ubyte]
+
+
+    ldy #0
+    lda (__wolin_spf),y
+    sta (0,x)
+
+
+; freeSP<__wolin_reg16>,#2
+
+
+    inx
+    inx
+
+; freeSPF<pl.qus.wolin.main.__fnargs>,#1
 
 
     clc
@@ -422,31 +421,23 @@ __wolin_pl_qus_wolin_main:
     inc __wolin_spf+1
 :
 
-; let&SP(0)<__wolin_reg16>[ubyte*]=SPF(2)<pl.qus.wolin.SummingClass.suma.__returnValue>[ubyte]
-
-
-    txa
-    pha
-    ldy #2
-    lda (__wolin_spf),y
-    ldx #0
-    sta (__wolin_spf,x)
-    pla
-    txa
-
-
-; freeSP<__wolin_reg16>,#2
-
-
-    inx
-    inx
-
-; freeSPF<pl.qus.wolin.main.__fnargs>,#2
+; freeSPF<pl.qus.wolin.SummingClass.__returnValue>,#2
 
 
     clc
     lda __wolin_spf
     adc #2
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
+
+; freeSPF<pl.qus.wolin.SummingClass.suma.__returnValue>,#1
+
+
+    clc
+    lda __wolin_spf
+    adc #1
     sta __wolin_spf
     bcc :+
     inc __wolin_spf+1

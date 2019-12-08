@@ -268,55 +268,59 @@ allocSP<>,#4 // x = x+2
 
                 val instrukcja = linia.instrukcja().simpleIdentifier().text
 
-                if (instrukcja == "free") {
-                    val spfDelta = extractAllocSize(linia, "SPF")
-                    if(spfDelta!=null) {
-                        registers.forEach { spfRegContext ->
-                            try {
-                                // TODO sprawdzić, czy to na SPF, jak tak - przesunąć
-                                val reg = extractStackType(spfRegContext.value.argContext!!.operand())
-                                if(reg == "SPF") {
-                                    val operandContext = spfRegContext.value.argContext?.children?.get(0) as PseudoAsmParser.OperandContext
-                                    val currentVector = extractSPVector(spfRegContext.value.argContext!!.operand())
-                                    val newVector = currentVector-spfDelta
-                                    //println("przesuwam rejestrze ${spfRegContext.key} wektor SPF: $newVector!")
-                                    changeVector(operandContext, newVector)
-                                    spfRegContext.value.argContext?.children?.set(0,copy(operandContext))
-                                }
-                            } catch (ex: Exception) {
-
-                            }
-                        }
-                    }
-                }
-                else if (instrukcja == "alloc") {
-                    val spfDelta = extractAllocSize(linia, "SPF")
-                    if(spfDelta!=null) {
-                        registers.forEach { spfRegContext ->
-                            try {
-                                // TODO sprawdzić, czy to na SPF, jak tak - przesunąć
-                                val reg = extractStackType(spfRegContext.value.argContext!!.operand())
-                                if(reg == "SPF") {
-                                    val operandContext = spfRegContext.value.argContext?.children?.get(0) as PseudoAsmParser.OperandContext
-                                    val currentVector = extractSPVector(spfRegContext.value.argContext!!.operand())
-                                    val newVector = currentVector+spfDelta
-                                    //println("przesuwam rejestrze ${spfRegContext.key} wektor SPF: $newVector!")
-                                    changeVector(operandContext, newVector)
-                                    spfRegContext.value.argContext?.children?.set(0,copy(operandContext))
-                                }
-                            } catch (ex: Exception) {
-
-                            }
-                        }
-                    }
-                }
-                else /*if (instrukcja != "free" && instrukcja != "alloc")*/ {
+//                if (instrukcja == "free") {
+//                    val spfDelta = extractAllocSize(linia, "SPF")
+//                    if(spfDelta!=null) {
+//                        registers.forEach { spfRegContext ->
+//                            try {
+//                                // TODO sprawdzić, czy to na SPF, jak tak - przesunąć
+//                                val reg = extractStackType(spfRegContext.value.argContext!!.operand())
+//                                if(reg == "SPF") {
+//                                    val operandContext = spfRegContext.value.argContext?.children?.get(0) as PseudoAsmParser.OperandContext
+//                                    val currentVector = extractSPVector(spfRegContext.value.argContext!!.operand())
+//                                    val newVector = currentVector-spfDelta
+//                                    //println("przesuwam rejestrze ${spfRegContext.key} wektor SPF: $newVector!")
+//                                    changeVector(operandContext, newVector)
+//                                    spfRegContext.value.argContext?.children?.set(0,copy(operandContext))
+//                                }
+//                            } catch (ex: Exception) {
+//
+//                            }
+//                        }
+//                    }
+//                }
+//                else if (instrukcja == "alloc") {
+//                    val spfDelta = extractAllocSize(linia, "SPF")
+//                    if(spfDelta!=null) {
+//                        registers.forEach { spfRegContext ->
+//                            try {
+//                                // TODO sprawdzić, czy to na SPF, jak tak - przesunąć
+//                                val reg = extractStackType(spfRegContext.value.argContext!!.operand())
+//                                if(reg == "SPF") {
+//                                    val operandContext = spfRegContext.value.argContext?.children?.get(0) as PseudoAsmParser.OperandContext
+//                                    val currentVector = extractSPVector(spfRegContext.value.argContext!!.operand())
+//                                    val newVector = currentVector+spfDelta
+//                                    //println("przesuwam rejestrze ${spfRegContext.key} wektor SPF: $newVector!")
+//                                    changeVector(operandContext, newVector)
+//                                    spfRegContext.value.argContext?.children?.set(0,copy(operandContext))
+//                                }
+//                            } catch (ex: Exception) {
+//
+//                            }
+//                        }
+//                    }
+//                }
+//                else /*
+                if (instrukcja != "free" && instrukcja != "alloc") {
                     if (firstArg?.numer == regNr) {
                         println("Mogę zastąpić tu pierwszy:${linia.text}")
                         try {
                             val correctedFirstArg = replaceInArg(linia.arg(0), registers[regNr]!!.argContext!!)
 
-                            val kopia = PseudoAsmParser.ArgContext(correctedFirstArg.ruleContext as ParserRuleContext, correctedFirstArg.invokingState)
+                            val kopia = PseudoAsmParser.ArgContext(
+                                correctedFirstArg.ruleContext as ParserRuleContext,
+                                correctedFirstArg.invokingState
+                            )
                             kopia.copyFrom(correctedFirstArg)
 
                             linia.children[3] = correctedFirstArg
@@ -337,6 +341,7 @@ allocSP<>,#4 // x = x+2
                             // tego nie da się podmienić
                         }
                     }
+
                 }
             }
         }
@@ -484,7 +489,6 @@ allocSP<>,#4 // x = x+2
     }
 
 
-
     fun copy(ctx: ParseTree): ParseTree {
         return when (ctx) {
             is ParserRuleContext -> {
@@ -496,7 +500,7 @@ allocSP<>,#4 // x = x+2
                 nowa
             }
             is TerminalNode -> {
-                val kopia = object: Token {
+                val kopia = object : Token {
                     val textCopy = ctx.text.substring(0)
 
                     override fun getTokenSource(): TokenSource {

@@ -29,6 +29,9 @@ class WolinVisitor(
 
         state.fnDeclFreeStackAndRet(state.currentFunction!!)
 
+        state.rem("freeing call stack")
+        state.currentFunction?.releaseCalledFunctionsStack(state)
+
         state.rem("return from function body")
         state.code("ret")
 
@@ -768,13 +771,14 @@ class WolinVisitor(
                         state.fnCallReleaseArgs(prototyp)
 
                         if (!prototyp.type.isUnit) {
-                            checkTypeAndAddAssignment(ctx, state.currentReg, state.callStack.peek(), "copy return parameter", RegOper.VALUE, RegOper.VALUE)
-                            //state.code("let ${state.currentRegToAsm()} = ${state.varToAsm(state.callStack.peek())}// copy return parameter - TODO sprawdzić co jeśli wywołanie funkcji było bez podstawienia!!!")
+                            val zwrotka = state.findStackVector(state.callStack, prototyp.returnName).second
+                            checkTypeAndAddAssignment(ctx, state.currentReg, zwrotka, "copy return parameter", RegOper.VALUE, RegOper.VALUE)
                         }
 
-                        state.fnCallReleaseRet(prototyp)
+                        //state.fnCallReleaseRet(prototyp)
+                        state.currentFunction?.calledFunctions?.add(prototyp)
 
-                        state.code("free SPF<${prototyp.fullName}.__returnValue>, #${prototyp.type.sizeOnStack}")
+                        //state.code("free SPF<${prototyp.fullName}.__returnValue>, #${prototyp.type.sizeOnStack}")
 
                         if (state.currentClass != null)
                             state.code("setup HEAP = this")
@@ -1136,7 +1140,9 @@ class WolinVisitor(
         state.fnCallAllocRetAndArgs(nowaFunkcja)
         visitStatements(blok)
         state.fnCallReleaseArgs(nowaFunkcja)
-        state.fnCallReleaseRet(nowaFunkcja)
+
+        //state.fnCallReleaseRet(nowaFunkcja)
+        state.currentFunction?.calledFunctions?.add(nowaFunkcja)
 
         state.codeOn = true
 
@@ -1451,7 +1457,7 @@ class WolinVisitor(
                     visitExpression(ctx.expression())
                 }
 
-                val zwrotka = state.callStack[0]
+                val zwrotka = state.findStackVector(state.callStack, state.currentFunction!!.returnName).second
 
                 val refType = if(zwrotka.type.isPointer)
                     RegOper.VALUE
@@ -1546,7 +1552,7 @@ class WolinVisitor(
             nowa.location = lokacjaAdres.intValue.toInt()
             nowa.fullName = functionName
 
-            val zwrotka = state.createVar("${nowa.fullName}.__returnValue", ctx.type(0), null, FieldType.ARGUMENT)
+            val zwrotka = state.createVar("${nowa.returnName}", ctx.type(0), null, FieldType.ARGUMENT)
 
             nowa.type = zwrotka.type.copy()
 
@@ -1646,7 +1652,7 @@ class WolinVisitor(
 
         val typZwrotki = Typ(state.currentClass!!.name, false, true)
 
-        val zwrotka = state.createAndRegisterVar("${konstruktor.fullName}.__returnValue", AllocType.NORMAL, typZwrotki, FieldType.ARGUMENT)
+        val zwrotka = state.createAndRegisterVar("${konstruktor.returnName}", AllocType.NORMAL, typZwrotki, FieldType.ARGUMENT)
 
         val funkcjaAlloc = state.findProc("allocMem").apply {
             if (state.pass == Pass.TRANSLATION) {
@@ -1662,12 +1668,22 @@ class WolinVisitor(
         state.inferTopOperType()
 //        state.switchType(funkcjaAlloc.type, "function type 2")
 
-        if(state.pass != Pass.SYMBOLS)
+        if(state.pass != Pass.SYMBOLS) {
             easeyCall(ctx, funkcjaAlloc, state.currentReg, true)
 
-        state.rem(" tutaj kod na przepisanie z powyższego rejestru do zwrotki konstruktora")
-        checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "zwrotka alloc do zwrotki konstruktora", RegOper.VALUE, RegOper.VALUE)
+            state.rem(" tutaj kod na przepisanie z powyższego rejestru do zwrotki konstruktora")
 
+            val zwrotkaShifted = state.findStackVector(state.callStack, zwrotka.name).second
+
+            checkTypeAndAddAssignment(
+                ctx,
+                zwrotkaShifted,
+                state.currentReg,
+                "zwrotka alloc do zwrotki konstruktora",
+                RegOper.VALUE,
+                RegOper.VALUE
+            )
+        }
         state.code("setup HEAP = ${state.currentRegToAsm()}")
 
         state.freeReg("for returning this")
@@ -1681,6 +1697,8 @@ class WolinVisitor(
         state.fnDeclFreeStackAndRet(konstruktor)
 
         state.currentFunction = null
+
+        konstruktor.releaseCalledFunctionsStack(state)
 
         state.rem("return from constructor")
         state.code("ret")
@@ -1971,7 +1989,7 @@ class WolinVisitor(
             state.allocReg("for lambda 'return value' ${state.currentFunction?.fullName}")
 
             state.currentFunction!!.lambdaBody?.statement()?.forEach {
-                val zwrotka = state.callStack[0]
+                val zwrotka = state.findStackVector(state.callStack,state.currentFunction!!.returnName).second
                 statementProcessor(it, zwrotka)
             }
 
@@ -2025,9 +2043,10 @@ class WolinVisitor(
         else if(destReg != null)
             checkTypeAndAddAssignment(ctx, destReg!!, state.callStack.peek(), "easey call", RegOper.VALUE, RegOper.VALUE)
 
-        state.fnCallReleaseRet(functionToCall)
+        //state.fnCallReleaseRet(functionToCall)
+        state.currentFunction?.calledFunctions?.add(functionToCall)
 
-        state.code("free SPF <${functionToCall.fullName}.__returnValue>, #${functionToCall.type.sizeOnStack} // free return value of ${functionToCall.fullName} from call stack")
+        //state.code("free SPF <${functionToCall.fullName}.__returnValue>, #${functionToCall.type.sizeOnStack} // free return value of ${functionToCall.fullName} from call stack")
     }
 
     fun processTypeChangingOp(

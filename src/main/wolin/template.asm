@@ -663,14 +663,9 @@ let &SP(?dst)[ubyte*] = SP(?src)[ubyte] -> """
 
 // let &SP(0)<__wolin_reg16>[ubyte*] = SPF(2)<returnValue>[ubyte]
 let &SP(?dst)[ubyte*] = SPF(?src)[ubyte] -> """
-    txa
-    pha
     ldy #{src}
     lda (__wolin_spf),y
-    ldx #{dst}
-    sta (__wolin_spf,x)
-    pla
-    txa
+    sta ({dst},x)
 """
 
 // load addr of fnstack reg into SP

@@ -22,7 +22,6 @@ alloc SPF, #2
 //  tu podajemy argumenty dla pl.qus.wolin.main
 //  po argumentach dla pl.qus.wolin.main
 call __wolin_pl_qus_wolin_main[adr]
-free SPF <pl.qus.wolin.main.__returnValue>, #0 // free return value of pl.qus.wolin.main from call stack
 ret
 // switchType to:unit by function declaration
 
@@ -38,7 +37,9 @@ let SPF(4)<pl.qus.wolin.allocMem.__returnValue>[uword] = SP(0)<__wolin_reg3>[uwo
 // top type already set: __wolin_reg3: uword = 0 (for expression)
 free SP<__wolin_reg3>, #2 // for expression
 free SPF<pl.qus.wolin.allocMem.__fnargs>, #4 // free fn arguments and locals for pl.qus.wolin.allocMem
+// ***** fnDeclFreeStackAndRet usuwanie zwrotki pl.qus.wolin.allocMem ze stosu
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
+// freeing call stack
 // return from function body
 ret
 
@@ -61,9 +62,8 @@ let SPF(0)<pl.qus.wolin.allocMem.count>[uword] = #1[uword]
 //  po argumentach dla pl.qus.wolin.allocMem
 call __wolin_pl_qus_wolin_allocMem[adr]
 let SP(0)<__wolin_reg4>[any*] = SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
-free SPF <pl.qus.wolin.allocMem.__returnValue>, #2 // free return value of pl.qus.wolin.allocMem from call stack
 //  tutaj kod na przepisanie z powyższego rejestru do zwrotki konstruktora
-let SPF(0)<pl.qus.wolin.SummingClass.pl.qus.wolin.SummingClass.__returnValue>[any*] = SP(0)<__wolin_reg4>[any*] // przez sprawdzacz typow - zwrotka alloc do zwrotki konstruktora
+let SPF(2)<pl.qus.wolin.SummingClass.__returnValue>[any*] = SP(0)<__wolin_reg4>[any*] // przez sprawdzacz typow - zwrotka alloc do zwrotki konstruktora
 setup HEAP = SP(0)<__wolin_reg4>[any*]
 free SP<__wolin_reg4>, #2 // for returning this
 // inicjalizacja zmiennej pl.qus.wolin.SummingClass.x
@@ -80,7 +80,11 @@ let SP(0)<__wolin_reg6>[ubyte] = #7[ubyte] // atomic ex
 // top type already set: __wolin_reg6: ubyte = 0 (for var pl.qus.wolin.SummingClass.y init expression)
 let HEAP(1)<pl.qus.wolin.SummingClass.y>[ubyte] = SP(0)<__wolin_reg6>[ubyte] // podstawic wynik inicjalizacji expression do zmiennej pl.qus.wolin.SummingClass.y
 free SP<__wolin_reg6>, #1 // for var pl.qus.wolin.SummingClass.y init expression
+// ***** fnDeclFreeStackAndRet usuwanie zwrotki pl.qus.wolin.SummingClass ze stosu
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
+// ***** fnCallReleaseRet usuwanie zwrotki pl.qus.wolin.allocMem ze stosu
+free SPF <pl.qus.wolin.allocMem.__returnValue>, #2 // free return value of pl.qus.wolin.allocMem from call stack
+// ***** fnCallReleaseRet usuwanie zwrotki pl.qus.wolin.allocMem ze stosu
 // return from constructor
 ret
 // switchType to:unit by function declaration
@@ -105,7 +109,9 @@ let SPF(2)<pl.qus.wolin.SummingClass.suma.__returnValue>[ubyte] = &SP(0)<__wolin
 // switchType to:ubyte by return expression
 free SP<__wolin_reg8>, #2 // for expression
 free SPF<pl.qus.wolin.SummingClass.suma.__fnargs>, #2 // free fn arguments and locals for pl.qus.wolin.SummingClass.suma
+// ***** fnDeclFreeStackAndRet usuwanie zwrotki pl.qus.wolin.SummingClass.suma ze stosu
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
+// freeing call stack
 // return from function body
 ret
 
@@ -133,7 +139,6 @@ alloc SPF, #2
 call __wolin_pl_qus_wolin_SummingClass[adr]
 
 let SP(0)<__wolin_reg14>[any*] = SPF(0)<pl.qus.wolin.SummingClass.__returnValue>[any*] // przez sprawdzacz typow - copy return parameter
-free SPF<pl.qus.wolin.SummingClass.__returnValue>, #2
 // == FN_CALL END: pl.qus.wolin.SummingClass ========
 // 
 let &SP(2)<__wolin_reg13>[any*] = &SP(0)<__wolin_reg14>[any*] // przez sprawdzacz typow - process assignment
@@ -153,7 +158,7 @@ let SP(0)<__wolin_reg16>[ubyte*] = 53280[ubyte*] // przez sprawdzacz typow - sim
 alloc SP<__wolin_reg17>, #1 // ASSIGNMENT value
 //  deref: obiekt --------------------
 alloc SP<__wolin_reg18>, #2 // dereferenced object
-let SP(0)<__wolin_reg18>[any*] = SPF(0)<pl.qus.wolin.main..testowa>[any*] // przez sprawdzacz typow - simple id from var
+let SP(0)<__wolin_reg18>[any*] = SPF(2)<pl.qus.wolin.main..testowa>[any*] // przez sprawdzacz typow - simple id from var
 // switchType to:pl.qus.wolin.SummingClass* by type from pl.qus.wolin.main..testowa
 alloc SP<__wolin_reg19>, #1 // call result
 // to jest klasa zmieniamy chwilowo aktualną
@@ -171,7 +176,6 @@ let SPF(0)[any*] = SP(1)<__wolin_reg18>[any*]
 call __wolin_pl_qus_wolin_SummingClass_suma[adr]
 
 let SP(0)<__wolin_reg19>[ubyte] = SPF(0)<pl.qus.wolin.SummingClass.suma.__returnValue>[ubyte] // przez sprawdzacz typow - copy return parameter
-free SPF<pl.qus.wolin.SummingClass.suma.__returnValue>, #1
 // == FN_CALL END: pl.qus.wolin.SummingClass.suma ========
 // 
 // tu przywrócić poprzednią klasę
@@ -186,8 +190,15 @@ free SP<__wolin_reg16>, #2 // ASSIGNMENT target
 // 
 // switchType to:unit by assignment
 // top type already set: __wolin_reg15: unit = 65535 (for expression)
-free SPF<pl.qus.wolin.main.__fnargs>, #2 // free fn arguments and locals for pl.qus.wolin.main
+free SPF<pl.qus.wolin.main.__fnargs>, #1 // free fn arguments and locals for pl.qus.wolin.main
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
+// freeing call stack
+// ***** fnCallReleaseRet usuwanie zwrotki pl.qus.wolin.SummingClass ze stosu
+free SPF <pl.qus.wolin.SummingClass.__returnValue>, #2 // free return value of pl.qus.wolin.SummingClass from call stack
+// ***** fnCallReleaseRet usuwanie zwrotki pl.qus.wolin.SummingClass.suma ze stosu
+free SPF <pl.qus.wolin.SummingClass.suma.__returnValue>, #1 // free return value of pl.qus.wolin.SummingClass.suma from call stack
+// ***** fnCallReleaseRet usuwanie zwrotki pl.qus.wolin.SummingClass ze stosu
+// ***** fnCallReleaseRet usuwanie zwrotki pl.qus.wolin.SummingClass.suma ze stosu
 // return from function body
 ret
 

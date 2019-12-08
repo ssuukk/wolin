@@ -463,7 +463,7 @@ class WolinStateObject(val pass: Pass) {
 
         val retZmienna =
             Zmienna(
-                "${funkcja.fullName}.__returnValue",
+                funkcja.returnName,
                 true,
                 null,
                 AllocType.NORMAL,
@@ -503,7 +503,7 @@ class WolinStateObject(val pass: Pass) {
         if (!funkcja.type.isUnit) {
             callStack.add(
                 Zmienna(
-                    name = "${funkcja.fullName}.__returnValue",
+                    name = funkcja.returnName,
                     immutable = false,
                     allocation = AllocType.NORMAL,
                     fieldType = FieldType.LOCAL,
@@ -537,8 +537,10 @@ class WolinStateObject(val pass: Pass) {
     fun fnCallReleaseRet(funkcja: Funkcja) {
         if (pass == Pass.SYMBOLS) return
 
-        if (!funkcja.type.isUnit)
+        if (!funkcja.type.isUnit) {
+            rem("***** fnCallReleaseRet usuwanie zwrotki ${funkcja.fullName} ze stosu")
             callStack.pop()
+        }
     }
 
     fun fnDeclAllocStackAndRet(funkcja: Funkcja) {
@@ -547,7 +549,7 @@ class WolinStateObject(val pass: Pass) {
         if (!funkcja.type.isUnit) {
             callStack.add(
                 Zmienna(
-                    name = "${funkcja.fullName}.__returnValue",
+                    name = funkcja.returnName,
                     immutable = false,
                     allocation = AllocType.NORMAL,
                     fieldType = FieldType.LOCAL,
@@ -578,8 +580,10 @@ class WolinStateObject(val pass: Pass) {
         if (suma > 0)
             code("free SPF<${funkcja.fullName}.__fnargs>, #$suma // free fn arguments and locals for ${funkcja.fullName}")
 
-        if (!funkcja.type.isUnit)
+        if (!funkcja.type.isUnit) {
+            rem("***** fnDeclFreeStackAndRet usuwanie zwrotki ${funkcja.fullName} ze stosu")
             callStack.pop()
+        }
 
         code("// caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!")
     }
