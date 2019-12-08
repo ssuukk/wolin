@@ -36,7 +36,7 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
                     val r = createReg(template)
                     if (r != null) {
                         registers[r.numer] = r
-                        println("wykryte:${r.wielkość},${r.numer}")
+                        println("Reg found: reg${r.numer} (${r.wielkość}b)")
                     }
                 }
             }
@@ -46,6 +46,9 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
     fun markSingleAssignmentRegs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         registers.forEach {
             checkIfOnlyOneAssignment(ctx, it.value.numer)
+        }
+        registers.filter { it.value.singleAssign }.forEach {
+            println("Single assignment:${it}")
         }
     }
 
@@ -154,11 +157,9 @@ allocSP<>,#4 // x = x+2
 
     fun removeAndShift(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         registers.filter { it.value.canBeRemoved }.map { it.value }.forEach { removedRegistr ->
-
             ctx.children.iterator().let { linieIterator ->
                 while (linieIterator.hasNext()) {
                     val linia = linieIterator.next()
-
                     if (linia is PseudoAsmParser.LiniaContext) {
 
                         // jeśli free/alloc lub przypisanie do danego rejestru, to usunąć i przesunąć wektory
@@ -278,7 +279,7 @@ allocSP<>,#4 // x = x+2
                                     val operandContext = spfRegContext.value.argContext?.children?.get(0) as PseudoAsmParser.OperandContext
                                     val currentVector = extractSPVector(spfRegContext.value.argContext!!.operand())
                                     val newVector = currentVector-spfDelta
-                                    println("przesuwam rejestrze ${spfRegContext.key} wektor SPF: $newVector!")
+                                    //println("przesuwam rejestrze ${spfRegContext.key} wektor SPF: $newVector!")
                                     changeVector(operandContext, newVector)
                                     spfRegContext.value.argContext?.children?.set(0,copy(operandContext))
                                 }
@@ -299,7 +300,7 @@ allocSP<>,#4 // x = x+2
                                     val operandContext = spfRegContext.value.argContext?.children?.get(0) as PseudoAsmParser.OperandContext
                                     val currentVector = extractSPVector(spfRegContext.value.argContext!!.operand())
                                     val newVector = currentVector+spfDelta
-                                    println("przesuwam rejestrze ${spfRegContext.key} wektor SPF: $newVector!")
+                                    //println("przesuwam rejestrze ${spfRegContext.key} wektor SPF: $newVector!")
                                     changeVector(operandContext, newVector)
                                     spfRegContext.value.argContext?.children?.set(0,copy(operandContext))
                                 }
@@ -313,9 +314,6 @@ allocSP<>,#4 // x = x+2
                     if (firstArg?.numer == regNr) {
                         println("Mogę zastąpić tu pierwszy:${linia.text}")
                         try {
-                            if(regNr == 18) {
-                                println("tu!")
-                            }
                             val correctedFirstArg = replaceInArg(linia.arg(0), registers[regNr]!!.argContext!!)
 
                             val kopia = PseudoAsmParser.ArgContext(correctedFirstArg.ruleContext as ParserRuleContext, correctedFirstArg.invokingState)
@@ -390,7 +388,6 @@ allocSP<>,#4 // x = x+2
 
                 val nazwa = linia.arg(0)?.operand()?.name(0)?.identifier()?.simpleIdentifier(0)?.text // __wolin_reg3
 
-
                 if (instrukcja == "alloc") {
                     if (firstArg?.numer == nr) {
                         state.insideOptimizedReg = nr
@@ -404,7 +401,7 @@ allocSP<>,#4 // x = x+2
 
                     when {
                         linia.arg().size > 1 -> target.singleAssign = false
-                        instrukcja == "let" && nazwa != "returnValue" -> {
+                        instrukcja == "let" /*&& nazwa != "returnValue"*/ -> {
                             // first arg == null -> not SP reg, shouldn't be opimized
                             target.singleAssign = true
                             target.argContext = linia.arg(0)

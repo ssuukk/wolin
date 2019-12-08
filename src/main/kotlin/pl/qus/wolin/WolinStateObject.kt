@@ -463,7 +463,7 @@ class WolinStateObject(val pass: Pass) {
 
         val retZmienna =
             Zmienna(
-                "returnValue",
+                "${funkcja.fullName}.__returnValue",
                 true,
                 null,
                 AllocType.NORMAL,
@@ -503,7 +503,7 @@ class WolinStateObject(val pass: Pass) {
         if (!funkcja.type.isUnit) {
             callStack.add(
                 Zmienna(
-                    name = "returnValue",
+                    name = "${funkcja.fullName}.__returnValue",
                     immutable = false,
                     allocation = AllocType.NORMAL,
                     fieldType = FieldType.LOCAL,
@@ -547,7 +547,7 @@ class WolinStateObject(val pass: Pass) {
         if (!funkcja.type.isUnit) {
             callStack.add(
                 Zmienna(
-                    name = "returnValue",
+                    name = "${funkcja.fullName}.__returnValue",
                     immutable = false,
                     allocation = AllocType.NORMAL,
                     fieldType = FieldType.LOCAL,
@@ -576,7 +576,7 @@ class WolinStateObject(val pass: Pass) {
         }
 
         if (suma > 0)
-            code("free SPF, #$suma // free fn arguments and locals for ${funkcja.fullName}")
+            code("free SPF<${funkcja.fullName}.__fnargs>, #$suma // free fn arguments and locals for ${funkcja.fullName}")
 
         if (!funkcja.type.isUnit)
             callStack.pop()

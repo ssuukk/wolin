@@ -774,7 +774,7 @@ class WolinVisitor(
 
                         state.fnCallReleaseRet(prototyp)
 
-                        state.code("free SPF <${prototyp.type.name}>, #${prototyp.type.sizeOnStack}")
+                        state.code("free SPF<${prototyp.fullName}.__returnValue>, #${prototyp.type.sizeOnStack}")
 
                         if (state.currentClass != null)
                             state.code("setup HEAP = this")
@@ -1546,7 +1546,7 @@ class WolinVisitor(
             nowa.location = lokacjaAdres.intValue.toInt()
             nowa.fullName = functionName
 
-            val zwrotka = state.createVar("returnValue", ctx.type(0), null, FieldType.ARGUMENT)
+            val zwrotka = state.createVar("${nowa.fullName}.__returnValue", ctx.type(0), null, FieldType.ARGUMENT)
 
             nowa.type = zwrotka.type.copy()
 
@@ -1582,7 +1582,7 @@ class WolinVisitor(
         """.trimMargin()
         )
 
-        state.code("label ${state.currentFunction!!.labelName}")
+        state.code("function ${state.currentFunction!!.labelName}")
 
 //        if(state.currentClass != null) {
 //            //state.code("let __wolin_this_ptr[adr] = SPF(0)<this>[adr] // ustawienie this TODO - zapamiętać poprzedni this!!!!")
@@ -1636,7 +1636,7 @@ class WolinVisitor(
         """.trimMargin()
         )
 
-        state.code("label ${konstruktor.labelName}")
+        state.code("function ${konstruktor.labelName}")
 
         state.fnDeclAllocStackAndRet(konstruktor)
 
@@ -1646,7 +1646,7 @@ class WolinVisitor(
 
         val typZwrotki = Typ(state.currentClass!!.name, false, true)
 
-        val zwrotka = state.createAndRegisterVar("returnValue", AllocType.NORMAL, typZwrotki, FieldType.ARGUMENT)
+        val zwrotka = state.createAndRegisterVar("${konstruktor.fullName}.__returnValue", AllocType.NORMAL, typZwrotki, FieldType.ARGUMENT)
 
         val funkcjaAlloc = state.findProc("allocMem").apply {
             if (state.pass == Pass.TRANSLATION) {
@@ -2009,7 +2009,7 @@ class WolinVisitor(
                 )
             } else {
                 state.code(
-                    "let SPF(${found.first})[${found.second.type.typeForAsm}] = #${it.immediateValue}[${it.type.typeForAsm}]"
+                    "let SPF(${found.first})<${found.second.name}>[${found.second.type.typeForAsm}] = #${it.immediateValue}[${it.type.typeForAsm}]"
                 )
             }
         }
@@ -2027,7 +2027,7 @@ class WolinVisitor(
 
         state.fnCallReleaseRet(functionToCall)
 
-        state.code("free SPF <${functionToCall.type.name}>, #${functionToCall.type.sizeOnStack} // free return value of ${functionToCall.fullName} from call stack")
+        state.code("free SPF <${functionToCall.fullName}.__returnValue>, #${functionToCall.type.sizeOnStack} // free return value of ${functionToCall.fullName} from call stack")
     }
 
     fun processTypeChangingOp(
@@ -2094,10 +2094,6 @@ class WolinVisitor(
             RegOper.VALUE
         else
             derefDo
-
-        if(co.name == "__wolin_reg8") {
-            println("tu!")
-        }
 
         val finalDerefCo = if(derefCo == RegOper.STAR && co.type.isPointer)
             RegOper.VALUE

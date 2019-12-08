@@ -489,12 +489,19 @@ setup HEAP = this -> """
     lda (__wolin_spf),y
     sta __wolin_this_ptr+1"""
 
+setup HEAP = SPF(?src)[uword] -> """
+    ldy #{src} ; this pointer from SPF to this pointer on ZP
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr
+    iny
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr+1"""
+
 setup HEAP = SP(?src)[any*] -> """
     lda {src},x
     sta __wolin_this_ptr
     lda {src}+1,x
     sta __wolin_this_ptr+1"""
-
 
 let SP(?dest)[ubyte] = HEAP(?src)[ubyte] -> """
     ldy #{src} ; assuming this ZP is set!
@@ -642,19 +649,29 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // nowe adresy
 //============================================
 
-
-
 let SP(?dst)[any*] = SPF(?src)[any*] -> """
     ldy #{src}
     lda (__wolin_spf),y
-    sta {src},x
+    sta {dst},x
     iny
     lda (__wolin_spf),y
-    sta {src}+1,x"""
+    sta {dst}+1,x"""
 
 let &SP(?dst)[ubyte*] = SP(?src)[ubyte] -> """
     lda {src},x
     sta ({dst},x)"""
+
+// let &SP(0)<__wolin_reg16>[ubyte*] = SPF(2)<returnValue>[ubyte]
+let &SP(?dst)[ubyte*] = SPF(?src)[ubyte] -> """
+    txa
+    pha
+    ldy #{src}
+    lda (__wolin_spf),y
+    ldx #{dst}
+    sta (__wolin_spf,x)
+    pla
+    txa
+"""
 
 // load addr of fnstack reg into SP
 let SP(?dst)[ubyte*] = *SPF(?src)[ubyte] -> """
@@ -681,6 +698,17 @@ let SP(?dst)[ubyte*] = *HEAP(?src)[ubyte] -> """
 let SPF(?dst)[ubyte] = &SP(?src)[ubyte*] -> """
     lda ({src},x)
     ldy #{dst}
+    sta (__wolin_spf),y
+"""
+
+let SPF(?dst)[any*] = SPF(?src)[uword] -> """
+    ldy #{src}
+    lda (__wolin_spf),y
+    ldy #{dst}
+    sta (__wolin_spf),y
+    ldy #{src}+1
+    lda (__wolin_spf),y
+    ldy #{dst}+1
     sta (__wolin_spf),y
 """
 
@@ -841,6 +869,8 @@ crash -> """    brk"""
 label ?a = ?b -> """{a} = {b}"""
 
 label ?a -> """{a}:"""
+
+function ?a -> """{a}:"""
 
 throw ?exception[uword] -> """
     lda #<{exception}

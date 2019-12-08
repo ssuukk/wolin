@@ -311,6 +311,23 @@ ret
 
         visitor.removeAndShift(asmContext)
 
+        // TODO - przesunąć deallokacje SPF za ostatnie użycie danego rejestru
+        /*
+call __wolin_pl_qus_wolin_allocMem[adr]
+free SPF<pl.qus.wolin.allocMem.__returnValue>, #2 <------- musi być na końcu
+let SPF(0)<pl.qus.wolin.SomeClass.pl.qus.wolin.SomeClass.__returnValue>[any*] = SPF(2)<pl.qus.wolin.allocMem.__returnValue>[uword]
+setup HEAP = SPF(2)<pl.qus.wolin.allocMem.__returnValue>[uword]
+<----- tu musi być
+         */
+        // TODO - przesunąć wektory SPF posługując się stosem funkcji
+        /*
+call __wolin_pl_qus_wolin_allocMem[adr]
+let SPF(2)<pl.qus.wolin.SomeClass.pl.qus.wolin.SomeClass.__returnValue>[any*] = SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
+setup HEAP = SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
+free SPF<pl.qus.wolin.allocMem.__returnValue>, #2
+
+         */
+
         outStream.use {
 
             asmContext.linia().iterator().forEach {

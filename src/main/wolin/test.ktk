@@ -12,7 +12,7 @@ fun allocMem(size: uword, count: uword): uword {
     return 30000
 }
 
-class SomeClass {
+class SummingClass {
     var x: ubyte = 3
     var y: ubyte = 7
 
@@ -24,9 +24,9 @@ class SomeClass {
 fun main() {
 
 
-        val testowa : SomeClass
+        val testowa : SummingClass
 
-        testowa = SomeClass()
+        testowa = SummingClass()
 
         border = testowa.suma()
 

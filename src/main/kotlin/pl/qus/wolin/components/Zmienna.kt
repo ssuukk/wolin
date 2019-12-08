@@ -24,9 +24,6 @@ class Zmienna(
             return typexxx
         }
         set(value) {
-            if(name == "__wolin_reg8") {
-                println("tu!")
-            }
             typexxx = value
         }
 
