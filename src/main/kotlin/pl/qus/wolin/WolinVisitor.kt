@@ -802,7 +802,7 @@ class WolinVisitor(
                                     )}, #1[${zmienna.type.typeForAsm}] // simple id"
                                 )
 
-                                state.switchType(zmienna.type, "++ operator")
+                                state.switchType(zmienna.type, "++ operator", true)
                             }
                             atomEx.literalConstant() != null -> {
 
@@ -830,7 +830,7 @@ class WolinVisitor(
                                     )}, #1[${zmienna.type.typeForAsm}] // simple id"
                                 )
 
-                                state.switchType(zmienna.type, "-- operator")
+                                state.switchType(zmienna.type, "-- operator", true)
                             }
                             atomEx.literalConstant() != null -> {
 

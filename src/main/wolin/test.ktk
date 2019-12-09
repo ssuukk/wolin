@@ -7,7 +7,7 @@ var ekran: ubyte[]^1024
 var i: uword = 0
 
 var znak: ubyte = 0
-
+/*
 fun allocMem(size: uword, count: uword): uword {
     return 30000
 }
@@ -20,17 +20,16 @@ class SummingClass {
         return x+y
     }
 }
-
+*/
 fun main() {
 
-
+/*
         val testowa : SummingClass
 
         testowa = SummingClass()
 
         border = testowa.suma()
-
-/*
+*/
     //    testowa.x = 10
     //    testowa.y = 2
 
@@ -42,6 +41,5 @@ fun main() {
         ekran[i++] = znak++
     }
 
-*/
 
 }
