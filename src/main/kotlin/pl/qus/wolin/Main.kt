@@ -8,6 +8,74 @@ import java.io.*
 object Main {
     /*
 
+
+http://c64os.com/post/rethinkingthememmap
+
+$DD00 = xxxxxx00 daje VIC w C000-FFFF
+
+lda $DD00
+and #%11111100
+//ora #%000000xx ;<- your desired VIC bank value, see above
+sta $DD00
+
+czyli wtedy:
+
+C000-CFFF - ram
+D000-DFFF - I/O, CHAR SET, COLOR BUFFER, SCREEN BUFFER
+E000-FFFF - KERNAL, BITMAP
+
+w adresie 1 umieścić:
+
+30, 14	X	1	1	1	0	RAM	RAM	RAM	RAM	RAM	I/O	KERNAL ROM
+
+
+
+ The 6510's Perspective                            The VIC-II's Perspective *
++--------------------------------------------+  +--------------------------------------------+
+| $E000 - $FFFF - KERNAL ROM              8K |  | $2000 - $3FFF - BITMAP SCREEN BUFFER    8K |
+|               - BITMAP SCREEN BUFFER       |  |               - 2 SPRITES                  |
+|               - MUSIC BUFFER               |  |                                            |
+|               - UNSTRUCTURED FREE SPACE    |  |                                            |
++--------------------------------------------+  +--------------------------------------------+
+| $D000 - $DFFF - I/O, CHAR SET           4K |  | $1000 - $1FFF - CHAR SET                4K |
+|               - COLOR BUFFER, SCRN BUFFER  |  |               - SCREEN MATRIX              |
++--------------------------------------------+  +--------------------------------------------+
+| $B000 - $CFFF - C64 OS KERNAL           8K |  | $0000 - $0FFF - C64 OS KERNAL           4K |
+|                                            |  |                                            |
+|                                            |  +--------------------------------------------+
+|                                            |  Lower three banks, not visible.
++--------------------------------------------+
+| $0500 - $AFFF - PAGE ALLOCATED SPACE   42K |  * Updated, thanks to comment poster zu03776.
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
+|                                            |
++--------------------------------------------+
+| $0000 - $04FF - SYSTEM, STACK, PG MMAP <2K |
++--------------------------------------------+
+
+
+32 bajty = 256 bitów
+1 bit = blok 256 bajtów wolny/zajęty
+
 ******************************************
 C64 specific
 ******************************************

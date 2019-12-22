@@ -50,23 +50,16 @@ __wolin_this_ptr := 176
 __wolin_this_ptr_hi := 176+1
 
 
-; let__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]=#0[ubyte]
+; allocSPF,#2
 
 
-    lda #<0
-    sta __wolin_pl_qus_wolin_i
-    lda #0
-    sta __wolin_pl_qus_wolin_i+1
-
-; let__wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte]=#0[ubyte]
-
-
-    lda #0
-    sta __wolin_pl_qus_wolin_znak
-
-; allocSPF,#0
-
- 
+    clc
+    lda __wolin_spf
+    sbc #2
+    sta __wolin_spf
+    bcs :+
+    dec __wolin_spf+1
+:
 
 ; call__wolin_pl_qus_wolin_main[adr]
 
@@ -76,125 +69,401 @@ __wolin_this_ptr_hi := 176+1
 
     rts
 
+; function__wolin_pl_qus_wolin_allocMem
+
+__wolin_pl_qus_wolin_allocMem:
+
+; letSPF(4)<pl.qus.wolin.allocMem.__returnValue>[uword]=#30000[uword]
+
+
+    ldy #4
+    lda #<30000
+    sta (__wolin_spf),y
+    iny
+    lda #>30000
+    sta (__wolin_spf),y
+
+; freeSPF<pl.qus.wolin.allocMem.__fnargs>,#4
+
+
+    clc
+    lda __wolin_spf
+    adc #4
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
+
+; ret
+
+    rts
+
+; function__wolin_pl_qus_wolin_SummingClass
+
+__wolin_pl_qus_wolin_SummingClass:
+
+; allocSPF,#6
+
+
+    clc
+    lda __wolin_spf
+    sbc #6
+    sta __wolin_spf
+    bcs :+
+    dec __wolin_spf+1
+:
+
+; letSPF(2)<pl.qus.wolin.allocMem.size>[uword]=#3[uword]
+
+
+    ldy #2
+    lda #<3
+    sta (__wolin_spf),y
+    iny
+    lda #>3
+    sta (__wolin_spf),y
+
+; letSPF(0)<pl.qus.wolin.allocMem.count>[uword]=#1[uword]
+
+
+    ldy #0
+    lda #<1
+    sta (__wolin_spf),y
+    iny
+    lda #>1
+    sta (__wolin_spf),y
+
+; call__wolin_pl_qus_wolin_allocMem[adr]
+
+    jsr __wolin_pl_qus_wolin_allocMem
+
+; letSPF(2)<pl.qus.wolin.SummingClass.__returnValue>[any*]=SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
+
+
+    ldy #0
+    lda (__wolin_spf),y
+    ldy #2
+    sta (__wolin_spf),y
+    ldy #0+1
+    lda (__wolin_spf),y
+    ldy #2+1
+    sta (__wolin_spf),y
+
+
+; setupHEAP=SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
+
+
+    ldy #0 ; this pointer from SPF to this pointer on ZP
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr
+    iny
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr+1
+
+; letHEAP(2)<pl.qus.wolin.SummingClass.x>[ubyte]=#1[ubyte]
+
+
+    lda #1
+    ldy #2
+    sta (__wolin_this_ptr),y
+
+; letHEAP(1)<pl.qus.wolin.SummingClass.y>[ubyte]=#1[ubyte]
+
+
+    lda #1
+    ldy #1
+    sta (__wolin_this_ptr),y
+
+; freeSPF<pl.qus.wolin.allocMem.__returnValue>,#2
+
+
+    clc
+    lda __wolin_spf
+    adc #2
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
+
+; ret
+
+    rts
+
+; function__wolin_pl_qus_wolin_SummingClass_sum
+
+__wolin_pl_qus_wolin_SummingClass_sum:
+
+; setupHEAP=this
+
+
+    ldy #0 ; this pointer from SPF to this pointer on ZP
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr
+    iny
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr+1
+
+; allocSP<__wolin_reg6>,#2
+
+
+    dex
+    dex
+
+; letSP(0)<__wolin_reg6>[ubyte*]=*HEAP(2)<pl.qus.wolin.SummingClass.x>[ubyte]
+
+
+    clc
+    lda __wolin_this_ptr
+    adc #2
+    sta 0,x
+    lda __wolin_this_ptr+1
+    adc #0
+    sta 0+1,x
+
+; add&SP(0)<__wolin_reg6>[ubyte*]=&SP(0)<__wolin_reg6>[ubyte*],HEAP(1)<pl.qus.wolin.SummingClass.y>[ubyte]
+
+
+    clc
+    lda (0,x)
+    ldy #1
+    adc (__wolin_this_ptr), y
+    sta (0,x)
+
+
+; letSPF(2)<pl.qus.wolin.SummingClass.sum.__returnValue>[ubyte]=&SP(0)<__wolin_reg6>[ubyte*]
+
+
+    lda (0,x)
+    ldy #2
+    sta (__wolin_spf),y
+
+
+; freeSP<__wolin_reg6>,#2
+
+
+    inx
+    inx
+
+; freeSPF<pl.qus.wolin.SummingClass.sum.__fnargs>,#2
+
+
+    clc
+    lda __wolin_spf
+    adc #2
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
+
+; ret
+
+    rts
+
 ; function__wolin_pl_qus_wolin_main
 
 __wolin_pl_qus_wolin_main:
 
-; allocSP<__wolin_reg4>,#1
+; allocSP<__wolin_reg11>,#2
+
 
     dex
+    dex
 
-; label__wolin_lab_loopStart_1
-
-__wolin_lab_loopStart_1:
-
-; evallessSP(0)<__wolin_reg4>[bool]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword],#1000[uword]
+; letSP(0)<__wolin_reg11>[any*]=SPF(0)<pl.qus.wolin.main..obj>[any*]
 
 
-    lda #1 ; mniejsze
+    ldy #0
+    lda (__wolin_spf),y
     sta 0,x
-    lda __wolin_pl_qus_wolin_i+1
-    cmp #>1000
-    bcc :+ ; mniejsze
-    lda __wolin_pl_qus_wolin_i
-    cmp #<1000
-    bcc :+ ; mniejsze
-    lda #0 ; jednak wieksze
-    sta 0,x
+    iny
+    lda (__wolin_spf),y
+    sta 0+1,x
+
+; allocSP<__wolin_reg12>,#2
+
+
+    dex
+    dex
+
+; allocSPF,#2
+
+
+    clc
+    lda __wolin_spf
+    sbc #2
+    sta __wolin_spf
+    bcs :+
+    dec __wolin_spf+1
 :
 
+; call__wolin_pl_qus_wolin_SummingClass[adr]
 
-; bneSP(0)<__wolin_reg4>[bool]=#1[bool],__wolin_lab_loopEnd_1<label_po_if>[adr]
+    jsr __wolin_pl_qus_wolin_SummingClass
 
-
-    lda 0,x
-    beq __wolin_lab_loopEnd_1
-
-; allocSP<__wolin_reg9>,#2
+; letSP(0)<__wolin_reg12>[any*]=SPF(0)<pl.qus.wolin.SummingClass.__returnValue>[any*]
 
 
-    dex
-    dex
-
-; allocSP<__wolin_reg10>,#2
-
-
-    dex
-    dex
-
-; letSP(0)<__wolin_reg10>[ubyte*]=1024[ubyte*]
-
-
-    lda #<1024
+    ldy #0
+    lda (__wolin_spf),y
     sta 0,x
-    lda #>1024
+    iny
+    lda (__wolin_spf),y
     sta 0+1,x
 
-; add__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword],#1[uword]
+; let&SP(2)<__wolin_reg11>[any*]=&SP(0)<__wolin_reg12>[any*]
 
 
-    clc
-    lda __wolin_pl_qus_wolin_i
-    adc #<1
-    sta __wolin_pl_qus_wolin_i
-    lda __wolin_pl_qus_wolin_i+1
-    adc #>1
-    sta __wolin_pl_qus_wolin_i+1
+    ; take value that is located at address stored in 0
+    lda (0,x)
+    ; store it at address stored in 2
+    sta (2,x)
+
+    inc 0,x
+    bne :+
+    inc 0+1,x
+:
+    lda (0,x)
+    sta (2,x)
 
 
-; addSP(0)<__wolin_reg10>[ubyte*]=SP(0)<__wolin_reg10>[ubyte*],__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]
-
-
-    clc
-    lda 0,x
-    adc __wolin_pl_qus_wolin_i
-    sta 0,x
-    lda 0+1,x
-    adc __wolin_pl_qus_wolin_i+1
-    sta 0+1,x
-
-; letSP(2)<__wolin_reg9>[ubyte*]=SP(0)<__wolin_reg10>[ubyte*]
-
-
-    lda 0,x
-    sta 2,x
-    lda 0+1,x
-    sta 2+1,x
-
-; freeSP<__wolin_reg10>,#2
+; freeSP<__wolin_reg12>,#2
 
 
     inx
     inx
 
-; add__wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte]=__wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte],#1[ubyte]
+; freeSP<__wolin_reg11>,#2
 
 
-    inc __wolin_pl_qus_wolin_znak
+    inx
+    inx
 
-; let&SP(0)<__wolin_reg9>[ubyte*]=__wolin_pl_qus_wolin_znak<pl.qus.wolin.znak>[ubyte]
+; allocSP<__wolin_reg14>,#2
 
 
-    lda __wolin_pl_qus_wolin_znak
+    dex
+    dex
+
+; let&SP(0)<__wolin_reg14>[ubyte*]=#2[ubyte]
+
+
+    lda #2
     sta (0,x)
 
-; freeSP<__wolin_reg9>,#2
+; freeSP<__wolin_reg14>,#2
 
 
     inx
     inx
 
-; goto__wolin_lab_loopStart_1[adr]
+; allocSP<__wolin_reg19>,#2
 
-    jmp __wolin_lab_loopStart_1
 
-; label__wolin_lab_loopEnd_1
+    dex
+    dex
 
-__wolin_lab_loopEnd_1:
+; let&SP(0)<__wolin_reg19>[ubyte*]=#4[ubyte]
 
-; freeSP<__wolin_reg4>,#1
+
+    lda #4
+    sta (0,x)
+
+; freeSP<__wolin_reg19>,#2
+
 
     inx
+    inx
+
+; allocSP<__wolin_reg24>,#2
+
+
+    dex
+    dex
+
+; letSP(0)<__wolin_reg24>[ubyte*]=53280[ubyte*]
+
+
+    lda #<53280
+    sta 0,x
+    lda #>53280
+    sta 0+1,x
+
+; allocSPF,#3
+
+
+    clc
+    lda __wolin_spf
+    sbc #3
+    sta __wolin_spf
+    bcs :+
+    dec __wolin_spf+1
+:
+
+; letSPF(0)[any*]=SPF(2)<pl.qus.wolin.main..obj>[any*]
+
+
+    ldy #2
+    lda (__wolin_spf),y
+    ldy #0
+    sta (__wolin_spf),y
+    ldy #2
+    iny
+    lda (__wolin_spf),y
+    ldy #0
+    iny
+    sta (__wolin_spf),y
+
+
+; call__wolin_pl_qus_wolin_SummingClass_sum[adr]
+
+    jsr __wolin_pl_qus_wolin_SummingClass_sum
+
+; let&SP(0)<__wolin_reg24>[ubyte*]=SPF(0)<pl.qus.wolin.SummingClass.sum.__returnValue>[ubyte]
+
+
+    ldy #0
+    lda (__wolin_spf),y
+    sta (0,x)
+
+
+; freeSP<__wolin_reg24>,#2
+
+
+    inx
+    inx
+
+; freeSPF<pl.qus.wolin.main.__fnargs>,#1
+
+
+    clc
+    lda __wolin_spf
+    adc #1
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
+
+; freeSPF<pl.qus.wolin.SummingClass.__returnValue>,#2
+
+
+    clc
+    lda __wolin_spf
+    adc #2
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
+
+; freeSPF<pl.qus.wolin.SummingClass.sum.__returnValue>,#1
+
+
+    clc
+    lda __wolin_spf
+    adc #1
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
 
 ; ret
 
@@ -207,20 +476,4 @@ __wolin_indirect_jsr:
 ; goto65535[adr]
 
     jmp 65535
-
-; label__wolin_pl_qus_wolin_i
-
-__wolin_pl_qus_wolin_i:
-
-; alloc0[uword]
-
-    .word 0
-
-; label__wolin_pl_qus_wolin_znak
-
-__wolin_pl_qus_wolin_znak:
-
-; alloc0[ubyte]
-
-    .byte 0
 

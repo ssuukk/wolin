@@ -649,6 +649,8 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // nowe adresy
 //============================================
 
+// let&SP(0)<__wolin_reg14>[ubyte*]=#3[ubyte]
+
 let SP(?dst)[any*] = SPF(?src)[any*] -> """
     ldy #{src}
     lda (__wolin_spf),y
@@ -656,6 +658,10 @@ let SP(?dst)[any*] = SPF(?src)[any*] -> """
     iny
     lda (__wolin_spf),y
     sta {dst}+1,x"""
+
+let &SP(?dst)[ubyte*] = #?val[ubyte] -> """
+    lda #{val}
+    sta ({dst},x)"""
 
 let &SP(?dst)[ubyte*] = SP(?src)[ubyte] -> """
     lda {src},x

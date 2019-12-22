@@ -498,34 +498,22 @@ class WolinVisitor(
 
     fun processAssignment(ctx: ParseTree, leftFunction: () -> WolinStateObject, rightFunction: () -> WolinStateObject) {
 
-        state.assignStack.push(AssignEntry())
 
         state.rem("")
+        state.rem("== ASSIGNMENT PUSH =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
+        state.assignStack.push(AssignEntry())
+        state.rem("")
         state.rem("== ASSIGNMENT LEFT =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
-        val leftSide = state.allocReg("ASSIGNMENT target")
+        state.assignStack.assignLeftSideVar = state.allocReg("ASSIGNMENT target (do assignLeftSideVar przypisano ${state.assignStack.assignLeftSideVar})")
 
         leftFunction()
-
-        state.assignStack.assignLeftSideVar = state.currentReg
-
         state.inferTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji! ROBIONE
 
-        val destinationReg = state.assignStack.assignLeftSideVar
-        val destinationType = destinationReg.type.copy()
-
-        //state.currentReg.type.isPointer = true
-        //state.inferTopOregType()
-
         state.rem("== ASSIGNMENT RIGHT =======================================")
+        state.assignStack.assignRightSideFinalVar = state.allocReg("ASSIGNMENT value (do assignRightSideFinalVar przypisano ${try state.assignStack.assignRightSideFinalVar})")
 
-        val rightFinalReg = state.allocReg("ASSIGNMENT value") // TODO - przy deref nie potrzebujemy i nie możemy mieć tego rejestru!
-        state.assignStack.assignRightSideFinalVar = rightFinalReg
         rightFunction()
-
-        //state.inferTopOregType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji!
-
-        //rightFinalReg.type = destinationType.arrayElementType.copy() // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
-        rightFinalReg.type = state.currentWolinType.copy() // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
+        state.assignStack.assignRightSideFinalVar.type = state.currentWolinType.copy() // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
 
 
 
@@ -535,7 +523,7 @@ class WolinVisitor(
 //        rightFinalReg.type.pointer = false // przy podstawieniu konkretnej wartości
 //        rightFinalReg.type.array = false
 
-        checkTypeAndAddAssignment(ctx, destinationReg, rightFinalReg, "process assignment", RegOper.AMPRESAND, RegOper.AMPRESAND)
+        checkTypeAndAddAssignment(ctx, state.assignStack.assignLeftSideVar, state.assignStack.assignRightSideFinalVar, "process assignment", RegOper.AMPRESAND, RegOper.AMPRESAND)
 
         if (state.assignStack.arrayAssign) {
             state.assignStack.arrayAssign = false
@@ -547,9 +535,9 @@ class WolinVisitor(
         state.freeReg("ASSIGNMENT target")
 
         state.rem("== ASSIGNMENT END =======================================")
-        state.rem("")
-
+        state.rem("== ASSIGNMENT POP =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
         state.assignStack.pop()
+        state.rem("")
     }
 
     override fun visitTypeRHS(ctx: KotlinParser.TypeRHSContext): WolinStateObject {
@@ -590,7 +578,7 @@ class WolinVisitor(
 
                             błędzik(
                                 ctx,
-                                "Nie umiem wykonać prefix unary operation dla ++"
+                                "Nie umiem wykonać prefix unary operation dla --"
                             )
 
 //                            when {
@@ -647,7 +635,7 @@ class WolinVisitor(
 //                            }
                             błędzik(
                                 ctx,
-                                "Nie umiem wykonać prefix unary operation dla --"
+                                "Nie umiem wykonać prefix unary operation dla ++"
                             )
                         }
                         else -> {
@@ -706,7 +694,7 @@ class WolinVisitor(
                         else if (state.classDerefStack.isEmpty() && prototyp.arguments.size != arguments.valueArgument()?.size)
                             błędzik(ctx, "Wrong number of arguments in function call $procName")
 
-                        state.switchType(prototyp.type, "function type 1")
+                        state.switchType(prototyp.type, "function return type 1")
                         //state.inferTopOperType()
 
                         state.rem("")
@@ -752,7 +740,7 @@ class WolinVisitor(
                             state.freeReg("for call argument $i, type = ${prototyp.arguments[i].type}")
                         }
 
-                        state.switchType(prototyp.type, "function type 2")
+                        state.switchType(prototyp.type, "function return type 2")
 
                         (prototyp.arguments.size - 1 downTo 0).forEach {
                             val arg = prototyp.arguments[it]
@@ -882,11 +870,22 @@ class WolinVisitor(
                             //state.currentWolinType.isPointer = true
                             state.rem("tu przywrócić poprzednią klasę")
 
-                            if(state.assignStack.assignRightSideFinalVar != null) {
-                                state.rem("deref: przypisanie aktualnego do right side final var --------------------")
-                                state.code("let ${state.varToAsm(state.assignStack.assignRightSideFinalVar)} = ${state.currentRegToAsm()}")
-                            }
+                            state.rem("==== KROK 1 memberAccessOperator: przypisanie aktualnego do czegoś --------------------")
 
+                            //checkTypeAndAddAssignment(ctx, state.assignStack.assignRightSideFinalVar, state.currentReg, "dereferejcya", RegOper.VALUE, RegOper.VALUE)
+                            // było
+                            try {
+                                checkTypeAndAddAssignment(
+                                    ctx,
+                                    state.assignStack.assignRightSideFinalVar,
+                                    state.currentReg,
+                                    "dereferejcya, right side final = ${state.assignStack.size}",
+                                    RegOper.VALUE,
+                                    RegOper.VALUE
+                                )
+                            } catch (ex: UninitializedPropertyAccessException) {
+
+                            }
                             state.classDerefStack.pop()
                         }
 
@@ -953,8 +952,8 @@ class WolinVisitor(
     }
 
     override fun visitArrayAccess(ctx: KotlinParser.ArrayAccessContext): WolinStateObject {
-        when {
-            ctx.expression().size == 1 -> {
+        when (ctx.expression().size) {
+            1 -> {
 
                 state.assignStack.first()?.isArray = true
 
@@ -1512,6 +1511,7 @@ class WolinVisitor(
                             checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "//simple id - assign in progress", RegOper.VALUE, RegOper.STAR)
                         }
                         else {
+                            state.currentReg.type.pointer = true
                             checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "simple id from var", RegOper.VALUE, RegOper.STAR)
                         }
                     }
@@ -1552,7 +1552,7 @@ class WolinVisitor(
             nowa.location = lokacjaAdres.intValue.toInt()
             nowa.fullName = functionName
 
-            val zwrotka = state.createVar("${nowa.returnName}", ctx.type(0), null, FieldType.ARGUMENT)
+            val zwrotka = state.createVar(nowa.returnName, ctx.type(0), null, FieldType.ARGUMENT)
 
             nowa.type = zwrotka.type.copy()
 

@@ -808,7 +808,7 @@ class WolinStateObject(val pass: Pass) {
             else -> "call ${proc.labelName}[adr]\n"
         }
 
-        switchType(proc.type, "function call")
+        switchType(proc.type, "function call", false)
 
         return call
     }

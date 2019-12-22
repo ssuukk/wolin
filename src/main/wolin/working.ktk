@@ -143,4 +143,15 @@ fun main() {
 
     //lam = { a -> 5 }
 
+var ekran: ubyte[]^1024
+
+var i: uword = 0
+
+var znak: ubyte = 0
+
+
+    while(i<1000) {
+        ekran[i++] = znak++
+    }
+
 }
