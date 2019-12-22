@@ -8,7 +8,7 @@ import pl.qus.wolin.exception.RegTypeMismatchException
 import java.lang.Exception
 
 enum class Pass {
-    SYMBOLS, DECLARATION, TRANSLATION
+    SYMBOLS, DECLARATION, TRANSLATION 
 }
 
 class WolinVisitor(
@@ -510,7 +510,7 @@ class WolinVisitor(
         state.inferTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji! ROBIONE
 
         state.rem("== ASSIGNMENT RIGHT =======================================")
-        state.assignStack.assignRightSideFinalVar = state.allocReg("ASSIGNMENT value (do assignRightSideFinalVar przypisano ${try state.assignStack.assignRightSideFinalVar})")
+        state.assignStack.assignRightSideFinalVar = state.allocReg("ASSIGNMENT value (do assignRightSideFinalVar przypisano ${state.assignStack.assignRightSideFinalVar})")
 
         rightFunction()
         state.assignStack.assignRightSideFinalVar.type = state.currentWolinType.copy() // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
