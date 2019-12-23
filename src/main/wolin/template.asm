@@ -481,7 +481,7 @@ let ?addr[uword] = SPE(?s)[uword] -> """
 //============================================
 
 // for setting this pointer when in method
-setup HEAP = this -> """
+point HEAP = this -> """
     ldy #0 ; this pointer from SPF to this pointer on ZP
     lda (__wolin_spf),y
     sta __wolin_this_ptr
@@ -489,7 +489,7 @@ setup HEAP = this -> """
     lda (__wolin_spf),y
     sta __wolin_this_ptr+1"""
 
-setup HEAP = SPF(?src)[uword] -> """
+point HEAP = SPF(?src)[uword] -> """
     ldy #{src} ; this pointer from SPF to this pointer on ZP
     lda (__wolin_spf),y
     sta __wolin_this_ptr
@@ -497,11 +497,20 @@ setup HEAP = SPF(?src)[uword] -> """
     lda (__wolin_spf),y
     sta __wolin_this_ptr+1"""
 
-setup HEAP = SP(?src)[any*] -> """
+point HEAP = SPF(?src)[any*] -> """
+    ldy #{src} ; this pointer from SPF to this pointer on ZP
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr
+    iny
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr+1"""
+
+point HEAP = SP(?src)[any*] -> """
     lda {src},x
     sta __wolin_this_ptr
     lda {src}+1,x
     sta __wolin_this_ptr+1"""
+
 
 let SP(?dest)[ubyte] = HEAP(?src)[ubyte] -> """
     ldy #{src} ; assuming this ZP is set!

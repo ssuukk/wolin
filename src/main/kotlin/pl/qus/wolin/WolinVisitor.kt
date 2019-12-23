@@ -504,13 +504,15 @@ class WolinVisitor(
         state.assignStack.push(AssignEntry())
         state.rem("")
         state.rem("== ASSIGNMENT LEFT =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
-        state.assignStack.assignLeftSideVar = state.allocReg("ASSIGNMENT target (do assignLeftSideVar przypisano ${state.assignStack.assignLeftSideVar})")
+        state.assignStack.assignLeftSideVar = state.allocReg("ASSIGNMENT target")
+        try { state.rem("(do assignLeftSideVar przypisano ${state.assignStack.assignLeftSideVar})") } catch (ex: UninitializedPropertyAccessException) {}
 
         leftFunction()
         state.inferTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji! ROBIONE
 
         state.rem("== ASSIGNMENT RIGHT =======================================")
-        state.assignStack.assignRightSideFinalVar = state.allocReg("ASSIGNMENT value (do assignRightSideFinalVar przypisano ${state.assignStack.assignRightSideFinalVar})")
+        state.assignStack.assignRightSideFinalVar = state.allocReg("ASSIGNMENT value")
+        try { state.rem("(do assignRightSideFinalVar przypisano ${state.assignStack.assignRightSideFinalVar})") } catch (ex: UninitializedPropertyAccessException) {}
 
         rightFunction()
         state.assignStack.assignRightSideFinalVar.type = state.currentWolinType.copy() // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
@@ -769,7 +771,7 @@ class WolinVisitor(
                         //state.code("free SPF<${prototyp.fullName}.__returnValue>, #${prototyp.type.sizeOnStack}")
 
                         if (state.currentClass != null)
-                            state.code("setup HEAP = this")
+                            state.code("point HEAP = this")
 
                         state.rem("== FN_CALL END: ${prototyp.fullName} ========")
                         state.rem("")
@@ -835,13 +837,15 @@ class WolinVisitor(
 
                         //val dereferenced = state.allocReg("dereferenced var")
 
+                        val returnReg = state.currentReg
+
                         state.rem(" deref: obiekt --------------------")
-                        val dereferenced = state.allocReg("dereferenced object"/*,Typ.ubyte*/)
+                        val dereferenced = state.allocReg("dereference temp"/*,Typ.ubyte*/)
                         visitAtomicExpression(atomEx)
 
-                        val resultReg = state.allocReg("call result", Typ.ubyte)
 
                         val classDeref = if(state.currentWolinType.isClass) {
+                            state.code("point HEAP = ${state.varToAsm(dereferenced)}")
                             state.rem("to jest klasa zmieniamy chwilowo aktualną")
                             state.rem("jesli tak, to na gorze heapu jest uniqid klasy")
                             //val akt = state.regFromTop(1)
@@ -855,6 +859,9 @@ class WolinVisitor(
                         // TODO tu podstawiamy pod aktualny rejestr instancje jakiejś klasy
 
                         state.rem(" deref: pole/metoda --------------------")
+
+
+                        val resultReg = state.allocReg("deref register", Typ.ubyte)
 
                         //val reg = state.allocReg("for right side of deref")
                         val safeDeref = prawo.memberAccessOperator().QUEST() != null
@@ -877,7 +884,7 @@ class WolinVisitor(
                             try {
                                 checkTypeAndAddAssignment(
                                     ctx,
-                                    state.assignStack.assignRightSideFinalVar,
+                                    returnReg,
                                     state.currentReg,
                                     "dereferejcya, right side final = ${state.assignStack.size}",
                                     RegOper.VALUE,
@@ -889,8 +896,9 @@ class WolinVisitor(
                             state.classDerefStack.pop()
                         }
 
-                        state.freeReg("call result")
-                        state.freeReg("next deref level")
+                        state.freeReg("deref register")
+                        state.freeReg("dereference temp")
+                        state.rem(" deref: end deref --------------------")
 
                         //state.freeReg("dereferenced var")
                     }
@@ -1597,7 +1605,7 @@ class WolinVisitor(
         state.fnDeclAllocStackAndRet(state.currentFunction!!)
 
         if (state.currentClass != null)
-            state.code("setup HEAP = this")
+            state.code("point HEAP = this")
 
         body?.let {
             visitFunctionBody(it)
@@ -1684,7 +1692,7 @@ class WolinVisitor(
                 RegOper.VALUE
             )
         }
-        state.code("setup HEAP = ${state.currentRegToAsm()}")
+        state.code("point HEAP = ${state.currentRegToAsm()}")
 
         state.freeReg("for returning this")
 

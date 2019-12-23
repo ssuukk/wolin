@@ -150,7 +150,7 @@ __wolin_pl_qus_wolin_SummingClass:
     sta (__wolin_spf),y
 
 
-; setupHEAP=SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
+; pointHEAP=SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
 
 
     ldy #0 ; this pointer from SPF to this pointer on ZP
@@ -193,7 +193,7 @@ __wolin_pl_qus_wolin_SummingClass:
 
 __wolin_pl_qus_wolin_SummingClass_sum:
 
-; setupHEAP=this
+; pointHEAP=this
 
 
     ldy #0 ; this pointer from SPF to this pointer on ZP
@@ -344,6 +344,27 @@ __wolin_pl_qus_wolin_main:
     dex
     dex
 
+; pointHEAP=SPF(2)<pl.qus.wolin.main..obj>[any*]
+
+
+    ldy #2 ; this pointer from SPF to this pointer on ZP
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr
+    iny
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr+1
+
+; letSP(0)<__wolin_reg14>[ubyte*]=*HEAP(2)<pl.qus.wolin.SummingClass.x>[ubyte]
+
+
+    clc
+    lda __wolin_this_ptr
+    adc #2
+    sta 0,x
+    lda __wolin_this_ptr+1
+    adc #0
+    sta 0+1,x
+
 ; let&SP(0)<__wolin_reg14>[ubyte*]=#2[ubyte]
 
 
@@ -361,6 +382,27 @@ __wolin_pl_qus_wolin_main:
 
     dex
     dex
+
+; pointHEAP=SPF(2)<pl.qus.wolin.main..obj>[any*]
+
+
+    ldy #2 ; this pointer from SPF to this pointer on ZP
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr
+    iny
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr+1
+
+; letSP(0)<__wolin_reg19>[ubyte*]=*HEAP(1)<pl.qus.wolin.SummingClass.y>[ubyte]
+
+
+    clc
+    lda __wolin_this_ptr
+    adc #1
+    sta 0,x
+    lda __wolin_this_ptr+1
+    adc #0
+    sta 0+1,x
 
 ; let&SP(0)<__wolin_reg19>[ubyte*]=#4[ubyte]
 
@@ -387,6 +429,16 @@ __wolin_pl_qus_wolin_main:
     sta 0,x
     lda #>53280
     sta 0+1,x
+
+; pointHEAP=SPF(2)<pl.qus.wolin.main..obj>[any*]
+
+
+    ldy #2 ; this pointer from SPF to this pointer on ZP
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr
+    iny
+    lda (__wolin_spf),y
+    sta __wolin_this_ptr+1
 
 ; allocSPF,#3
 

@@ -50,7 +50,7 @@ call __wolin_pl_qus_wolin_allocMem[adr]
 let SP(0)<__wolin_reg2>[any*] = SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
 //  tutaj kod na przepisanie z powyższego rejestru do zwrotki konstruktora
 let SPF(2)<pl.qus.wolin.SummingClass.__returnValue>[any*] = SP(0)<__wolin_reg2>[any*] // przez sprawdzacz typow - zwrotka alloc do zwrotki konstruktora
-setup HEAP = SP(0)<__wolin_reg2>[any*]
+point HEAP = SP(0)<__wolin_reg2>[any*]
 free SP<__wolin_reg2>, #2 // for returning this
 // inicjalizacja zmiennej pl.qus.wolin.SummingClass.x
 alloc SP<__wolin_reg3>, #1 // for var pl.qus.wolin.SummingClass.x init expression
@@ -79,7 +79,7 @@ ret
 // funkcja: fun pl.qus.wolin.SummingClass.sum(pl.qus.wolin.SummingClass.sum.this: pl.qus.wolin.SummingClass* = 0 ()):ubyte
 // ****************************************
 function __wolin_pl_qus_wolin_SummingClass_sum
-setup HEAP = this
+point HEAP = this
 alloc SP<__wolin_reg6>, #2 // for expression
 let SP(0)<__wolin_reg6>[ubyte*] = *HEAP(2)<pl.qus.wolin.SummingClass.x>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.SummingClass.x
@@ -113,13 +113,13 @@ function __wolin_pl_qus_wolin_main
 // 
 // == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg11>, #2 // ASSIGNMENT target
-// ==== do assignLeftSideVar przypisano __wolin_reg11: pl.qus.wolin.SummingClass* = 0 (ASSIGNMENT target)
+// (do assignLeftSideVar przypisano __wolin_reg11: pl.qus.wolin.SummingClass* = 0 (ASSIGNMENT target))
 let SP(0)<__wolin_reg11>[any*] = SPF(0)<pl.qus.wolin.main..obj>[any*] // przez sprawdzacz typow - simple id from var
 // switchType to:pl.qus.wolin.SummingClass* by type from pl.qus.wolin.main..obj
 // top type already set: __wolin_reg11: pl.qus.wolin.SummingClass* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
-alloc SP<__wolin_reg12>, #2 // ASSIGNMENT value (assignRightSideFinalVar)
-// ==== do assignRightSideFinalVar przypisano __wolin_reg12: pl.qus.wolin.SummingClass* = 0 (ASSIGNMENT value (assignRightSideFinalVar))
+alloc SP<__wolin_reg12>, #2 // ASSIGNMENT value
+// (do assignRightSideFinalVar przypisano __wolin_reg12: pl.qus.wolin.SummingClass* = 0 (ASSIGNMENT value))
 // switchType to:pl.qus.wolin.SummingClass* by function return type 1
 // 
 // == FN_CALL: pl.qus.wolin.SummingClass ========
@@ -144,26 +144,29 @@ free SP<__wolin_reg11>, #2 // ASSIGNMENT target
 // 
 // == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg14>, #2 // ASSIGNMENT target
-// ==== do assignLeftSideVar przypisano __wolin_reg14: ubyte* = 0 (ASSIGNMENT target)
+// (do assignLeftSideVar przypisano __wolin_reg14: ubyte* = 0 (ASSIGNMENT target))
 //  deref: obiekt --------------------
-alloc SP<__wolin_reg15>, #2 // dereferenced object
+alloc SP<__wolin_reg15>, #2 // dereference temp
 let SP(0)<__wolin_reg15>[any*] = SPF(2)<pl.qus.wolin.main..obj>[any*] // przez sprawdzacz typow - simple id from var
 // switchType to:pl.qus.wolin.SummingClass* by type from pl.qus.wolin.main..obj
-alloc SP<__wolin_reg16>, #2 // call result
+point HEAP = SP(0)<__wolin_reg15>[any*]
 // to jest klasa zmieniamy chwilowo aktualną
 // jesli tak, to na gorze heapu jest uniqid klasy
 //  deref: pole/metoda --------------------
+alloc SP<__wolin_reg16>, #2 // deref register
 //  postfix unary w dereferencji
 let SP(0)<__wolin_reg16>[ubyte*] = *HEAP(2)<pl.qus.wolin.SummingClass.x>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.SummingClass.x
 // tu przywrócić poprzednią klasę
 // ==== KROK 1 memberAccessOperator: przypisanie aktualnego do czegoś --------------------
-free SP<__wolin_reg16>, #2 // call result
-free SP<__wolin_reg15>, #2 // next deref level
+let SP(4)<__wolin_reg14>[ubyte*] = SP(0)<__wolin_reg16>[ubyte*] // przez sprawdzacz typow - dereferejcya, right side final = 1
+free SP<__wolin_reg16>, #2 // deref register
+free SP<__wolin_reg15>, #2 // dereference temp
+//  deref: end deref --------------------
 // top type already set: __wolin_reg14: ubyte* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
-alloc SP<__wolin_reg17>, #1 // ASSIGNMENT value (assignRightSideFinalVar)
-// ==== do assignRightSideFinalVar przypisano __wolin_reg17: ubyte = 0 (ASSIGNMENT value (assignRightSideFinalVar))
+alloc SP<__wolin_reg17>, #1 // ASSIGNMENT value
+// (do assignRightSideFinalVar przypisano __wolin_reg17: ubyte = 0 (ASSIGNMENT value))
 // switchType to:ubyte by parse literal constant
 let SP(0)<__wolin_reg17>[ubyte] = #2[ubyte] // atomic ex
 let &SP(1)<__wolin_reg14>[ubyte*] = SP(0)<__wolin_reg17>[ubyte] // przez sprawdzacz typow - process assignment
@@ -179,26 +182,29 @@ free SP<__wolin_reg14>, #2 // ASSIGNMENT target
 // 
 // == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg19>, #2 // ASSIGNMENT target
-// ==== do assignLeftSideVar przypisano __wolin_reg19: ubyte* = 0 (ASSIGNMENT target)
+// (do assignLeftSideVar przypisano __wolin_reg19: ubyte* = 0 (ASSIGNMENT target))
 //  deref: obiekt --------------------
-alloc SP<__wolin_reg20>, #2 // dereferenced object
+alloc SP<__wolin_reg20>, #2 // dereference temp
 let SP(0)<__wolin_reg20>[any*] = SPF(2)<pl.qus.wolin.main..obj>[any*] // przez sprawdzacz typow - simple id from var
 // switchType to:pl.qus.wolin.SummingClass* by type from pl.qus.wolin.main..obj
-alloc SP<__wolin_reg21>, #2 // call result
+point HEAP = SP(0)<__wolin_reg20>[any*]
 // to jest klasa zmieniamy chwilowo aktualną
 // jesli tak, to na gorze heapu jest uniqid klasy
 //  deref: pole/metoda --------------------
+alloc SP<__wolin_reg21>, #2 // deref register
 //  postfix unary w dereferencji
 let SP(0)<__wolin_reg21>[ubyte*] = *HEAP(1)<pl.qus.wolin.SummingClass.y>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.SummingClass.y
 // tu przywrócić poprzednią klasę
 // ==== KROK 1 memberAccessOperator: przypisanie aktualnego do czegoś --------------------
-free SP<__wolin_reg21>, #2 // call result
-free SP<__wolin_reg20>, #2 // next deref level
+let SP(4)<__wolin_reg19>[ubyte*] = SP(0)<__wolin_reg21>[ubyte*] // przez sprawdzacz typow - dereferejcya, right side final = 1
+free SP<__wolin_reg21>, #2 // deref register
+free SP<__wolin_reg20>, #2 // dereference temp
+//  deref: end deref --------------------
 // top type already set: __wolin_reg19: ubyte* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
-alloc SP<__wolin_reg22>, #1 // ASSIGNMENT value (assignRightSideFinalVar)
-// ==== do assignRightSideFinalVar przypisano __wolin_reg22: ubyte = 0 (ASSIGNMENT value (assignRightSideFinalVar))
+alloc SP<__wolin_reg22>, #1 // ASSIGNMENT value
+// (do assignRightSideFinalVar przypisano __wolin_reg22: ubyte = 0 (ASSIGNMENT value))
 // switchType to:ubyte by parse literal constant
 let SP(0)<__wolin_reg22>[ubyte] = #4[ubyte] // atomic ex
 let &SP(1)<__wolin_reg19>[ubyte*] = SP(0)<__wolin_reg22>[ubyte] // przez sprawdzacz typow - process assignment
@@ -214,21 +220,22 @@ free SP<__wolin_reg19>, #2 // ASSIGNMENT target
 // 
 // == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg24>, #2 // ASSIGNMENT target
-// ==== do assignLeftSideVar przypisano __wolin_reg24: ubyte* = 0 (ASSIGNMENT target)
+// (do assignLeftSideVar przypisano __wolin_reg24: ubyte* = 0 (ASSIGNMENT target))
 let SP(0)<__wolin_reg24>[ubyte*] = 53280[ubyte*] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte* by type from pl.qus.wolin.border
 // top type already set: __wolin_reg24: ubyte* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
-alloc SP<__wolin_reg25>, #1 // ASSIGNMENT value (assignRightSideFinalVar)
-// ==== do assignRightSideFinalVar przypisano __wolin_reg25: ubyte = 0 (ASSIGNMENT value (assignRightSideFinalVar))
+alloc SP<__wolin_reg25>, #1 // ASSIGNMENT value
+// (do assignRightSideFinalVar przypisano __wolin_reg25: ubyte = 0 (ASSIGNMENT value))
 //  deref: obiekt --------------------
-alloc SP<__wolin_reg26>, #2 // dereferenced object
+alloc SP<__wolin_reg26>, #2 // dereference temp
 let SP(0)<__wolin_reg26>[any*] = SPF(2)<pl.qus.wolin.main..obj>[any*] // przez sprawdzacz typow - simple id from var
 // switchType to:pl.qus.wolin.SummingClass* by type from pl.qus.wolin.main..obj
-alloc SP<__wolin_reg27>, #1 // call result
+point HEAP = SP(0)<__wolin_reg26>[any*]
 // to jest klasa zmieniamy chwilowo aktualną
 // jesli tak, to na gorze heapu jest uniqid klasy
 //  deref: pole/metoda --------------------
+alloc SP<__wolin_reg27>, #1 // deref register
 //  postfix unary w dereferencji
 // switchType to:ubyte by function return type 1
 // 
@@ -246,8 +253,9 @@ let SP(0)<__wolin_reg27>[ubyte] = SPF(0)<pl.qus.wolin.SummingClass.sum.__returnV
 // tu przywrócić poprzednią klasę
 // ==== KROK 1 memberAccessOperator: przypisanie aktualnego do czegoś --------------------
 let SP(3)<__wolin_reg25>[ubyte] = SP(0)<__wolin_reg27>[ubyte] // przez sprawdzacz typow - dereferejcya, right side final = 1
-free SP<__wolin_reg27>, #1 // call result
-free SP<__wolin_reg26>, #2 // next deref level
+free SP<__wolin_reg27>, #1 // deref register
+free SP<__wolin_reg26>, #2 // dereference temp
+//  deref: end deref --------------------
 let &SP(1)<__wolin_reg24>[ubyte*] = SP(0)<__wolin_reg25>[ubyte] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg25>, #1 // ASSIGNMENT value, type = ubyte
 free SP<__wolin_reg24>, #2 // ASSIGNMENT target
