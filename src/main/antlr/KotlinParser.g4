@@ -269,7 +269,7 @@ simpleUserType
     ;
 
 locationReference
-    : literalConstant
+    : literalConstant (RANGE literalConstant)?
     | userType
     ;
 

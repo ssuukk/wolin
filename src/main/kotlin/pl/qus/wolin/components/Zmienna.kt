@@ -5,12 +5,14 @@ import pl.qus.wolin.KotlinParser
 class Zmienna(
     var name: String = "",
     var immutable: Boolean = true,
-    var location: String? = null,
+    var locationTxt: String? = null,
     var allocation: AllocType,
     var comment: String = "",
     var fieldType: FieldType,
     private var typexxx: Typ = Typ.unit,
-    var initExpression: KotlinParser.ExpressionContext? = null
+    var initExpression: KotlinParser.ExpressionContext? = null,
+    var bitNo: Int? = null,
+    var locationVal: Int? = null
 )
 
 {

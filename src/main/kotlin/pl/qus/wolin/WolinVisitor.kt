@@ -704,7 +704,7 @@ class WolinVisitor(
 
                         state.fnCallAllocRetAndArgs(prototyp)
 
-                        if (prototyp.arguments.any { it.allocation == AllocType.FIXED && it.location == "CPU.X" }) {
+                        if (prototyp.arguments.any { it.allocation == AllocType.FIXED && it.locationTxt == "CPU.X" }) {
                             state.code("save CPU.X // save SP, as X is used by native call argument")
                         }
 
@@ -727,10 +727,10 @@ class WolinVisitor(
                             if (prototyp.arguments[i].allocation == AllocType.FIXED) {
                                 // dla argumentów CPU koelejność musi być A, Y, X!!!
                                 state.code(
-                                    "let ${prototyp.arguments[i].location}[${prototyp.arguments[i].type.typeForAsm}] = ${state.currentRegToAsm()}"
+                                    "let ${prototyp.arguments[i].locationVal}[${prototyp.arguments[i].type.typeForAsm}] = ${state.currentRegToAsm()}"
                                 )
-                                if (prototyp.arguments[i].location?.startsWith("CPU.") == true)
-                                    state.code("save ${prototyp.arguments[i].location}")
+                                if (prototyp.arguments[i].locationTxt?.startsWith("CPU.") == true)
+                                    state.code("save ${prototyp.arguments[i].locationTxt}")
                             } else {
                                 val found = state.findStackVector(state.callStack, prototyp.arguments[i].name)
 
@@ -747,14 +747,14 @@ class WolinVisitor(
                         (prototyp.arguments.size - 1 downTo 0).forEach {
                             val arg = prototyp.arguments[it]
 
-                            if (arg.allocation == AllocType.FIXED && arg.location?.startsWith("CPU.") == true) {
-                                state.code("restore ${arg.location} // fill register for call")
+                            if (arg.allocation == AllocType.FIXED && arg.locationTxt?.startsWith("CPU.") == true) {
+                                state.code("restore ${arg.locationTxt} // fill register for call")
                             }
                         }
 
                         state.code(state.getFunctionCallCode(procName))
 
-                        if (prototyp.arguments.any { it.allocation == AllocType.FIXED && it.location == "CPU.X" }) {
+                        if (prototyp.arguments.any { it.allocation == AllocType.FIXED && it.locationTxt == "CPU.X" }) {
                             state.code("restore CPU.X // restore SP, as X is used by native call")
                         }
 
@@ -796,7 +796,7 @@ class WolinVisitor(
                             }
                             atomEx.literalConstant() != null -> {
 
-                                parseLiteralConstant(state.currentReg, atomEx.literalConstant())
+                                state.parseLiteralConstant(state.currentReg, atomEx.literalConstant())
 
                                 state.code("add ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}[${state.currentReg.type.typeForAsm}], #1${state.currentReg.type.typeForAsm}, add // literal const")
                                 //state.currentReg.type = "Ubyte"
@@ -824,7 +824,7 @@ class WolinVisitor(
                             }
                             atomEx.literalConstant() != null -> {
 
-                                parseLiteralConstant(state.currentReg, atomEx.literalConstant())
+                                state.parseLiteralConstant(state.currentReg, atomEx.literalConstant())
 
                                 state.code("sub ${state.currentRegToAsm()} = #${state.currentReg.immediateValue}[${state.currentReg.type.typeForAsm}], #1${state.currentReg.type.typeForAsm}, add // literal const")
                                 //state.currentReg.type = "Ubyte"
@@ -938,9 +938,9 @@ class WolinVisitor(
                                 state.currentShortArray = null
                             }
                             state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.FIXED -> {
-                                state.rem(" allocated fast array, changing top reg to ptr")
+                                state.rem(" fixed fast array, changing top reg to ptr")
                                 currEntReg.type.pointer = true
-                                state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.location}[adr], ${state.currentRegToAsm()}")
+                                state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.locationVal}[adr], ${state.currentRegToAsm()}")
                                 state.currentShortArray = null
                             }
 
@@ -1049,7 +1049,7 @@ class WolinVisitor(
             ctx.simpleIdentifier() != null -> visitSimpleIdentifier(ctx.simpleIdentifier())
             ctx.literalConstant() != null -> {
                 val wartość = Zmienna(allocation = AllocType.LITERAL, fieldType = FieldType.DUMMY)
-                parseLiteralConstant(wartość, ctx.literalConstant())
+                state.parseLiteralConstant(wartość, ctx.literalConstant())
                 state.code("let ${state.currentRegToAsm()} = ${state.varToAsm(wartość)} // atomic ex")
             }
             ctx.conditionalExpression() != null -> visitConditionalExpression(ctx.conditionalExpression())
@@ -1512,7 +1512,7 @@ class WolinVisitor(
                     } else {
                         if (zmienna.allocation == AllocType.FIXED && zmienna.type.array) {
                             state.code(
-                                "let ${state.currentRegToAsm()} = ${zmienna.location}[${zmienna.type.typeForAsm}] // simple id - fixed array var"
+                                "let ${state.currentRegToAsm()} = ${zmienna.locationVal}[${zmienna.type.typeForAsm}] // simple id - fixed array var"
                             )
                         }
                         else if (state.assignStack.processingLeftSide) {
@@ -1547,7 +1547,7 @@ class WolinVisitor(
         state.switchType(Typ.unit, "function declaration")
 
         lokacjaLiterał?.let {
-            parseLiteralConstant(lokacjaAdres, it)
+            state.parseLiteralConstant(lokacjaAdres, it.first())
         }
 
         val functionName = state.nameStitcher(name)
@@ -1904,59 +1904,6 @@ class WolinVisitor(
     }
 
 
-    fun parseNumberGuessType(reg: Zmienna, text: String, radix: Int): Zmienna {
-        val wynik = java.lang.Long.parseLong(text, radix)
-        reg.intValue = wynik
-
-        if (reg.type.isUnit) {
-            when (wynik) {
-                in 0..255 -> reg.type = Typ.byName("ubyte", state)
-                in 0..65535 -> reg.type = Typ.byName("uword", state)
-                in -127..128 -> reg.type = Typ.byName("byte", state)
-                in -32768..32767 -> reg.type = Typ.byName("word", state)
-
-                else -> throw Exception("Value out of range")
-            }
-        }
-
-        //state.switchType(reg.type, "guess number type")
-
-        return reg
-    }
-
-    fun parseLiteralConstant(reg: Zmienna, const: KotlinParser.LiteralConstantContext) {
-        if (const.BinLiteral() != null) {
-
-        } else if (const.BooleanLiteral() != null) {
-            reg.type = Typ.bool
-            if (const.text.toLowerCase() == "true") reg.intValue = 1 else reg.intValue = 0
-        } else if (const.CharacterLiteral() != null) {
-            reg.type = Typ.ubyte
-            reg.intValue = const.text.first().toLong()
-        } else if (const.HexLiteral() != null) {
-            parseNumberGuessType(reg, const.text.drop(2), 16)
-        } else if (const.IntegerLiteral() != null) {
-            parseNumberGuessType(reg, const.text, 10)
-        } else if (const.LongLiteral() != null) {
-            parseNumberGuessType(reg, const.text, 10)
-        } else if (const.NullLiteral() != null) {
-            reg.intValue = 0L
-            reg.type = Typ.byName("any?", state)
-        } else if (const.RealLiteral() != null) {
-            reg.type = Typ.float
-            reg.floatValue = 3.14f
-            state.floats.add(3.14f)
-        } else if (const.stringLiteral() != null) {
-            reg.type = Typ.byName("string", state)
-            reg.stringValue = const.text
-            state.strings.add(const.text)
-        } else {
-            błędzik(const, "Unknown literal")
-        }
-
-        state.switchType(reg.type, "parse literal constant")
-        //state.switchType(reg.type, "parse literal constant")
-    }
 
     fun błędzik(miejsce: ParseTree, teskt: String = ""): Nothing {
         val interval = miejsce.sourceInterval
@@ -2140,6 +2087,35 @@ class WolinVisitor(
             }
         }
     }
+
+
+    fun checkTypeAndAddAssignment2(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna, comment: String, derefDo: RegOper, derefCo: RegOper) {
+
+        val finalDerefDo = if(derefDo == RegOper.STAR && doJakiej.type.isPointer)
+            RegOper.VALUE
+        else
+            derefDo
+
+//        val finalDerefCo = if(derefCo == RegOper.STAR && co.type.isPointer)
+//            RegOper.VALUE
+//        else if(derefCo == RegOper.AMPRESAND && !co.type.isPointer)
+//            RegOper.VALUE
+//        else
+//            derefCo
+
+        if (state.pass == Pass.TRANSLATION) {
+            val można =
+                state.canBeAssigned(doJakiej.type, co.type) //|| doJakiej.type.isPointer || co.type.name == "uword"
+
+            if (można) {
+                state.code("let ${state.varToAsm(doJakiej, finalDerefDo)} = ${state.varToAsm(co, derefCo)} // przez sprawdzacz typow - $comment")
+            } else {
+                błędzik(ctx, "Nie można przypisać $co do zmiennej $doJakiej")
+            }
+        }
+    }
+
+
 
     fun doInitCode(zmienna: Zmienna) {
         val nowy=state.allocReg("for var ${zmienna.name} init expression")

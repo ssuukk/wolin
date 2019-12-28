@@ -3,6 +3,7 @@ package pl.qus.wolin
 import pl.qus.wolin.components.*
 import pl.qus.wolin.exception.FunctionNotFound
 import pl.qus.wolin.exception.RegTypeMismatchException
+import pl.qus.wolin.exception.UnknownLiteral
 import pl.qus.wolin.exception.VariableNotFound
 import java.lang.Exception
 import java.util.*
@@ -113,7 +114,6 @@ class WolinStateObject(val pass: Pass) {
 
         val shortIndex = typeContext.typeReference()?.arrayDeclaration()?.userType()?.text == "ubyte"
 
-        val loc = typeContext.typeReference()?.locationReference()?.text
         val fnType = typeContext.functionType()
 
         val type = when {
@@ -151,7 +151,6 @@ class WolinStateObject(val pass: Pass) {
 //            val fnTypeTx = Typ.byName("$fnTypePars->$fnTypeRec", this)
 //        }
 
-        val nullableTypeLoc = typeContext.nullableType()?.typeReference()?.locationReference()?.text
 
         val parenthsized = typeContext.nullableType()?.parenthesizedType()
 
@@ -160,8 +159,12 @@ class WolinStateObject(val pass: Pass) {
 
         val mods = propertyCtx?.modifierList()
 
+        //val loc = typeContext.typeReference()?.locationReference()?.text
+        val locRef = typeContext.typeReference()?.locationReference()
+        val nullableTypeLocRef = typeContext.nullableType()?.typeReference()?.locationReference()
+
         val typ = when {
-            loc != null || nullableTypeLoc != null -> AllocType.FIXED
+            locRef != null || nullableTypeLocRef != null -> AllocType.FIXED
             mods?.modifier()?.filter { it.text == "const" }?.size ?: 0 != 0 -> AllocType.LITERAL
             else -> AllocType.NORMAL
         }
@@ -169,9 +172,29 @@ class WolinStateObject(val pass: Pass) {
         val zmienna = Zmienna("", allocation = typ, fieldType = fieldType)
 
         zmienna.immutable = propertyCtx?.VAL() != null || fieldType == FieldType.ARGUMENT
-        zmienna.location = loc ?: nullableTypeLoc
+
+        val location = locRef?.literalConstant()?.first() ?: nullableTypeLocRef?.literalConstant()?.first()
+        val bitNo = locRef?.literalConstant()?.elementAtOrNull(1) ?: nullableTypeLocRef?.literalConstant()?.elementAtOrNull(1)
+
+
+        if(location != null) {
+            val locationVal = Zmienna(allocation = AllocType.FIXED, fieldType = FieldType.DUMMY)
+            parseLiteralConstant(locationVal, location)
+            zmienna.locationTxt = location.text
+            zmienna.locationVal = locationVal.intValue.toInt()
+        }
+
+        if(bitNo != null) {
+            val bitNoVal = Zmienna(allocation = AllocType.FIXED, fieldType = FieldType.DUMMY)
+            parseLiteralConstant(bitNoVal, bitNo)
+            zmienna.bitNo = bitNoVal.intValue.toInt()
+        }
+
         zmienna.name = nameStitcher(name, fieldType == FieldType.ARGUMENT)
-        zmienna.type = type
+        if(zmienna.bitNo != null)
+            zmienna.type = Typ.bool
+        else
+            zmienna.type = type
 
         var pomiń = 0
         if (basePackage.isNotEmpty()) pomiń = basePackage.length + 1
@@ -383,7 +406,8 @@ class WolinStateObject(val pass: Pass) {
                 println("sd")
                 labelMaker("floatConst", floats.indexOf(zmienna.floatValue))
             }
-            zmienna.allocation == AllocType.FIXED -> "${zmienna.location}"
+
+            zmienna.allocation == AllocType.FIXED -> "${zmienna.locationVal}" + if(zmienna.bitNo != null) ":${zmienna.bitNo}" else ""
             zmienna.allocation == AllocType.LITERAL -> "#${zmienna.immediateValue}"
             else -> "${zmienna.labelName}<${zmienna.name}>"
         }
@@ -687,6 +711,60 @@ class WolinStateObject(val pass: Pass) {
 
     fun currentRegToAsm(deref: RegOper = RegOper.VALUE): String = varToAsm(currentReg, deref)
 
+    fun parseNumberGuessType(reg: Zmienna, text: String, radix: Int): Zmienna {
+        val wynik = java.lang.Long.parseLong(text, radix)
+        reg.intValue = wynik
+
+        if (reg.type.isUnit) {
+            when (wynik) {
+                in 0..255 -> reg.type = Typ.byName("ubyte", this)
+                in 0..65535 -> reg.type = Typ.byName("uword", this)
+                in -127..128 -> reg.type = Typ.byName("byte", this)
+                in -32768..32767 -> reg.type = Typ.byName("word", this)
+
+                else -> throw Exception("Value out of range")
+            }
+        }
+
+        //state.switchType(reg.type, "guess number type")
+
+        return reg
+    }
+
+    fun parseLiteralConstant(reg: Zmienna, const: KotlinParser.LiteralConstantContext) {
+        if (const.BinLiteral() != null) {
+
+        } else if (const.BooleanLiteral() != null) {
+            reg.type = Typ.bool
+            if (const.text.toLowerCase() == "true") reg.intValue = 1 else reg.intValue = 0
+        } else if (const.CharacterLiteral() != null) {
+            reg.type = Typ.ubyte
+            reg.intValue = const.text.first().toLong()
+        } else if (const.HexLiteral() != null) {
+            parseNumberGuessType(reg, const.text.drop(2), 16)
+        } else if (const.IntegerLiteral() != null) {
+            parseNumberGuessType(reg, const.text, 10)
+        } else if (const.LongLiteral() != null) {
+            parseNumberGuessType(reg, const.text, 10)
+        } else if (const.NullLiteral() != null) {
+            reg.intValue = 0L
+            reg.type = Typ.byName("any?", this)
+        } else if (const.RealLiteral() != null) {
+            reg.type = Typ.float
+            reg.floatValue = 3.14f
+            floats.add(3.14f)
+        } else if (const.stringLiteral() != null) {
+            reg.type = Typ.byName("string", this)
+            reg.stringValue = const.text
+            strings.add(const.text)
+        } else {
+            throw UnknownLiteral("Unknown literal")
+        }
+
+        switchType(reg.type, "parse literal constant")
+        //state.switchType(reg.type, "parse literal constant")
+    }
+
 
     /*****************************************************************
     Bieżący typ
@@ -843,4 +921,7 @@ class WolinStateObject(val pass: Pass) {
             code("float ${labelMaker("floatConst", i)}[uword] = %$float")
         }
     }
+
+
+
 }
