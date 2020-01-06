@@ -676,7 +676,7 @@ bit ?dst[ubyte] = #?val[ubyte], #1[bool] -> """
 
 bit ?dst[ubyte] = #?val[ubyte], #0[bool] -> """
     lda #{val}
-    xor #$ff
+    eor #$ff
     and {dst}
     sta {dst}
 """
@@ -689,7 +689,7 @@ bit &SP(?dst)[ubyte*] = #?val[ubyte], #1[bool] -> """
 
 bit &SP(?dst)[ubyte*] = #?val[ubyte], #0[bool] -> """
     lda #{val}
-    xor #$ff
+    eor #$ff
     and ({dst},x)
     sta ({dst},x)
 """

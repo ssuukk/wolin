@@ -112,7 +112,7 @@ __wolin_pl_qus_wolin_main:
 
 
     lda #1
-    xor #$ff
+    eor #$ff
     and (0,x)
     sta (0,x)
 
