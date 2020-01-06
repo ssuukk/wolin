@@ -4,14 +4,22 @@ var screen: ubyte[]^1024
 
 var spritesOn: ubyte^0xd015
 var sprite0X: ubyte^0xd000
-var spritesXh: ubyte^0xd010
 var sprite0Y: ubyte^0xd001
+var spritesFat: ubyte^0xd01d
+var spritesTall: ubyte^0xd017
 var sprite0Color: ubyte^0xd027
 
 fun main() {
     spritesOn := 1
-    spritesXh .= 1
+    spritesFat := 1
+    spritesTall := 1
     sprite0X = 100
     sprite0Y = 100
-    sprite0Color = 1    // let $d027:0[bool] = #1
+    sprite0Color = 2
+
+    do {
+        sprite0X++
+        sprite0Y++
+    } while (true)
+
 }

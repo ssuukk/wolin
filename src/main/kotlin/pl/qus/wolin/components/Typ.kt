@@ -104,11 +104,11 @@ data class Typ(
     val typeForAsm: String
         get() =
             when {
-                array -> "${name}"
+                array -> "$name"
                 isFunctional -> "any"
                 isUnit -> "unit"
                 primitives.contains(name) -> name
                 else -> "any"
-            } +"${if(isPointer) "*" else ""}"
+            } + if(isPointer) "*" else ""
 
 }

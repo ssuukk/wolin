@@ -414,8 +414,8 @@ class WolinVisitor(
             ctx.rangeExpression().size == 1 -> ctx.rangeExpression().firstOrNull()?.let {
                 visitRangeExpression(it)
             }
-            ctx.simpleIdentifier().size > 0 -> błędzik(ctx, "Unknown infix function call")
-            else -> błędzik(ctx, "Unknown infix function call")
+            ctx.simpleIdentifier().size > 0 -> błędzik(ctx, "Unknown infix function call simple id: ${ctx.simpleIdentifier().first().text}")
+            else -> błędzik(ctx, "Unknown infix function call else")
         }
 
         return state
@@ -876,9 +876,7 @@ class WolinVisitor(
                                 checkTypeAndAddAssignment(ctx, state.currentReg, zmienna, "operator ++", RegOper.VALUE, RegOper.STAR)
 
                                 state.code(
-                                    "add ${state.varToAsm(zmienna)} = ${state.varToAsm(
-                                        zmienna
-                                    )}, #1[${zmienna.type.typeForAsm}] // simple id"
+                                    "add ${state.varToAsm(zmienna)} = ${state.varToAsm(zmienna)}, #1[${zmienna.type.typeForAsm}] // simple id"
                                 )
 
                                 state.switchType(zmienna.type, "++ operator", true)

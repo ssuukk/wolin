@@ -209,8 +209,8 @@ class WolinStateObject(val pass: Pass) {
         if (!bezSkopuPliku.contains(".") && zmienna.allocation != AllocType.FIXED)
             zmienna.fieldType = FieldType.STATIC
 
-        if(zmienna.allocation == AllocType.FIXED)
-            zmienna.type.pointer = true
+//        if(zmienna.allocation == AllocType.FIXED)
+//            zmienna.type.pointer = true
 
         return zmienna
     }

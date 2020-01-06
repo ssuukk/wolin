@@ -554,19 +554,23 @@ bne SPE = ?value, ?dest[adr] -> """
     cmp #>{value}
     bne {dest}"""
 
-bne SP(?s)[bool] = #1[bool], ?dest[adr] -> """
+// skocz jeśli s == 1 (bne)
+bne SP(?s)[bool] = #1[bool], ?dest[uword] -> """
     lda {s},x
     beq {dest}"""
 
-beq SP(?s)[bool] = #1[bool], ?dest[adr] -> """
+// skocz jeśli s != 1 czyli == 0 (beq))
+beq SP(?s)[bool] = #1[bool], ?dest[uword] -> """
     lda {s},x
     bne {dest}"""
 
-bne SP(?s)[bool] = #0[bool], ?dest[adr] -> """
+// skocz jeśli s == 0 (beq)
+bne SP(?s)[bool] = #0[bool], ?dest[uword] -> """
     lda {s},x
     bne {dest}"""
 
-beq SP(?s)[bool] = #0[bool], ?dest[adr] -> """
+// skocz jeśli s != 0 czyli 1 (bne)
+beq SP(?s)[bool] = #0[bool], ?dest[uword] -> """
     lda {s},x
     beq {dest}"""
 

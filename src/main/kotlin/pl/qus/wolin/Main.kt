@@ -354,11 +354,6 @@ ret
             FileOutputStream(File("src/main/wolin/assembler_opt1.asm"))
         )
 
-//        optimize(
-//            FileInputStream(File("src/main/wolin/assembler_opt1.asm")),
-//            FileOutputStream(File("src/main/wolin/assembler_opt2.asm"))
-//        )
-
         translateAsm(
             FileInputStream(File("src/main/wolin/assembler_opt1.asm")),
             FileInputStream(File("src/main/wolin/template.asm"))
