@@ -73,10 +73,27 @@ class WolinVisitor(
                                     )
 
                                     state.switchType(Typ.unit, "assignment")
+                                }
+                                operator?.BIT_ASSIGNMENT() != null -> {
+                                    processBitOp(it,
+                                        { visitDisjunction(it.expression()?.disjunction(0)!!) },
+                                        { visitDisjunction(it.expression()?.disjunction(1)!!) },
+                                        true
+                                    )
 
+                                    state.switchType(Typ.unit, "bit op")
+                                }
+                                operator?.BIT_DEASSIGNMENT() != null -> {
+                                    processBitOp(it,
+                                        { visitDisjunction(it.expression()?.disjunction(0)!!) },
+                                        { visitDisjunction(it.expression()?.disjunction(1)!!) },
+                                        false
+                                    )
+
+                                    state.switchType(Typ.unit, "bit op")
                                 }
                                 else -> {
-                                    błędzik(it, "Unknown assignment operator")
+                                    błędzik(it, "Unknown assignment operator in block")
                                 }
                             }
                         }
@@ -192,7 +209,7 @@ class WolinVisitor(
                             { visitDisjunction(ctx.disjunction(0)) },
                             { visitDisjunction(ctx.disjunction(1)) })
                     }
-                    else -> błędzik(ctx, "Unknown assignment operator")
+                    else -> błędzik(ctx, "Unknown assignment operator in expression")
                 }
                 //visitAssignmentOperator(ctx.assignmentOperator().first())
             }
@@ -541,6 +558,78 @@ class WolinVisitor(
         state.assignStack.pop()
         state.rem("")
     }
+
+
+
+
+
+
+
+    fun processBitOp(ctx: ParseTree, leftFunction: () -> WolinStateObject, rightFunction: () -> WolinStateObject, setBit: Boolean) {
+
+
+        state.rem("")
+        state.rem("== ASSIGNMENT PUSH =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
+        state.assignStack.push(AssignEntry())
+        state.rem("")
+        state.rem("== ASSIGNMENT LEFT =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
+        state.assignStack.assignLeftSideVar = state.allocReg("ASSIGNMENT target")
+        try { state.rem("(do assignLeftSideVar przypisano ${state.assignStack.assignLeftSideVar})") } catch (ex: UninitializedPropertyAccessException) {}
+
+        leftFunction()
+        state.inferTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji! ROBIONE
+
+        state.rem("== ASSIGNMENT RIGHT =======================================")
+        state.assignStack.assignRightSideFinalVar = state.allocReg("ASSIGNMENT value")
+        try { state.rem("(do assignRightSideFinalVar przypisano ${state.assignStack.assignRightSideFinalVar})") } catch (ex: UninitializedPropertyAccessException) {}
+
+        rightFunction()
+        state.assignStack.assignRightSideFinalVar.type = state.currentWolinType.copy() // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
+
+        // typ indeksu, nie faktyczny typ zmiennej
+        // więc np x[255] jest ok, ale x[256] daje uword!
+        // typ pobierany jest z state.assignStack.assignLeftSideVar
+//        rightFinalReg.type.pointer = false // przy podstawieniu konkretnej wartości
+//        rightFinalReg.type.array = false
+
+        checkTypeAndSetBit(ctx, state.assignStack.assignLeftSideVar, state.assignStack.assignRightSideFinalVar, "process assignment", RegOper.AMPRESAND, RegOper.AMPRESAND, setBit)
+
+        if (state.assignStack.arrayAssign) {
+            state.assignStack.arrayAssign = false
+        }
+
+
+        state.freeReg("ASSIGNMENT value, type = ${state.currentWolinType}")
+
+        state.freeReg("ASSIGNMENT target")
+
+        state.rem("== ASSIGNMENT END =======================================")
+        state.rem("== ASSIGNMENT POP =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
+        state.assignStack.pop()
+        state.rem("")
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     override fun visitTypeRHS(ctx: KotlinParser.TypeRHSContext): WolinStateObject {
         when {
@@ -1547,7 +1636,7 @@ class WolinVisitor(
         state.switchType(Typ.unit, "function declaration")
 
         lokacjaLiterał?.let {
-            state.parseLiteralConstant(lokacjaAdres, it.first())
+            state.parseLiteralConstant(lokacjaAdres, it)
         }
 
         val functionName = state.nameStitcher(name)
@@ -2062,6 +2151,32 @@ class WolinVisitor(
         }
     }
 
+    fun checkTypeAndSetBit(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna, comment: String, derefDo: RegOper, derefCo: RegOper, setBit: Boolean) {
+        val finalDerefDo = if(derefDo == RegOper.STAR && doJakiej.type.isPointer)
+            RegOper.VALUE
+        else
+            derefDo
+
+        val finalDerefCo = if(derefCo == RegOper.STAR && co.type.isPointer)
+            RegOper.VALUE
+        else if(derefCo == RegOper.AMPRESAND && !co.type.isPointer)
+            RegOper.VALUE
+        else
+            derefCo
+
+        if (state.pass == Pass.TRANSLATION) {
+            val można =
+                true
+                //state.canBeAssigned(doJakiej.type, co.type) //|| doJakiej.type.isPointer || co.type.name == "uword"
+
+            if (można) {
+                state.code("bit ${state.varToAsm(doJakiej, finalDerefDo)} = ${state.varToAsm(co, finalDerefCo)}, #${if(setBit) 1 else 0}[bool] // przez sprawdzacz typow - $comment")
+            } else {
+                błędzik(ctx, "Nie można przypisać $co do zmiennej $doJakiej")
+            }
+        }
+    }
+
     fun checkTypeAndAddAssignment(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna, comment: String, derefDo: RegOper, derefCo: RegOper) {
 
         val finalDerefDo = if(derefDo == RegOper.STAR && doJakiej.type.isPointer)
@@ -2087,34 +2202,6 @@ class WolinVisitor(
             }
         }
     }
-
-
-    fun checkTypeAndAddAssignment2(ctx: ParseTree, doJakiej: Zmienna, co: Zmienna, comment: String, derefDo: RegOper, derefCo: RegOper) {
-
-        val finalDerefDo = if(derefDo == RegOper.STAR && doJakiej.type.isPointer)
-            RegOper.VALUE
-        else
-            derefDo
-
-//        val finalDerefCo = if(derefCo == RegOper.STAR && co.type.isPointer)
-//            RegOper.VALUE
-//        else if(derefCo == RegOper.AMPRESAND && !co.type.isPointer)
-//            RegOper.VALUE
-//        else
-//            derefCo
-
-        if (state.pass == Pass.TRANSLATION) {
-            val można =
-                state.canBeAssigned(doJakiej.type, co.type) //|| doJakiej.type.isPointer || co.type.name == "uword"
-
-            if (można) {
-                state.code("let ${state.varToAsm(doJakiej, finalDerefDo)} = ${state.varToAsm(co, derefCo)} // przez sprawdzacz typow - $comment")
-            } else {
-                błędzik(ctx, "Nie można przypisać $co do zmiennej $doJakiej")
-            }
-        }
-    }
-
 
 
     fun doInitCode(zmienna: Zmienna) {

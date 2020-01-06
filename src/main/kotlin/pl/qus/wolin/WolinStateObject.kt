@@ -173,8 +173,8 @@ class WolinStateObject(val pass: Pass) {
 
         zmienna.immutable = propertyCtx?.VAL() != null || fieldType == FieldType.ARGUMENT
 
-        val location = locRef?.literalConstant()?.first() ?: nullableTypeLocRef?.literalConstant()?.first()
-        val bitNo = locRef?.literalConstant()?.elementAtOrNull(1) ?: nullableTypeLocRef?.literalConstant()?.elementAtOrNull(1)
+        val location = locRef?.literalConstant() ?: nullableTypeLocRef?.literalConstant()
+        val bitNo = locRef?.literalConstant() ?: nullableTypeLocRef?.literalConstant()
 
 
         if(location != null) {

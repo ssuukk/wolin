@@ -65,6 +65,8 @@ SUB_ASSIGNMENT: '-=' ;
 MULT_ASSIGNMENT: '*=' ;
 DIV_ASSIGNMENT: '/=' ;
 MOD_ASSIGNMENT: '%=' ;
+BIT_ASSIGNMENT: ':=' ;
+BIT_DEASSIGNMENT: '.=' ;
 ARROW: '->' ;
 DOUBLE_ARROW: '=>' ;
 RANGE: '..' ;
@@ -588,3 +590,8 @@ StrExpr_LabelDefinition: LabelDefinition -> type(LabelDefinition) ;
 StrExpr_Comment: (LineComment | DelimitedComment) -> channel(HIDDEN) ;
 StrExpr_WS: WS -> skip ;
 StrExpr_NL: NL -> skip ;
+
+Inside_BIT_ASSIGNMENT: BIT_ASSIGNMENT  -> type(BIT_ASSIGNMENT) ;
+StrExpr_BIT_ASSIGNMENT: BIT_ASSIGNMENT  -> type(BIT_ASSIGNMENT) ;
+Inside_BIT_DEASSIGNMENT: BIT_DEASSIGNMENT  -> type(BIT_DEASSIGNMENT) ;
+StrExpr_BIT_DEASSIGNMENT: BIT_DEASSIGNMENT  -> type(BIT_DEASSIGNMENT) ;

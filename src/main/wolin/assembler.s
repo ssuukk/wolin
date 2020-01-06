@@ -72,6 +72,22 @@ __wolin_pl_qus_wolin_main:
     dex
     dex
 
+; letSP(0)<__wolin_reg2>[ubyte*]=53269[ubyte*]
+
+
+    lda #<53269
+    sta 0,x
+    lda #>53269
+    sta 0+1,x
+
+; bit&SP(0)<__wolin_reg2>[ubyte*]=#1[ubyte],#1[bool]
+
+
+    lda (0,x)
+    ora 1
+    sta (0,x)
+
+
 ; freeSP<__wolin_reg2>,#2
 
 
@@ -84,19 +100,22 @@ __wolin_pl_qus_wolin_main:
     dex
     dex
 
-; letSP(0)<__wolin_reg5>[ubyte*]=53248[ubyte*]
+; letSP(0)<__wolin_reg5>[ubyte*]=53264[ubyte*]
 
 
-    lda #<53248
+    lda #<53264
     sta 0,x
-    lda #>53248
+    lda #>53264
     sta 0+1,x
 
-; let&SP(0)<__wolin_reg5>[ubyte*]=#100[ubyte]
+; bit&SP(0)<__wolin_reg5>[ubyte*]=#1[ubyte],#0[bool]
 
 
-    lda #100
+    lda #1
+    xor #$ff
+    and (0,x)
     sta (0,x)
+
 
 ; freeSP<__wolin_reg5>,#2
 
@@ -109,6 +128,20 @@ __wolin_pl_qus_wolin_main:
 
     dex
     dex
+
+; letSP(0)<__wolin_reg8>[ubyte*]=53248[ubyte*]
+
+
+    lda #<53248
+    sta 0,x
+    lda #>53248
+    sta 0+1,x
+
+; let&SP(0)<__wolin_reg8>[ubyte*]=#100[ubyte]
+
+
+    lda #100
+    sta (0,x)
 
 ; freeSP<__wolin_reg8>,#2
 
@@ -168,38 +201,6 @@ __wolin_pl_qus_wolin_main:
     inx
     inx
 
-; allocSP<__wolin_reg17>,#2
-
-
-    dex
-    dex
-
-; letSP(0)<__wolin_reg17>[bool*]=*__wolin_pl_qus_wolin_test<pl.qus.wolin.test>[bool]
-
-
-    lda #<__wolin_pl_qus_wolin_test
-    sta 0,x
-    lda #>__wolin_pl_qus_wolin_test
-    sta 0+1,x
-
-; allocSP<__wolin_reg18>,#2
-
-
-    dex
-    dex
-
-; freeSP<__wolin_reg18>,#2
-
-
-    inx
-    inx
-
-; freeSP<__wolin_reg17>,#2
-
-
-    inx
-    inx
-
 ; ret
 
     rts
@@ -211,12 +212,4 @@ __wolin_indirect_jsr:
 ; goto65535[adr]
 
     jmp 65535
-
-; label__wolin_pl_qus_wolin_test
-
-__wolin_pl_qus_wolin_test:
-
-; alloc0[bool]
-
-    .byte 0
 

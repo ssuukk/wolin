@@ -269,7 +269,7 @@ simpleUserType
     ;
 
 locationReference
-    : literalConstant (RANGE literalConstant)?
+    : literalConstant
     | userType
     ;
 
@@ -582,6 +582,8 @@ assignmentOperator
     | MULT_ASSIGNMENT
     | DIV_ASSIGNMENT
     | MOD_ASSIGNMENT
+    | BIT_ASSIGNMENT
+    | BIT_DEASSIGNMENT
     ;
 
 equalityOperation

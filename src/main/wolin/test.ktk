@@ -2,18 +2,16 @@ package pl.qus.wolin
 
 var screen: ubyte[]^1024
 
-var sprite0On: bool^0xd015..0
+var spritesOn: ubyte^0xd015
 var sprite0X: ubyte^0xd000
-var sprite0Xh: bool^0xd010..0
+var spritesXh: ubyte^0xd010
 var sprite0Y: ubyte^0xd001
 var sprite0Color: ubyte^0xd027
-var test: bool
 
 fun main() {
-    sprite0On = true
+    spritesOn := 1
+    spritesXh .= 1
     sprite0X = 100
-    sprite0Xh = false
     sprite0Y = 100
     sprite0Color = 1    // let $d027:0[bool] = #1
-    test = sprite0On // let test[bool] = $d027:0
 }

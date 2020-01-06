@@ -61,7 +61,7 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
         } while (state.replaced)
     }
 
-    fun checkAllOccurencesReplaced(ctx: PseudoAsmParser.PseudoAsmFileContext) {
+    fun unmarkIrreplacableRegs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         // sprawdzić, czy dany rejestr występuje tylko jako free/alloc +ew. let rejestr =
         ctx.linia()?.iterator()?.let { linie ->
             while (linie.hasNext()) {
@@ -77,28 +77,59 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
 
                 if (instrukcja != "alloc" && instrukcja != "free") {
                     if (firstArg != null) {
-                        println("Nie można usunąć ${firstArg.numer}")
+                        println("Nie można usunąć ${firstArg.numer} bo ma first arg")
                         registers[firstArg.numer]?.canBeRemoved = false
                     }
 
                     if (secondArg != null) {
-                        println("Nie można usunąć ${secondArg.numer}")
+                        println("Nie można usunąć ${secondArg.numer} bo ma second arg")
                         registers[secondArg.numer]?.canBeRemoved = false
                     }
 
-                    if (instrukcja != "let" && target != null) {
-                        println("Nie można usunąć ${target.numer}")
+                    if (instrukcja != "let" && instrukcja != "bit" && target != null) {
+                        println("Nie można usunąć ${target.numer} bo nie let i ma target")
                         registers[target.numer]?.canBeRemoved = false
                     }
 
+                    val exTar = registers[target?.numer]
+
                     if (targetDeref == "&") {
-                        println("Nie można usunąć ${target!!.numer}")
-                        registers[target!!.numer]?.canBeRemoved = false
+                        println("Nie można usunąć ${target!!.numer} bo target deref jest & (arc cont:${exTar?.argContext?.text})")
+                        registers[target.numer]?.canBeRemoved = false
                     }
                 }
             }
         }
     }
+
+/*
+    Kolejne przejście usunięć
+
+    Dwa kejsy
+
+    1) zmienna w adresie
+
+    alloc SP<__wolin_reg2>, #2
+    let SP(0)<__wolin_reg2>[ubyte*] = 53269[ubyte*]
+    bit &SP(0)<__wolin_reg2>[ubyte*] = #4[ubyte], #1 // mamy docelowy w trybie & - wstawić
+    free SP<__wolin_reg2>, #2
+
+    powinno dać:
+    bit 53269[ubyte] = #4[ubyte], #1 // mamy docelowy w trybie & - wstawić
+
+    2) pozostałe zmienne
+
+    alloc SP, #2
+    let SP(0)[ubyte*] = SP(2)[ubyte*]
+    bit &SP(0)[ubyte*] = #4[ubyte]
+    free SP, #2
+
+    powinno dać:
+
+    bit &SP(2)[ubyte*] = #4[ubyte]
+
+
+ */
 
 
     fun optimizeReturns() {
@@ -313,7 +344,7 @@ allocSP<>,#4 // x = x+2
 //                else /*
                 if (instrukcja != "free" && instrukcja != "alloc") {
                     if (firstArg?.numer == regNr) {
-                        println("Mogę zastąpić tu pierwszy:${linia.text}")
+                        println("\nMogę zastąpić tu pierwszy:${linia.text}")
                         try {
                             val correctedFirstArg = replaceInArg(linia.arg(0), registers[regNr]!!.argContext!!)
 
@@ -331,7 +362,7 @@ allocSP<>,#4 // x = x+2
                         }
                     }
                     if (secondArg?.numer == regNr) {
-                        println("Mogę zastąpić tu drugi:${linia.text}")
+                        println("\nMogę zastąpić tu drugi:${linia.text}")
                         try {
                             val correctedSecondArg = replaceInArg(linia.arg(1), registers[regNr]!!.argContext!!)
                             linia.children[5] = correctedSecondArg
@@ -391,6 +422,8 @@ allocSP<>,#4 // x = x+2
                 val firstArg = extractReg(linia, 0)
                 val target = extractTarget(linia)
 
+                val targetRef = linia.target()?.firstOrNull()?.operand()?.referencer()?.firstOrNull()?.text
+
                 val nazwa = linia.arg(0)?.operand()?.name(0)?.identifier()?.simpleIdentifier(0)?.text // __wolin_reg3
 
                 if (instrukcja == "alloc") {
@@ -406,10 +439,12 @@ allocSP<>,#4 // x = x+2
 
                     when {
                         linia.arg().size > 1 -> target.singleAssign = false
-                        instrukcja == "let" /*&& nazwa != "returnValue"*/ -> {
-                            // first arg == null -> not SP reg, shouldn't be opimized
+                        instrukcja == "let" -> {
                             target.singleAssign = true
-                            target.argContext = linia.arg(0)
+                            if(targetRef == null)
+                                target.argContext = linia.arg(0)
+                            else
+                                println("tu!")
                         }
                         else -> target.singleAssign = false
                     }

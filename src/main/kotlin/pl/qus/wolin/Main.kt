@@ -351,11 +351,16 @@ ret
 
         optimize(
             FileInputStream(File("src/main/wolin/assembler.asm")),
-            FileOutputStream(File("src/main/wolin/assembler_opt.asm"))
+            FileOutputStream(File("src/main/wolin/assembler_opt1.asm"))
         )
 
+//        optimize(
+//            FileInputStream(File("src/main/wolin/assembler_opt1.asm")),
+//            FileOutputStream(File("src/main/wolin/assembler_opt2.asm"))
+//        )
+
         translateAsm(
-            FileInputStream(File("src/main/wolin/assembler_opt.asm")),
+            FileInputStream(File("src/main/wolin/assembler_opt1.asm")),
             FileInputStream(File("src/main/wolin/template.asm"))
         )
 
@@ -375,7 +380,7 @@ ret
         // tu można wygenerować ponownie plik tekstowy, pewnie nawet trzeba, tu się przesuwa funkcyjne rejestry
         visitor.replaceSingleAssignmentRegWithItsValue(asmContext)
         // sprawdzić, czy dany rejestr występuje tylko jako free/alloc +ew. let rejestr =, tylko flaguje
-        visitor.checkAllOccurencesReplaced(asmContext)
+        visitor.unmarkIrreplacableRegs(asmContext)
 
         visitor.removeAndShift(asmContext)
 
