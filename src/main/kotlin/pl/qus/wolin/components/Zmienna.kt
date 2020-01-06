@@ -11,7 +11,6 @@ class Zmienna(
     var fieldType: FieldType,
     private var typexxx: Typ = Typ.unit,
     var initExpression: KotlinParser.ExpressionContext? = null,
-    var bitNo: Int? = null,
     var locationVal: Int? = null
 )
 

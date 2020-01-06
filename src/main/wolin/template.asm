@@ -668,9 +668,22 @@ let SP(?dst)[any*] = SPF(?src)[any*] -> """
     lda (__wolin_spf),y
     sta {dst}+1,x"""
 
+bit ?dst[ubyte] = #?val[ubyte], #1[bool] -> """
+    lda {dst}
+    ora {val}
+    sta {dst}
+"""
+
+bit ?dst[ubyte] = #?val[ubyte], #0[bool] -> """
+    lda #{val}
+    xor #$ff
+    and {dst}
+    sta {dst}
+"""
+
 bit &SP(?dst)[ubyte*] = #?val[ubyte], #1[bool] -> """
     lda ({dst},x)
-    ora {val}
+    ora #{val}
     sta ({dst},x)
 """
 

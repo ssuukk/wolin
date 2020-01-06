@@ -84,7 +84,7 @@ __wolin_pl_qus_wolin_main:
 
 
     lda (0,x)
-    ora 1
+    ora #1
     sta (0,x)
 
 

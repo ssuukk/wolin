@@ -15,6 +15,12 @@ ret
 // switchType to:uword by parse literal constant
 // switchType to:uword by parse literal constant
 // switchType to:uword by parse literal constant
+// switchType to:uword by parse literal constant
+// switchType to:uword by parse literal constant
+// switchType to:uword by parse literal constant
+// switchType to:uword by parse literal constant
+// switchType to:uword by parse literal constant
+// switchType to:uword by parse literal constant
 // switchType to:unit by function declaration
 
 // ****************************************

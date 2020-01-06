@@ -187,14 +187,10 @@ class WolinStateObject(val pass: Pass) {
         if(bitNo != null) {
             val bitNoVal = Zmienna(allocation = AllocType.FIXED, fieldType = FieldType.DUMMY)
             parseLiteralConstant(bitNoVal, bitNo)
-            zmienna.bitNo = bitNoVal.intValue.toInt()
         }
 
         zmienna.name = nameStitcher(name, fieldType == FieldType.ARGUMENT)
-        if(zmienna.bitNo != null)
-            zmienna.type = Typ.bool
-        else
-            zmienna.type = type
+        zmienna.type = type
 
         var pomiń = 0
         if (basePackage.isNotEmpty()) pomiń = basePackage.length + 1
@@ -407,7 +403,7 @@ class WolinStateObject(val pass: Pass) {
                 labelMaker("floatConst", floats.indexOf(zmienna.floatValue))
             }
 
-            zmienna.allocation == AllocType.FIXED -> "${zmienna.locationVal}" + if(zmienna.bitNo != null) ":${zmienna.bitNo}" else ""
+            zmienna.allocation == AllocType.FIXED -> "${zmienna.locationVal}"
             zmienna.allocation == AllocType.LITERAL -> "#${zmienna.immediateValue}"
             else -> "${zmienna.labelName}<${zmienna.name}>"
         }
