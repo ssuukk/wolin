@@ -9,6 +9,13 @@ var spritesFat: ubyte^0xd01d
 var spritesTall: ubyte^0xd017
 var sprite0Color: ubyte^0xd027
 
+
+
+fun suma(a: ubyte, b: ubyte): ubyte {
+    return a+b
+}
+
+
 fun main() {
     spritesOn := 1
     spritesFat := 1
@@ -20,6 +27,5 @@ fun main() {
     do {
         sprite0X++
         sprite0Y++
-    } while (true)
-
+    } while  (true)
 }

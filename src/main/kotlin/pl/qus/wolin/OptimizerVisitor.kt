@@ -4,8 +4,6 @@ import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.antlr.v4.runtime.tree.TerminalNodeImpl
-import sun.awt.SunHints
-import javax.smartcardio.TerminalFactory
 
 class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
     val state = PseudoAsmStateObject()
@@ -42,6 +40,8 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
             }
         }
     }
+
+
 
     fun markSingleAssignmentRegs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         registers.forEach {
@@ -102,11 +102,8 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
         }
     }
 
+fun markReplacablePointerTargets(ctx: PseudoAsmParser.PseudoAsmFileContext) {
 /*
-    Kolejne przejście usunięć
-
-    Dwa kejsy
-
     1) zmienna w adresie
 
     alloc SP<__wolin_reg2>, #2
@@ -125,11 +122,33 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
     free SP, #2
 
     powinno dać:
+    bit SP(2)[ubyte] = #4[ubyte]
 
-    bit &SP(2)[ubyte*] = #4[ubyte]
-
+     jeśli rejestr jest wkaźnikiem i podstawiliśmy do niego wartość
+     to każde podstawienie &reg[typ*] do tego rejestru można zastąpić przez .reg[typ]
 
  */
+
+    val pointerRegs = registers
+        .filter { !it.value.canBeRemoved && it.value.firstAssignIsPointer() }
+        .filter { extractStackType(it.value.argContext?.operand()!!)!="SPF"}
+
+    // każde podstawienie &<ten rejestr> = xxxx
+    // zastąpić <ten_rejestr.context>[usunąć *] = xxxx
+    // TODO
+
+
+
+
+    registers.forEach { it.value.canBeRemoved = false }
+    pointerRegs.forEach { it.value.canBeRemoved = true }
+
+    pointerRegs.forEach {
+        replaceAllOccurencesOfPointerRegister(ctx, it.key)
+    }
+
+    removeAndShiftArgs(ctx)
+}
 
 
     fun optimizeReturns() {
@@ -186,7 +205,7 @@ allocSP<>,#4 // x = x+2
         }
     }
 
-    fun removeAndShift(ctx: PseudoAsmParser.PseudoAsmFileContext) {
+    fun removeAndShiftArgs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         registers.filter { it.value.canBeRemoved }.map { it.value }.forEach { removedRegistr ->
             ctx.children.iterator().let { linieIterator ->
                 while (linieIterator.hasNext()) {
@@ -195,24 +214,26 @@ allocSP<>,#4 // x = x+2
 
                         // jeśli free/alloc lub przypisanie do danego rejestru, to usunąć i przesunąć wektory
 
-                        val instrukja = linia.instrukcja().simpleIdentifier().text
+                        val instrukcja = linia.instrukcja().simpleIdentifier().text
                         val target = extractTarget(linia)
 
-                        if (instrukja == "alloc" && state.insideOptimizedReg == -1) {
+                        val refType = linia.target(0)?.operand()?.referencer()?.firstOrNull()?.text ?: ""
+
+                        if (instrukcja == "alloc" && state.insideOptimizedReg == -1) {
                             val r = createReg(linia)
                             if (r != null && r.numer == removedRegistr.numer) {
                                 state.insideOptimizedReg = r.numer
                                 println("usuwam alloc ${r.numer}")
                                 linieIterator.remove()
                             }
-                        } else if (instrukja == "free" && state.insideOptimizedReg == removedRegistr.numer) {
+                        } else if (instrukcja == "free" && state.insideOptimizedReg == removedRegistr.numer) {
                             val r = createReg(linia)
                             if (r != null && r.numer == removedRegistr.numer) {
                                 state.insideOptimizedReg = -1
                                 println("usuwam free ${removedRegistr.numer}")
                                 linieIterator.remove()
                             }
-                        } else if (instrukja == "let" && target?.numer == removedRegistr.numer && linia.arg().size == 1) {
+                        } else if ((instrukcja == "let" || instrukcja == "bit") && target?.numer == removedRegistr.numer && linia.arg().size == 1 && refType != "&") {
                             println("usuwam pierwsze podstawienie do ${removedRegistr.numer}")
                             linieIterator.remove()
                         } else if (state.insideOptimizedReg == removedRegistr.numer) {
@@ -280,6 +301,48 @@ allocSP<>,#4 // x = x+2
 
         val node = indeks.children[0] as TerminalNodeImpl
         (node.symbol as CommonToken).text = vector.toString()
+    }
+
+    private fun replaceAllOccurencesOfPointerRegister(
+        ctx: PseudoAsmParser.PseudoAsmFileContext,
+        regNr: Int
+    ) {
+        state.replaced = false
+
+        ctx.linia()?.iterator()?.let { linie ->
+            while (linie.hasNext()) {
+                val linia = linie.next()
+
+                val target = extractTarget(linia)
+                val instrukcja = linia.instrukcja().simpleIdentifier().text
+
+
+                val referencer = linia.target(0)?.operand()?.referencer(0)?.text
+
+                if (instrukcja != "free" && instrukcja != "alloc") {
+                    if (target?.numer == regNr && referencer == "&") {
+                        println("\nMogę zastąpić tu pointer:${linia.text}")
+                        try {
+                            val x=linia.children[1].text
+                            println("tu")
+                            val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!.argContext!!)
+
+                            val kopia = PseudoAsmParser.ArgContext(
+                                correctedTarget.ruleContext as ParserRuleContext,
+                                correctedTarget.invokingState
+                            )
+                            kopia.copyFrom(correctedTarget)
+
+                            linia.children[1] = correctedTarget
+                            print("Po zastąpieniu:${linia.text}")
+                            state.replaced = true
+                        } catch (ex: java.lang.Exception) {
+                            // tego nie da się podmienić
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun replaceAllOccurencesOfSingleAssignRegistersWithTheirValues(
@@ -408,6 +471,39 @@ allocSP<>,#4 // x = x+2
 
         return source
     }
+
+
+    private fun replaceInTarget(
+        destination: PseudoAsmParser.TargetContext,
+        source: PseudoAsmParser.ArgContext
+    ): PseudoAsmParser.ArgContext {
+
+        val s = source.text
+        val d = destination.text
+
+
+        if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == "*") {
+            // &(destination) a source jest *X -> X
+            ((source.children[0] as PseudoAsmParser.OperandContext).children[0] as PseudoAsmParser.ReferencerContext).children.clear()
+            println("&*")
+        } else if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == null) {
+            // &(destination) a source jest X -> błąd
+            throw Exception("Can't optimize")
+        } else if (destination.operand().referencer(0)?.text == "*" && source.operand().referencer(0)?.text == "*") {
+            // *(destination) a source jest *X -> błąd
+            throw Exception("Can't optimize")
+        } else if (destination.operand().referencer(0)?.text == "*" && source.operand().referencer(0)?.text == null) {
+            // *(destination) a source jest X -> *X
+            //source.operand().referencer().add(PseudoAsmParser.ReferencerContext())
+            println("wskaźnik")
+        } else {
+            println("1:1")
+            // else -> X
+        }
+
+        return source
+    }
+
 
     /**
      * Sprawdzenie, czy rejestr ma tylko jedno, proste podstawienie
@@ -601,4 +697,10 @@ class Register {
     override fun toString(): String {
         return "reg $numer, redundant=$singleAssign, content=${argContext?.text}"
     }
+
+    fun firstAssignIsPointer(): Boolean {
+        return argContext?.operand()?.referencer()?.firstOrNull()?.REFERENCE() != null
+                || argContext?.operand()?.typeName()?.firstOrNull()?.referencer()?.firstOrNull()?.REFERENCE() != null
+    }
+
 }

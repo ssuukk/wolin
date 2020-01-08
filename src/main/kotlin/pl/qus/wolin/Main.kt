@@ -374,10 +374,13 @@ ret
         visitor.markSingleAssignmentRegs(asmContext)
         // tu można wygenerować ponownie plik tekstowy, pewnie nawet trzeba, tu się przesuwa funkcyjne rejestry
         visitor.replaceSingleAssignmentRegWithItsValue(asmContext)
-        // sprawdzić, czy dany rejestr występuje tylko jako free/alloc +ew. let rejestr =, tylko flaguje
+        // sprawdzić, czy dany rejestr występuje tylko jako free/alloc +ew. let rejestr =, tylko odflaguje
         visitor.unmarkIrreplacableRegs(asmContext)
+        // usuwa oflagowane rejestry
+        visitor.removeAndShiftArgs(asmContext)
 
-        visitor.removeAndShift(asmContext)
+        visitor.markReplacablePointerTargets(asmContext)
+        //visitor.removeAndShiftTargets(asmContext)
 
         // TODO - przesunąć deallokacje SPF za ostatnie użycie danego rejestru
         /*

@@ -679,24 +679,20 @@ bit ?dst[ubyte] = #?val[ubyte], #1[bool] -> """
 """
 
 bit ?dst[ubyte] = #?val[ubyte], #0[bool] -> """
-    lda #{val}
-    eor #$ff
+    lda #$ff-{val}
     and {dst}
     sta {dst}
 """
 
 bit &SP(?dst)[ubyte*] = #?val[ubyte], #1[bool] -> """
-    lda ({dst},x)
-    ora #{val}
-    sta ({dst},x)
-"""
+    lda #{val}
+    ora ({dst},x)
+    sta ({dst},x)"""
 
 bit &SP(?dst)[ubyte*] = #?val[ubyte], #0[bool] -> """
-    lda #{val}
-    eor #$ff
+    lda #$ff-{val}
     and ({dst},x)
-    sta ({dst},x)
-"""
+    sta ({dst},x)"""
 
 
 let &SP(?dst)[ubyte*] = #?val[ubyte] -> """
