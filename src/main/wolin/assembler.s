@@ -126,6 +126,48 @@ __wolin_pl_qus_wolin_suma:
 
 __wolin_pl_qus_wolin_main:
 
+; bit53269[ubyte]=#1[ubyte],#1[bool]
+
+
+    lda 53269
+    ora 1
+    sta 53269
+
+
+; bit53277[ubyte]=#1[ubyte],#1[bool]
+
+
+    lda 53277
+    ora 1
+    sta 53277
+
+
+; bit53271[ubyte]=#1[ubyte],#1[bool]
+
+
+    lda 53271
+    ora 1
+    sta 53271
+
+
+; let53248[ubyte]=#100[ubyte]
+
+
+    lda #100
+    sta 53248
+
+; let53249[ubyte]=#100[ubyte]
+
+
+    lda #100
+    sta 53249
+
+; let53287[ubyte]=#2[ubyte]
+
+
+    lda #2
+    sta 53287
+
 ; allocSP<__wolin_reg22>,#1
 
     dex

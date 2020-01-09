@@ -133,19 +133,14 @@ fun markReplacablePointerTargets(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         .filter { !it.value.canBeRemoved && it.value.firstAssignIsPointer() }
         .filter { extractStackType(it.value.argContext?.operand()!!)!="SPF"}
 
-    // każde podstawienie &<ten rejestr> = xxxx
-    // zastąpić <ten_rejestr.context>[usunąć *] = xxxx
-    // TODO
-
-
-
-
     registers.forEach { it.value.canBeRemoved = false }
     pointerRegs.forEach { it.value.canBeRemoved = true }
 
-    pointerRegs.forEach {
-        replaceAllOccurencesOfPointerRegister(ctx, it.key)
-    }
+    do {
+        pointerRegs.forEach {
+            replaceAllOccurencesOfPointerRegister(ctx, it.key)
+        }
+    } while (state.replaced)
 
     removeAndShiftArgs(ctx)
 }
@@ -316,15 +311,12 @@ allocSP<>,#4 // x = x+2
                 val target = extractTarget(linia)
                 val instrukcja = linia.instrukcja().simpleIdentifier().text
 
-
                 val referencer = linia.target(0)?.operand()?.referencer(0)?.text
 
                 if (instrukcja != "free" && instrukcja != "alloc") {
                     if (target?.numer == regNr && referencer == "&") {
                         println("\nMogę zastąpić tu pointer:${linia.text}")
                         try {
-                            val x=linia.children[1].text
-                            println("tu")
                             val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!.argContext!!)
 
                             val kopia = PseudoAsmParser.ArgContext(
@@ -476,7 +468,7 @@ allocSP<>,#4 // x = x+2
     private fun replaceInTarget(
         destination: PseudoAsmParser.TargetContext,
         source: PseudoAsmParser.ArgContext
-    ): PseudoAsmParser.ArgContext {
+    ): PseudoAsmParser.TargetContext {
 
         val s = source.text
         val d = destination.text
@@ -501,7 +493,10 @@ allocSP<>,#4 // x = x+2
             // else -> X
         }
 
-        return source
+        val zw = PseudoAsmParser.TargetContext(destination.ruleContext as ParserRuleContext, destination.invokingState)
+        zw.children = source.children
+        //return source
+        return zw
     }
 
 
