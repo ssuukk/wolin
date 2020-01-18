@@ -13,6 +13,10 @@ class Funkcja(
 )
 {
 
+    var returnAddress: Int = -1
+
+    var isInterrupt: Boolean = false
+
     val returnName: String
         get() = "$fullName.__returnValue"
 

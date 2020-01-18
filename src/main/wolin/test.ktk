@@ -1,16 +1,32 @@
 package pl.qus.wolin
 
-var rasterVector: uword^0x314 // this is C64 raster interrupt vector
-var border: ubyte^53280
+var interruptRoutineVector: uword^0x314 // this is C64 raster interrupt vector
+var cia1InerruptCtrlReg: ubyte^0xDC0D
+var vicScreenCtrlReg1: ubyte^0xD011
+var vicRasterLine: ubyte^0xD012
+var vicInterruptStatusReg: ubyte^0xd019
+var vicInterruptCtrlReg: ubyte^0xd01a
+var vicBorder: ubyte^53280
+var i: ubyte
 
-fun rasterProc() {
-    // do something
-	border = 5
+// adnotacja interrupt - zabrania używania argumentów, wartości zwrotnych i zmiennych lokalnych
+
+interrupt fun rasterProc() {
+	vicBorder = 7 // Turn screen frame yellow
+	// Empty loop that "does nothing" for a little under a half millisecond
+	i = 0
+	do {
+	    i++
+	} while (i<100)
+	vicBorder = 0 // Switch frame color back to black
+    vicInterruptStatusReg = 0 // "Acknowledge" the interrupt by clearing the VIC's interrupt flag. (ASL)
+    //return@0xEA31 // JMP $EA31	Jump into KERNAL's standard interrupt service routine to handle keyboard scan, cursor display etc.
 }
 
-
 fun main() {
-	// do somethig more, set raster line, etc.
-
-    rasterVector = rasterProc
+    cia1InerruptCtrlReg = 127 // "Switch off" interrupts signals from CIA-1 (bity 0-6 ustawione na 1 przestawia na 0)
+    vicScreenCtrlReg1 = 0x1b  // and 127 // Clear most significant bit in VIC's raster register
+    vicRasterLine = 210 // Set the raster line number where interrupt should occur
+    interruptRoutineVector = rasterProc // Set the interrupt vector to point to interrupt service routine
+    vicInterruptCtrlReg = 1 // Enable raster interrupt signals from VIC
 }

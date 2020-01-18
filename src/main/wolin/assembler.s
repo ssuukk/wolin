@@ -66,19 +66,95 @@ __wolin_this_ptr_hi := 176+1
 
 __wolin_pl_qus_wolin_rasterProc:
 
-; let53280[ubyte]=#5[ubyte]
+; let53280[ubyte]=#7[ubyte]
 
 
-    lda #5
+    lda #7
     sta 53280
 
-; ret
+; let__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte]=#0[ubyte]
 
-    rts
+
+    lda #0
+    sta __wolin_pl_qus_wolin_i
+
+; allocSP<__wolin_reg7>,#1
+
+    dex
+
+; label__wolin_lab_loopStart_1
+
+__wolin_lab_loopStart_1:
+
+; add__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte],#1[ubyte]
+
+
+    inc __wolin_pl_qus_wolin_i
+
+; evallessSP(0)<__wolin_reg7>[bool]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte],#100[ubyte]
+
+
+    lda #1 ; mniejsze
+    sta 0,x
+    lda __wolin_pl_qus_wolin_i
+    cmp #100
+    bcc :+
+    lda #0 ; jednak wieksze
+    sta 0,x
+:
+
+
+; beqSP(0)<__wolin_reg7>[bool]=#1[bool],__wolin_lab_loopStart_1<label_po_if>[uword]
+
+
+    lda 0,x
+    bne __wolin_lab_loopStart_1
+
+; label__wolin_lab_loopEnd_1
+
+__wolin_lab_loopEnd_1:
+
+; freeSP<__wolin_reg7>,#1
+
+    inx
+
+; let53280[ubyte]=#0[ubyte]
+
+
+    lda #0
+    sta 53280
+
+; let53273[ubyte]=#0[ubyte]
+
+
+    lda #0
+    sta 53273
+
+; reti
+
+   rti
 
 ; function__wolin_pl_qus_wolin_main
 
 __wolin_pl_qus_wolin_main:
+
+; let56333[ubyte]=#127[ubyte]
+
+
+    lda #127
+    sta 56333
+
+; let53265[ubyte]=#27[ubyte]
+
+
+    lda #27
+    sta 53265
+
+; let53266[ubyte]=#210[ubyte]
+
+
+    lda #210
+    sta 53266
 
 ; let788[uword]=__wolin_pl_qus_wolin_rasterProc[uword]
 
@@ -88,6 +164,12 @@ __wolin_pl_qus_wolin_main:
     lda #>__wolin_pl_qus_wolin_rasterProc
     sta 788+1
 
+
+; let53274[ubyte]=#1[ubyte]
+
+
+    lda #1
+    sta 53274
 
 ; ret
 
@@ -100,4 +182,12 @@ __wolin_indirect_jsr:
 ; goto65535[adr]
 
     jmp 65535
+
+; label__wolin_pl_qus_wolin_i
+
+__wolin_pl_qus_wolin_i:
+
+; alloc0[ubyte]
+
+    .byte 0
 

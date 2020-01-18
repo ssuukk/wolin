@@ -692,6 +692,7 @@ functionModifier
     | INLINE
     | EXTERNAL
     | SUSPEND
+    | INTERRUPT
     ;
 
 propertyModifier

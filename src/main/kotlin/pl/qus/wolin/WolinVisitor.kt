@@ -33,7 +33,11 @@ class WolinVisitor(
         state.currentFunction?.releaseCalledFunctionsStack(state)
 
         state.rem("return from function body")
-        state.code("ret")
+        when {
+            state.currentFunction?.returnAddress != -1 -> state.code("goto ${state.currentFunction?.returnAddress}[adr]")
+            state.currentFunction?.isInterrupt == true -> state.code("reti")
+            else -> state.code("ret")
+        }
 
         return state
     }
@@ -728,6 +732,21 @@ class WolinVisitor(
                                 ctx,
                                 "Nie umiem wykonać prefix unary operation dla ++"
                             )
+                        }
+                        it.labelDefinition() != null -> {
+                            val target = ctx.postfixUnaryExpression().atomicExpression().literalConstant()
+                            val returnAt = ctx.prefixUnaryOperation().first().text
+
+                            if(returnAt != "return@")
+                                błędzik(
+                                    ctx,
+                                    "Unknown label definition for '${ctx.text}'"
+                                )
+
+                            val wartość = Zmienna(allocation = AllocType.LITERAL, fieldType = FieldType.DUMMY)
+                            state.parseLiteralConstant(wartość, target)
+
+                            state.currentFunction?.returnAddress = wartość.intValue.toInt()
                         }
                         else -> {
                             błędzik(
@@ -1633,6 +1652,8 @@ class WolinVisitor(
     override fun visitFunctionDeclaration(ctx: KotlinParser.FunctionDeclarationContext): WolinStateObject {
         val name = ctx.identifier()?.text ?: throw Exception("Brak nazwy funkcji")
 
+        val isInterrupt = ctx.modifierList()?.modifier()?.firstOrNull()?.functionModifier()?.INTERRUPT() != null
+
         val lokacjaLiterał = ctx.locationReference()?.literalConstant()
 
         val lokacjaAdres = Zmienna("", allocation = AllocType.FIXED, fieldType = FieldType.DUMMY)
@@ -1652,10 +1673,14 @@ class WolinVisitor(
 
             nowa.location = lokacjaAdres.intValue.toInt()
             nowa.fullName = functionName
+            nowa.isInterrupt = isInterrupt
 
             val zwrotka = state.createVar(nowa.returnName, ctx.type(0), null, FieldType.ARGUMENT)
 
             nowa.type = zwrotka.type.copy()
+
+            if(nowa.isInterrupt && nowa.type != Typ.unit)
+                błędzik(ctx, "Return not allowed for interrupt function!")
 
             nowa
         }
@@ -1676,6 +1701,9 @@ class WolinVisitor(
         ctx.functionValueParameters()?.functionValueParameter()?.forEach {
             visitFunctionValueParameter(it)
         }
+
+        if(nowaFunkcja.isInterrupt && nowaFunkcja.arguments.isNotEmpty())
+            błędzik(ctx, "Arguments not allowed for interrupt function!")
 
         val body = ctx.functionBody()
 

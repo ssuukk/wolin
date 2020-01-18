@@ -628,6 +628,29 @@ evalless SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 :
 """
 
+evalless SP(?dest)[bool] = SP(?left)[ubyte], #?val[ubyte] -> """
+    lda #1 ; mniejsze
+    sta {dest},x
+    lda {left},x
+    cmp #{val}
+    bcc :+
+    lda #0 ; jednak wieksze
+    sta {dest},x
+:
+"""
+
+evalless SP(?dest)[bool] = ?left[ubyte], #?val[ubyte] -> """
+    lda #1 ; mniejsze
+    sta {dest},x
+    lda {left}
+    cmp #{val}
+    bcc :+
+    lda #0 ; jednak wieksze
+    sta {dest},x
+:
+"""
+
+
 evalless SP(?dest)[bool] = ?adr[uword], #?val[uword] -> """
     lda #1 ; mniejsze
     sta {dest},x
@@ -894,6 +917,8 @@ float ?label[uword] = ?val[?dummy] -> """
 """
 
 ret -> """    rts"""
+
+reti -> """   rti"""
 
 call ?a[adr] -> """    jsr {a}"""
 
