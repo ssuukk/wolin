@@ -285,6 +285,13 @@ let ?label[float] = SP(?s)[float] -> """
     sta {label}+4
 """
 
+let ?dst[uword] = ?label[uword] -> """
+    lda #<{label}
+    sta {dst}
+    lda #>{label}
+    sta {dst}+1
+"""
+
 //============================================
 // SP - zmienna
 //============================================

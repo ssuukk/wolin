@@ -412,10 +412,6 @@ free SPF<pl.qus.wolin.allocMem.__returnValue>, #2
                 if (it.arg(1) != null)
                     linia += ", ${it.arg(1).text}"
 
-//                if (it.arg(2) != null)
-//                    linia += ", ${it.arg(2).text}"
-
-
                 outStream.write(linia.toByteArray())
                 outStream.write(10)
             }

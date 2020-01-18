@@ -1613,7 +1613,13 @@ class WolinVisitor(
 
                     state.switchType(zmienna.type, "type from ${zmienna.name}", true)
                 } catch (ex: Exception) {
-                    błędzik(ctx, "Unknown variable near ${ctx.parent.parent.text}")
+                    try {
+                        val proc = state.findProc(ctx.Identifier().text)
+                        checkTypeAndAddAssignment(ctx, state.currentReg, proc, "simple id from var", RegOper.VALUE, RegOper.VALUE)
+                        state.switchType(Typ.uword, "function pointer", false)
+                    } catch (ex: Exception) {
+                        błędzik(ctx, "Unknown variable or proc near ${ctx.parent.parent.text}")
+                    }
                 }
             }
             else -> {
@@ -2200,6 +2206,34 @@ class WolinVisitor(
             }
         }
     }
+
+
+    fun checkTypeAndAddAssignment(ctx: ParseTree, doJakiej: Zmienna, co: Funkcja, comment: String, derefDo: RegOper, derefCo: RegOper) {
+
+        val finalDerefDo = if(derefDo == RegOper.STAR && doJakiej.type.isPointer)
+            RegOper.VALUE
+        else
+            derefDo
+
+        val finalDerefCo = if(derefCo == RegOper.STAR && co.type.isPointer)
+            RegOper.VALUE
+        else if(derefCo == RegOper.AMPRESAND && !co.type.isPointer)
+            RegOper.VALUE
+        else
+            derefCo
+
+        if (state.pass == Pass.TRANSLATION) {
+            val można =
+                doJakiej.type == Typ.uword //|| doJakiej.type.isPointer || co.type.name == "uword"
+
+            if (można) {
+                state.code("let ${state.varToAsm(doJakiej, finalDerefDo)} = ${co.labelName}[uword] // przez sprawdzacz typow - $comment")
+            } else {
+                błędzik(ctx, "Nie można przypisać $co do zmiennej $doJakiej")
+            }
+        }
+    }
+
 
 
     fun doInitCode(zmienna: Zmienna) {

@@ -1,31 +1,16 @@
 package pl.qus.wolin
 
-var screen: ubyte[]^1024
+var rasterVector: uword^0x314 // this is C64 raster interrupt vector
+var border: ubyte^53280
 
-var spritesOn: ubyte^0xd015
-var sprite0X: ubyte^0xd000
-var sprite0Y: ubyte^0xd001
-var spritesFat: ubyte^0xd01d
-var spritesTall: ubyte^0xd017
-var sprite0Color: ubyte^0xd027
-
-
-
-fun suma(a: ubyte, b: ubyte): ubyte {
-    return a+b
+fun rasterProc() {
+    // do something
+	border = 5
 }
 
 
 fun main() {
-    spritesOn := 1
-    spritesFat := 1
-    spritesTall := 1
-    sprite0X = 100
-    sprite0Y = 100
-    sprite0Color = 2
+	// do somethig more, set raster line, etc.
 
-    do {
-        sprite0X++
-        sprite0Y++
-    } while  (true)
+    rasterVector = rasterProc
 }

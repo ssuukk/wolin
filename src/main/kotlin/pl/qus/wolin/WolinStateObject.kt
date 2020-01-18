@@ -718,7 +718,7 @@ class WolinStateObject(val pass: Pass) {
                 in -127..128 -> reg.type = Typ.byName("byte", this)
                 in -32768..32767 -> reg.type = Typ.byName("word", this)
 
-                else -> throw Exception("Value out of range")
+                else -> throw Exception("Value out of range: $wynik")
             }
         }
 
