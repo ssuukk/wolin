@@ -263,6 +263,25 @@ free SP<__wolin_reg32>, #2 // ASSIGNMENT target
 // 
 // switchType to:unit by assignment
 // top type already set: __wolin_reg31: unit = 65535 (for expression)
+alloc SP<__wolin_reg34>, #1 // for expression
+label __wolin_lab_loopStart_2
+// FORCE TOP: __wolin_reg34: bool = 0 (for expression) -> bool
+alloc SP<__wolin_reg36>, #2 // LEFT equality check: evalneq
+let SP(0)<__wolin_reg36>[ubyte*] = *__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.i
+// top type already set: __wolin_reg36: ubyte* = 0 (LEFT equality check: evalneq)
+alloc SP<__wolin_reg37>, #1 // RIGHT equality check: evalneq
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg37>[ubyte] = #200[ubyte] // atomic ex
+// top type already set: __wolin_reg37: ubyte = 0 (RIGHT equality check: evalneq)
+evalneq SP(3)<__wolin_reg34>[bool] = &SP(1)<__wolin_reg36>[ubyte*], SP(0)<__wolin_reg37>[ubyte] // two sides
+free SP<__wolin_reg37>, #1 // RIGHT equality check: evalneq
+free SP<__wolin_reg36>, #2 // LEFT equality check: evalneq
+// top type already set: __wolin_reg34: bool = 0 (for expression)
+beq SP(0)<__wolin_reg34>[bool] = #1[bool], __wolin_lab_loopStart_2<label_po_if>[uword]
+label __wolin_lab_loopEnd_2
+// top type already set: __wolin_reg34: bool = 0 (for expression)
+free SP<__wolin_reg34>, #1 // for expression
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // freeing call stack
 // return from function body

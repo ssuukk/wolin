@@ -171,6 +171,40 @@ __wolin_pl_qus_wolin_main:
     lda #1
     sta 53274
 
+; allocSP<__wolin_reg34>,#1
+
+    dex
+
+; label__wolin_lab_loopStart_2
+
+__wolin_lab_loopStart_2:
+
+; evalneqSP(0)<__wolin_reg34>[bool]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte],#200[ubyte]
+
+
+    lda #1 ; rozne
+    sta 0,x
+    lda __wolin_pl_qus_wolin_i
+    cmp #200
+    bne :+
+    lda #0 ; jednak rowne
+    sta 0,x
+:
+
+; beqSP(0)<__wolin_reg34>[bool]=#1[bool],__wolin_lab_loopStart_2<label_po_if>[uword]
+
+
+    lda 0,x
+    bne __wolin_lab_loopStart_2
+
+; label__wolin_lab_loopEnd_2
+
+__wolin_lab_loopEnd_2:
+
+; freeSP<__wolin_reg34>,#1
+
+    inx
+
 ; ret
 
     rts

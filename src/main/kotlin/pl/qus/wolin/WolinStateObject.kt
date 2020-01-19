@@ -1,10 +1,7 @@
 package pl.qus.wolin
 
 import pl.qus.wolin.components.*
-import pl.qus.wolin.exception.FunctionNotFound
-import pl.qus.wolin.exception.RegTypeMismatchException
-import pl.qus.wolin.exception.UnknownLiteral
-import pl.qus.wolin.exception.VariableNotFound
+import pl.qus.wolin.exception.*
 import java.lang.Exception
 import java.util.*
 
@@ -231,7 +228,10 @@ class WolinStateObject(val pass: Pass) {
         }
 
         if (fieldType != FieldType.ARGUMENT && currentFunction?.locals?.none {it.name == zmienna.name} == true) {
-            currentFunction?.addField(zmienna)
+            if(currentFunction?.isInterrupt == true)
+                throw InterruptFunctionWithLocals("Local variables are not allowed in interrupt functions!")
+            else
+                currentFunction?.addField(zmienna)
         }
 
         return zmienna
@@ -373,15 +373,24 @@ class WolinStateObject(val pass: Pass) {
         return zmienna
     }
 
-    fun varToAsmAutoDeref(zmienna: Zmienna): String =
-        ""+(if(zmienna.type.isPointer) "&" else "") + varToAsmNoType(zmienna) + "[${zmienna.type.typeForAsm}]"
+//    fun varToAsmAutoDeref(register: Zmienna): String =
+//        ""+(if(register.type.isPointer) "&" else "") + varToAsmNoType(register) + "[${register.type.typeForAsm}]"
 
-    fun varToAsm(zmienna: Zmienna, deref: RegOper = RegOper.VALUE): String =
-        when(deref) {
+    fun varToAsm(register: Zmienna, derefType: RegOper = RegOper.VALUE): String {
+        val finalDeref =
+            if (derefType == RegOper.STAR && register.type.isPointer)
+                RegOper.VALUE
+            else if (derefType == RegOper.AMPRESAND && !register.type.isPointer)
+                RegOper.VALUE
+            else
+                derefType
+
+        return when (finalDeref) {
             RegOper.AMPRESAND -> "&"
             RegOper.VALUE -> ""
             RegOper.STAR -> "*"
-        } + varToAsmNoType(zmienna) + "[${zmienna.type.typeForAsm}]"
+        } + varToAsmNoType(register) + "[${register.type.typeForAsm}]"
+    }
 
     fun varToAsmNoType(zmienna: Zmienna): String {
 

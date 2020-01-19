@@ -581,6 +581,16 @@ beq SP(?s)[bool] = #0[bool], ?dest[uword] -> """
     lda {s},x
     beq {dest}"""
 
+evalneq SP(?dest)[bool] = ?left[ubyte], #?right[ubyte] -> """
+    lda #1 ; rozne
+    sta {dest},x
+    lda {left}
+    cmp #{right}
+    bne :+
+    lda #0 ; jednak rowne
+    sta {dest},x
+:"""
+
 evaleq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     lda #1 ; rowne
     sta {dest},x

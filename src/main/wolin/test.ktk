@@ -29,4 +29,6 @@ fun main() {
     vicRasterLine = 210 // Set the raster line number where interrupt should occur
     interruptRoutineVector = rasterProc // Set the interrupt vector to point to interrupt service routine
     vicInterruptCtrlReg = 1 // Enable raster interrupt signals from VIC
+
+    do {} while (i != 200)
 }
