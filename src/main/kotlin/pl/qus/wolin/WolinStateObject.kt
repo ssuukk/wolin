@@ -171,21 +171,14 @@ class WolinStateObject(val pass: Pass) {
         zmienna.immutable = propertyCtx?.VAL() != null || fieldType == FieldType.ARGUMENT
 
         val location = locRef?.literalConstant() ?: nullableTypeLocRef?.literalConstant()
-        val bitNo = locRef?.literalConstant() ?: nullableTypeLocRef?.literalConstant()
-
+        val otherLocation = locRef?.userType()?.text
 
         if(location != null) {
             val locationVal = Zmienna(allocation = AllocType.FIXED, fieldType = FieldType.DUMMY)
             parseLiteralConstant(locationVal, location)
-            zmienna.locationTxt = location.text
             zmienna.locationVal = locationVal.intValue.toInt()
         }
-
-        if(bitNo != null) {
-            val bitNoVal = Zmienna(allocation = AllocType.FIXED, fieldType = FieldType.DUMMY)
-            parseLiteralConstant(bitNoVal, bitNo)
-        }
-
+        zmienna.locationTxt = otherLocation
         zmienna.name = nameStitcher(name, fieldType == FieldType.ARGUMENT)
         zmienna.type = type
 
@@ -412,7 +405,7 @@ class WolinStateObject(val pass: Pass) {
                 labelMaker("floatConst", floats.indexOf(zmienna.floatValue))
             }
 
-            zmienna.allocation == AllocType.FIXED -> "${zmienna.locationVal}"
+            zmienna.allocation == AllocType.FIXED -> "${zmienna.locationVal ?: zmienna.locationTxt}"
             zmienna.allocation == AllocType.LITERAL -> "#${zmienna.immediateValue}"
             else -> "${zmienna.labelName}<${zmienna.name}>"
         }

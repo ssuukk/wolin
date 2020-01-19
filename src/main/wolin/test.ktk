@@ -12,10 +12,30 @@ var maskInterrupts: bool^CPU.I
 
 fun clearScreen^0xe544()
 
+interrupt fun blueBg() {
+    interruptRoutineVector = whiteBg
+    vicRasterLine = 140
+    vicBorder = 6
+    vicInterruptStatusReg = 0xff
+    return@0xea31
+}
+
+interrupt fun whiteBg() {
+
+}
+
 // adnotacja interrupt - zabrania używania argumentów, wartości zwrotnych i zmiennych lokalnych
 
 
 fun main() {
     clearScreen()
     maskInterrupts = true
+    cia1InerruptCtrlReg = 0x7f
+    vicInterruptCtrlReg := 1
+    //vicScreenCtrlReg1 = vicScreenCtrlReg1 and 0x7f
+    vicRasterLine = 140
+    interruptRoutineVector = blueBg
+    maskInterrupts = false
+
+    do {} while (true)
 }
