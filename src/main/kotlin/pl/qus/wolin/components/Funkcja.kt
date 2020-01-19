@@ -41,11 +41,13 @@ class Funkcja(
         calledFunctions.forEach {
             try {
                 state.fnCallReleaseRet(it)
-                state.code("free SPF <${it.returnName}>, #${it.type.sizeOnStack} // free return value of ${it.fullName} from call stack")
+                if(it.type != Typ.unit)
+                    state.code("free SPF <${it.returnName}>, #${it.type.sizeOnStack} // free return value of ${it.fullName} from call stack")
             } catch (ex: Exception) {
                 val a = state.currentFunction?.fullName
                 println("tu")
             }
         }
+        calledFunctions.clear()
     }
 }

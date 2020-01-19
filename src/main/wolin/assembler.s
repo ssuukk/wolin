@@ -35,12 +35,12 @@ __wolin_spf_top_hi := 40959+1 ; function stack top
     lda #>__wolin_spf_top
     sta __wolin_spf+1
 
-; setupSP=143[ubyte]
+; setupSP=114[ubyte]
 
 
 ; prepare program stack
-__wolin_sp_top := 143 ; program stack top
-__wolin_sp_top_hi := 143+1 ; program stack top
+__wolin_sp_top := 114 ; program stack top
+__wolin_sp_top_hi := 114+1 ; program stack top
     ldx #__wolin_sp_top ; set program stack top
 
 ; setupHEAP=176[ubyte]
@@ -62,148 +62,21 @@ __wolin_this_ptr_hi := 176+1
 
     rts
 
-; function__wolin_pl_qus_wolin_rasterProc
+; function__wolin_pl_qus_wolin_clearScreen
 
-__wolin_pl_qus_wolin_rasterProc:
-
-; let53280[ubyte]=#7[ubyte]
-
-
-    lda #7
-    sta 53280
-
-; let__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte]=#0[ubyte]
-
-
-    lda #0
-    sta __wolin_pl_qus_wolin_i
-
-; allocSP<__wolin_reg7>,#1
-
-    dex
-
-; label__wolin_lab_loopStart_1
-
-__wolin_lab_loopStart_1:
-
-; add__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte],#1[ubyte]
-
-
-    inc __wolin_pl_qus_wolin_i
-
-; evallessSP(0)<__wolin_reg7>[bool]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte],#100[ubyte]
-
-
-    lda #1 ; mniejsze
-    sta 0,x
-    lda __wolin_pl_qus_wolin_i
-    cmp #100
-    bcc :+
-    lda #0 ; jednak wieksze
-    sta 0,x
-:
-
-
-; beqSP(0)<__wolin_reg7>[bool]=#1[bool],__wolin_lab_loopStart_1<label_po_if>[uword]
-
-
-    lda 0,x
-    bne __wolin_lab_loopStart_1
-
-; label__wolin_lab_loopEnd_1
-
-__wolin_lab_loopEnd_1:
-
-; freeSP<__wolin_reg7>,#1
-
-    inx
-
-; let53280[ubyte]=#0[ubyte]
-
-
-    lda #0
-    sta 53280
-
-; let53273[ubyte]=#0[ubyte]
-
-
-    lda #0
-    sta 53273
-
-; reti
-
-   rti
+__wolin_pl_qus_wolin_clearScreen:
 
 ; function__wolin_pl_qus_wolin_main
 
 __wolin_pl_qus_wolin_main:
 
-; let56333[ubyte]=#127[ubyte]
+; allocSPF,#0
 
+ 
 
-    lda #127
-    sta 56333
+; call58692[adr]
 
-; let53265[ubyte]=#27[ubyte]
-
-
-    lda #27
-    sta 53265
-
-; let53266[ubyte]=#210[ubyte]
-
-
-    lda #210
-    sta 53266
-
-; let788[uword]=__wolin_pl_qus_wolin_rasterProc[uword]
-
-
-    lda #<__wolin_pl_qus_wolin_rasterProc
-    sta 788
-    lda #>__wolin_pl_qus_wolin_rasterProc
-    sta 788+1
-
-
-; let53274[ubyte]=#1[ubyte]
-
-
-    lda #1
-    sta 53274
-
-; allocSP<__wolin_reg34>,#1
-
-    dex
-
-; label__wolin_lab_loopStart_2
-
-__wolin_lab_loopStart_2:
-
-; evalneqSP(0)<__wolin_reg34>[bool]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte],#200[ubyte]
-
-
-    lda #1 ; rozne
-    sta 0,x
-    lda __wolin_pl_qus_wolin_i
-    cmp #200
-    bne :+
-    lda #0 ; jednak rowne
-    sta 0,x
-:
-
-; beqSP(0)<__wolin_reg34>[bool]=#1[bool],__wolin_lab_loopStart_2<label_po_if>[uword]
-
-
-    lda 0,x
-    bne __wolin_lab_loopStart_2
-
-; label__wolin_lab_loopEnd_2
-
-__wolin_lab_loopEnd_2:
-
-; freeSP<__wolin_reg34>,#1
-
-    inx
+    jsr 58692
 
 ; ret
 

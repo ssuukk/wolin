@@ -2036,7 +2036,7 @@ class WolinVisitor(
             state.code("setup SPF = 251[ubyte], 40959[uword] // call stack pointer at 251 = 40959")
 
         if (state.spUsed)
-            state.code("setup SP = 143[ubyte] // register stack top = 142")
+            state.code("setup SP = 114[ubyte] // (było 143) register stack top = 142")
 
         state.code("setup HEAP = 176[ubyte]")
 
@@ -2217,10 +2217,8 @@ class WolinVisitor(
                 RegOper.VALUE
             )
 
-        //state.fnCallReleaseRet(functionToCall)
         state.currentFunction?.calledFunctions?.add(functionToCall)
 
-        //state.code("free SPF <${functionToCall.fullName}.__returnValue>, #${functionToCall.type.sizeOnStack} // free return value of ${functionToCall.fullName} from call stack")
     }
 
     fun processTypeChangingOp(
