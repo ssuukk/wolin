@@ -83,7 +83,7 @@ class WolinVisitor(
                                         it,
                                         { visitDisjunction(it.expression()?.disjunction(0)!!) },
                                         { visitDisjunction(it.expression()?.disjunction(1)!!) },
-                                        true
+                                        BitOp.SetBit
                                     )
 
                                     state.switchType(Typ.unit, "bit op")
@@ -93,10 +93,31 @@ class WolinVisitor(
                                         it,
                                         { visitDisjunction(it.expression()?.disjunction(0)!!) },
                                         { visitDisjunction(it.expression()?.disjunction(1)!!) },
-                                        false
+                                        BitOp.ClearBit
                                     )
 
                                     state.switchType(Typ.unit, "bit op")
+                                }
+                                operator?.BIT_AND_ASSIGNMENT() != null -> {
+                                    processBitOp(
+                                        it,
+                                        { visitDisjunction(it.expression()?.disjunction(0)!!) },
+                                        { visitDisjunction(it.expression()?.disjunction(1)!!) },
+                                        BitOp.AndBit
+                                    )
+
+                                    state.switchType(Typ.unit, "&= op")
+                                }
+                                operator?.BIT_OR_ASSIGNMENT() != null -> {
+                                    processBitOp(
+                                        it,
+                                        { visitDisjunction(it.expression()?.disjunction(0)!!) },
+                                        { visitDisjunction(it.expression()?.disjunction(1)!!) },
+                                        BitOp.OrBit
+                                    )
+
+                                    state.switchType(Typ.unit, "|= op")
+
                                 }
                                 else -> {
                                     błędzik(it, "Unknown assignment operator in block")
@@ -294,7 +315,10 @@ class WolinVisitor(
                     { visitComparison(ctx.comparison(1)) },
                     { akt, lewy, prawy ->
                         state.code(
-                            "$oper ${state.varToAsm(akt, RegOper.AMPRESAND)} = ${state.varToAsm(lewy, RegOper.AMPRESAND)}, ${state.varToAsm(prawy, RegOper.AMPRESAND)} // two sides"
+                            "$oper ${state.varToAsm(akt, RegOper.AMPRESAND)} = ${state.varToAsm(
+                                lewy,
+                                RegOper.AMPRESAND
+                            )}, ${state.varToAsm(prawy, RegOper.AMPRESAND)} // two sides"
                         )
 
                         Typ.bool
@@ -351,7 +375,10 @@ class WolinVisitor(
                             { visitNamedInfix(ctx.namedInfix(1)) },
                             { wynik, lewa, prawa ->
                                 state.code(
-                                    "evalless ${state.varToAsm(wynik, RegOper.AMPRESAND)} = ${state.varToAsm(lewa, RegOper.AMPRESAND)}, ${state.varToAsm(
+                                    "evalless ${state.varToAsm(wynik, RegOper.AMPRESAND)} = ${state.varToAsm(
+                                        lewa,
+                                        RegOper.AMPRESAND
+                                    )}, ${state.varToAsm(
                                         prawa, RegOper.AMPRESAND
                                     )}"
                                 )
@@ -366,7 +393,10 @@ class WolinVisitor(
                             { visitNamedInfix(ctx.namedInfix(1)) },
                             { wynik, lewa, prawa ->
                                 state.code(
-                                    "evalless ${state.varToAsm(wynik, RegOper.AMPRESAND)} = ${state.varToAsm(prawa, RegOper.AMPRESAND)}, ${state.varToAsm(
+                                    "evalless ${state.varToAsm(wynik, RegOper.AMPRESAND)} = ${state.varToAsm(
+                                        prawa,
+                                        RegOper.AMPRESAND
+                                    )}, ${state.varToAsm(
                                         lewa, RegOper.AMPRESAND
                                     )}"
                                 )
@@ -525,131 +555,6 @@ class WolinVisitor(
 //
 //        return state
 //    }
-
-    fun processAssignment(ctx: ParseTree, leftFunction: () -> WolinStateObject, rightFunction: () -> WolinStateObject) {
-
-
-        state.rem("")
-        state.rem("== ASSIGNMENT PUSH =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
-        state.assignStack.push(AssignEntry())
-        state.rem("")
-        state.rem("== ASSIGNMENT LEFT =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
-        state.assignStack.assignLeftSideVar = state.allocReg("ASSIGNMENT target")
-        try {
-            state.rem("(do assignLeftSideVar przypisano ${state.assignStack.assignLeftSideVar})")
-        } catch (ex: UninitializedPropertyAccessException) {
-        }
-
-        leftFunction()
-        state.inferTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji! ROBIONE
-
-        state.rem("== ASSIGNMENT RIGHT =======================================")
-        state.assignStack.assignRightSideFinalVar = state.allocReg("ASSIGNMENT value")
-        try {
-            state.rem("(do assignRightSideFinalVar przypisano ${state.assignStack.assignRightSideFinalVar})")
-        } catch (ex: UninitializedPropertyAccessException) {
-        }
-
-        rightFunction()
-        state.assignStack.assignRightSideFinalVar.type =
-            state.currentWolinType.copy() // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
-
-
-        // typ indeksu, nie faktyczny typ zmiennej
-        // więc np x[255] jest ok, ale x[256] daje uword!
-        // typ pobierany jest z state.assignStack.assignLeftSideVar
-//        rightFinalReg.type.pointer = false // przy podstawieniu konkretnej wartości
-//        rightFinalReg.type.array = false
-
-        checkTypeAndAddAssignment(
-            ctx,
-            state.assignStack.assignLeftSideVar,
-            state.assignStack.assignRightSideFinalVar,
-            "process assignment",
-            RegOper.AMPRESAND,
-            RegOper.AMPRESAND
-        )
-
-        if (state.assignStack.arrayAssign) {
-            state.assignStack.arrayAssign = false
-        }
-
-
-        state.freeReg("ASSIGNMENT value, type = ${state.currentWolinType}")
-
-        state.freeReg("ASSIGNMENT target")
-
-        state.rem("== ASSIGNMENT END =======================================")
-        state.rem("== ASSIGNMENT POP =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
-        state.assignStack.pop()
-        state.rem("")
-    }
-
-
-    fun processBitOp(
-        ctx: ParseTree,
-        leftFunction: () -> WolinStateObject,
-        rightFunction: () -> WolinStateObject,
-        setBit: Boolean
-    ) {
-
-
-        state.rem("")
-        state.rem("== ASSIGNMENT PUSH =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
-        state.assignStack.push(AssignEntry())
-        state.rem("")
-        state.rem("== ASSIGNMENT LEFT =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
-        state.assignStack.assignLeftSideVar = state.allocReg("ASSIGNMENT target")
-        try {
-            state.rem("(do assignLeftSideVar przypisano ${state.assignStack.assignLeftSideVar})")
-        } catch (ex: UninitializedPropertyAccessException) {
-        }
-
-        leftFunction()
-        state.inferTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji! ROBIONE
-
-        state.rem("== ASSIGNMENT RIGHT =======================================")
-        state.assignStack.assignRightSideFinalVar = state.allocReg("ASSIGNMENT value")
-        try {
-            state.rem("(do assignRightSideFinalVar przypisano ${state.assignStack.assignRightSideFinalVar})")
-        } catch (ex: UninitializedPropertyAccessException) {
-        }
-
-        rightFunction()
-        state.assignStack.assignRightSideFinalVar.type =
-            state.currentWolinType.copy() // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
-
-        // typ indeksu, nie faktyczny typ zmiennej
-        // więc np x[255] jest ok, ale x[256] daje uword!
-        // typ pobierany jest z state.assignStack.assignLeftSideVar
-//        rightFinalReg.type.pointer = false // przy podstawieniu konkretnej wartości
-//        rightFinalReg.type.array = false
-
-        checkTypeAndSetBit(
-            ctx,
-            state.assignStack.assignLeftSideVar,
-            state.assignStack.assignRightSideFinalVar,
-            "process assignment",
-            RegOper.AMPRESAND,
-            RegOper.AMPRESAND,
-            setBit
-        )
-
-        if (state.assignStack.arrayAssign) {
-            state.assignStack.arrayAssign = false
-        }
-
-
-        state.freeReg("ASSIGNMENT value, type = ${state.currentWolinType}")
-
-        state.freeReg("ASSIGNMENT target")
-
-        state.rem("== ASSIGNMENT END =======================================")
-        state.rem("== ASSIGNMENT POP =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
-        state.assignStack.pop()
-        state.rem("")
-    }
-
 
     override fun visitTypeRHS(ctx: KotlinParser.TypeRHSContext): WolinStateObject {
         when {
@@ -1801,7 +1706,7 @@ class WolinVisitor(
         if (body != null && nowaFunkcja.location != 0)
             throw Exception("Fixed address function ${nowaFunkcja.fullName} with a body!")
 
-        if(state.currentFunction?.location == 0) {
+        if (state.currentFunction?.location == 0) {
             state.code(
                 "\n" + """// ****************************************
             |// funkcja: ${nowaFunkcja}
@@ -2117,6 +2022,9 @@ class WolinVisitor(
         return state
     }
 
+    /*****************************************************************
+    Pomocnicze
+     *****************************************************************/
 
     fun błędzik(miejsce: ParseTree, teskt: String = ""): Nothing {
         val interval = miejsce.sourceInterval
@@ -2125,8 +2033,72 @@ class WolinVisitor(
         throw Exception("$teskt at $linia in:\"" + miejsce.text + "\"\n" + dump(miejsce, 0))
     }
 
-    fun appendLambdas() {
+    fun easeyCall(ctx: ParseTree, functionToCall: Funkcja, destReg: Zmienna?, constructor: Boolean = false) {
+        state.rem(" otwarcie stosu na wywolanie ${functionToCall.fullName}")
+        state.fnCallAllocRetAndArgs(functionToCall)
 
+        state.rem(" tu podajemy argumenty dla ${functionToCall.fullName}")
+        // wypełnić argumenty
+
+        functionToCall.arguments.forEach {
+            state.rem(" let ${it.name} = #${it.immediateValue}")
+
+            val found = state.findStackVector(state.callStack, it.name)
+
+            if (it.allocation == AllocType.FIXED) {
+                state.code(
+                    "let ${it.intValue} = #${it.immediateValue}"
+                )
+            } else {
+                state.code(
+                    "let SPF(${found.first})<${found.second.name}>[${found.second.type.typeForAsm}] = #${it.immediateValue}[${it.type.typeForAsm}]"
+                )
+            }
+        }
+
+        state.rem(" po argumentach dla ${functionToCall.fullName}")
+        state.code("call ${functionToCall.labelName}[adr]")
+
+        state.fnCallReleaseArgs(functionToCall)
+
+        if (constructor)
+        //checkTypeAndAddAssignment(ctx, destReg!!, state.callStack.peek(), "easey call", false, false)
+            state.code("let ${state.varToAsmNoType(destReg!!)}[any*] = ${state.varToAsm(state.callStack.peek())}")
+        else if (destReg != null)
+            checkTypeAndAddAssignment(
+                ctx,
+                destReg!!,
+                state.callStack.peek(),
+                "easey call",
+                RegOper.VALUE,
+                RegOper.VALUE
+            )
+
+        state.currentFunction?.calledFunctions?.add(functionToCall)
+
+    }
+
+
+    /*****************************************************************
+    Masowe uzupełnianie kodu
+     *****************************************************************/
+
+    fun doInitCode(zmienna: Zmienna) {
+        val nowy = state.allocReg("for var ${zmienna.name} init expression")
+
+        //println("$zmienna -> $nowy")
+
+        visitExpression(zmienna.initExpression!!)
+
+        if (state.pass != Pass.SYMBOLS) {
+            state.inferTopOperType()
+            state.code("let ${state.varToAsm(zmienna)} = ${state.currentRegToAsm()} // podstawic wynik inicjalizacji expression do zmiennej ${zmienna.name}")
+        }
+
+        state.freeReg("for var ${zmienna.name} init expression")
+    }
+
+    fun appendLambdas() {
         state.code(
             "\n\n" +
                     """// ****************************************
@@ -2177,115 +2149,127 @@ class WolinVisitor(
     }
 
 
-    fun easeyCall(ctx: ParseTree, functionToCall: Funkcja, destReg: Zmienna?, constructor: Boolean = false) {
-        state.rem(" otwarcie stosu na wywolanie ${functionToCall.fullName}")
-        state.fnCallAllocRetAndArgs(functionToCall)
+    /*****************************************************************
+    Przypisania
+     *****************************************************************/
+    fun processAssignment(ctx: ParseTree, leftFunction: () -> WolinStateObject, rightFunction: () -> WolinStateObject) {
 
-        state.rem(" tu podajemy argumenty dla ${functionToCall.fullName}")
-        // wypełnić argumenty
 
-        functionToCall.arguments.forEach {
-            state.rem(" let ${it.name} = #${it.immediateValue}")
-
-            val found = state.findStackVector(state.callStack, it.name)
-
-            if (it.allocation == AllocType.FIXED) {
-                state.code(
-                    "let ${it.intValue} = #${it.immediateValue}"
-                )
-            } else {
-                state.code(
-                    "let SPF(${found.first})<${found.second.name}>[${found.second.type.typeForAsm}] = #${it.immediateValue}[${it.type.typeForAsm}]"
-                )
-            }
+        state.rem("")
+        state.rem("== ASSIGNMENT PUSH =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
+        state.assignStack.push(AssignEntry())
+        state.rem("")
+        state.rem("== ASSIGNMENT LEFT =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
+        state.assignStack.assignLeftSideVar = state.allocReg("ASSIGNMENT target")
+        try {
+            state.rem("(do assignLeftSideVar przypisano ${state.assignStack.assignLeftSideVar})")
+        } catch (ex: UninitializedPropertyAccessException) {
         }
 
-        state.rem(" po argumentach dla ${functionToCall.fullName}")
-        state.code("call ${functionToCall.labelName}[adr]")
+        leftFunction()
+        state.inferTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji! ROBIONE
 
-        state.fnCallReleaseArgs(functionToCall)
+        state.rem("== ASSIGNMENT RIGHT =======================================")
+        state.assignStack.assignRightSideFinalVar = state.allocReg("ASSIGNMENT value")
+        try {
+            state.rem("(do assignRightSideFinalVar przypisano ${state.assignStack.assignRightSideFinalVar})")
+        } catch (ex: UninitializedPropertyAccessException) {
+        }
 
-        if (constructor)
-        //checkTypeAndAddAssignment(ctx, destReg!!, state.callStack.peek(), "easey call", false, false)
-            state.code("let ${state.varToAsmNoType(destReg!!)}[any*] = ${state.varToAsm(state.callStack.peek())}")
-        else if (destReg != null)
-            checkTypeAndAddAssignment(
-                ctx,
-                destReg!!,
-                state.callStack.peek(),
-                "easey call",
-                RegOper.VALUE,
-                RegOper.VALUE
-            )
+        rightFunction()
+        state.assignStack.assignRightSideFinalVar.type =
+            state.currentWolinType.copy() // to ustawia źle aktualny typ, ponieważ to wyrażenie ma
 
-        state.currentFunction?.calledFunctions?.add(functionToCall)
 
+        // typ indeksu, nie faktyczny typ zmiennej
+        // więc np x[255] jest ok, ale x[256] daje uword!
+        // typ pobierany jest z state.assignStack.assignLeftSideVar
+//        rightFinalReg.type.pointer = false // przy podstawieniu konkretnej wartości
+//        rightFinalReg.type.array = false
+
+        checkTypeAndAddAssignment(
+            ctx,
+            state.assignStack.assignLeftSideVar,
+            state.assignStack.assignRightSideFinalVar,
+            "process assignment",
+            RegOper.AMPRESAND,
+            RegOper.AMPRESAND
+        )
+
+        if (state.assignStack.arrayAssign) {
+            state.assignStack.arrayAssign = false
+        }
+
+
+        state.freeReg("ASSIGNMENT value, type = ${state.currentWolinType}")
+
+        state.freeReg("ASSIGNMENT target")
+
+        state.rem("== ASSIGNMENT END =======================================")
+        state.rem("== ASSIGNMENT POP =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
+        state.assignStack.pop()
+        state.rem("")
     }
 
-    fun processTypeChangingOp(
-        leftFoot: () -> Unit,
-        rightFoot: () -> Unit,
-        oper: (Zmienna, Zmienna, Zmienna) -> Typ,
-        comment: String = "processTypeChangingOp"
+    enum class BitOp {
+        SetBit, ClearBit, AndBit, OrBit
+    }
+
+    fun processBitOp(
+        ctx: ParseTree,
+        leftFunction: () -> WolinStateObject,
+        rightFunction: () -> WolinStateObject,
+        bitOp: BitOp
     ) {
-        val result = state.currentReg
-        val leftReg = state.allocReg("LEFT $comment")
-        leftFoot()
-        state.inferTopOperType()
-        val rightReg = state.allocReg("RIGHT $comment")
-        rightFoot()
-        state.inferTopOperType()
-        val resultType = oper(result, leftReg, rightReg)
-        state.freeReg("RIGHT $comment")
-        state.freeReg("LEFT $comment")
-        state.currentWolinType = resultType
-        state.inferTopOperType()
-    }
 
 
-    fun processTypePreservingOp(
-        leftFoot: () -> Unit,
-        rightFoot: () -> Unit,
-        oper: (Zmienna, Zmienna) -> Typ,
-        comment: String = "processTypePreservingOp"
-    ) {
-        val leftReg = state.currentReg
-        leftFoot()
-        state.inferTopOperType()
-        val rightReg = state.allocReg("RIGHT $comment")
-        rightFoot()
-        state.inferTopOperType()
-        val resultType = oper(leftReg, rightReg)
-        state.freeReg("RIGHT $comment")
-        state.currentWolinType = resultType
-        state.inferTopOperType()
-    }
-
-
-    fun simpleResultFunction(op: String, ret: Typ): (Zmienna, Zmienna) -> Typ {
-        return { left, right ->
-
-            state.code(
-                "$op ${state.varToAsm(left, RegOper.AMPRESAND)} = ${state.varToAsm(left, RegOper.AMPRESAND)}, ${state.varToAsm(
-                    right, RegOper.AMPRESAND
-                )}"
-            )
-
-            ret
+        state.rem("")
+        state.rem("== ASSIGNMENT PUSH =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
+        state.assignStack.push(AssignEntry())
+        state.rem("")
+        state.rem("== ASSIGNMENT LEFT =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
+        state.assignStack.assignLeftSideVar = state.allocReg("ASSIGNMENT target")
+        try {
+            state.rem("(do assignLeftSideVar przypisano ${state.assignStack.assignLeftSideVar})")
+        } catch (ex: UninitializedPropertyAccessException) {
         }
-    }
 
-    fun simpleResultFunction(op: String): (Zmienna, Zmienna) -> Typ {
-        return { left, right ->
+        leftFunction()
+        state.inferTopOperType() // aktualny typ jest ustawiony źle! To musi być wina prawej funkcji! ROBIONE
 
-            state.code(
-                "$op ${state.varToAsm(left, RegOper.AMPRESAND)} = ${state.varToAsm(left, RegOper.AMPRESAND)}, ${state.varToAsm(
-                    right, RegOper.AMPRESAND
-                )}"
-            )
-
-            state.currentWolinType
+        state.rem("== ASSIGNMENT RIGHT =======================================")
+        state.assignStack.assignRightSideFinalVar = state.allocReg("ASSIGNMENT value")
+        try {
+            state.rem("(do assignRightSideFinalVar przypisano ${state.assignStack.assignRightSideFinalVar})")
+        } catch (ex: UninitializedPropertyAccessException) {
         }
+
+        rightFunction()
+        state.assignStack.assignRightSideFinalVar.type =
+            state.currentWolinType.copy()
+
+        checkTypeAndSetBit(
+            ctx,
+            state.assignStack.assignLeftSideVar,
+            state.assignStack.assignRightSideFinalVar,
+            "process assignment",
+            RegOper.AMPRESAND,
+            RegOper.AMPRESAND,
+            bitOp
+        )
+
+        if (state.assignStack.arrayAssign) {
+            state.assignStack.arrayAssign = false
+        }
+
+        state.freeReg("ASSIGNMENT value, type = ${state.currentWolinType}")
+
+        state.freeReg("ASSIGNMENT target")
+
+        state.rem("== ASSIGNMENT END =======================================")
+        state.rem("== ASSIGNMENT POP =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
+        state.assignStack.pop()
+        state.rem("")
     }
 
     fun checkTypeAndSetBit(
@@ -2295,34 +2279,40 @@ class WolinVisitor(
         comment: String,
         derefDo: RegOper,
         derefCo: RegOper,
-        setBit: Boolean
+        bitOp: BitOp
     ) {
-//        val finalDerefDo = if (derefDo == RegOper.STAR && doJakiej.type.isPointer)
-//            RegOper.VALUE
-//        else
-//            derefDo
-//
-//        val finalDerefCo = if (derefCo == RegOper.STAR && co.type.isPointer)
-//            RegOper.VALUE
-//        else if (derefCo == RegOper.AMPRESAND && !co.type.isPointer)
-//            RegOper.VALUE
-//        else
-//            derefCo
-
         if (state.pass == Pass.TRANSLATION) {
-            val można =
-                true
-            //state.canBeAssigned(doJakiej.type, co.type) //|| doJakiej.type.isPointer || co.type.name == "uword"
-
-            if (można) {
-                state.code(
-                    "bit ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(
+            when (bitOp) {
+                BitOp.SetBit -> {
+                    state.code(
+                        "bit ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(
+                            co,
+                            derefCo
+                        )}, #1[bool] // przez sprawdzacz typow - $comment"
+                    )
+                }
+                BitOp.ClearBit -> {
+                    state.code(
+                        "bit ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(
+                            co,
+                            derefCo
+                        )}, #0[bool] // przez sprawdzacz typow - $comment"
+                    )
+                }
+                BitOp.AndBit -> {
+                    state.code("and ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(
                         co,
                         derefCo
-                    )}, #${if (setBit) 1 else 0}[bool] // przez sprawdzacz typow - $comment"
-                )
-            } else {
-                błędzik(ctx, "Nie można przypisać $co do zmiennej $doJakiej")
+                    )} // przez sprawdzacz typow - $comment"
+                    )
+                }
+                BitOp.OrBit -> {
+                    state.code("or ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(
+                        co,
+                        derefCo
+                    )} // przez sprawdzacz typow - $comment"
+                    )
+                }
             }
         }
     }
@@ -2393,20 +2383,78 @@ class WolinVisitor(
     }
 
 
-    fun doInitCode(zmienna: Zmienna) {
-        val nowy = state.allocReg("for var ${zmienna.name} init expression")
-
-        //println("$zmienna -> $nowy")
-
-        visitExpression(zmienna.initExpression!!)
-
-        if (state.pass != Pass.SYMBOLS) {
-            state.inferTopOperType()
-            state.code("let ${state.varToAsm(zmienna)} = ${state.currentRegToAsm()} // podstawic wynik inicjalizacji expression do zmiennej ${zmienna.name}")
-        }
-
-        state.freeReg("for var ${zmienna.name} init expression")
+    fun processTypeChangingOp(
+        leftFoot: () -> Unit,
+        rightFoot: () -> Unit,
+        oper: (Zmienna, Zmienna, Zmienna) -> Typ,
+        comment: String = "processTypeChangingOp"
+    ) {
+        val result = state.currentReg
+        val leftReg = state.allocReg("LEFT $comment")
+        leftFoot()
+        state.inferTopOperType()
+        val rightReg = state.allocReg("RIGHT $comment")
+        rightFoot()
+        state.inferTopOperType()
+        val resultType = oper(result, leftReg, rightReg)
+        state.freeReg("RIGHT $comment")
+        state.freeReg("LEFT $comment")
+        state.currentWolinType = resultType
+        state.inferTopOperType()
     }
+
+
+    fun processTypePreservingOp(
+        leftFoot: () -> Unit,
+        rightFoot: () -> Unit,
+        oper: (Zmienna, Zmienna) -> Typ,
+        comment: String = "processTypePreservingOp"
+    ) {
+        val leftReg = state.currentReg
+        leftFoot()
+        state.inferTopOperType()
+        val rightReg = state.allocReg("RIGHT $comment")
+        rightFoot()
+        state.inferTopOperType()
+        val resultType = oper(leftReg, rightReg)
+        state.freeReg("RIGHT $comment")
+        state.currentWolinType = resultType
+        state.inferTopOperType()
+    }
+
+
+    fun simpleResultFunction(op: String, ret: Typ): (Zmienna, Zmienna) -> Typ {
+        return { left, right ->
+
+            state.code(
+                "$op ${state.varToAsm(left, RegOper.AMPRESAND)} = ${state.varToAsm(
+                    left,
+                    RegOper.AMPRESAND
+                )}, ${state.varToAsm(
+                    right, RegOper.AMPRESAND
+                )}"
+            )
+
+            ret
+        }
+    }
+
+    fun simpleResultFunction(op: String): (Zmienna, Zmienna) -> Typ {
+        return { left, right ->
+
+            state.code(
+                "$op ${state.varToAsm(left, RegOper.AMPRESAND)} = ${state.varToAsm(
+                    left,
+                    RegOper.AMPRESAND
+                )}, ${state.varToAsm(
+                    right, RegOper.AMPRESAND
+                )}"
+            )
+
+            state.currentWolinType
+        }
+    }
+
 
 }
 

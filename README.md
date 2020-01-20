@@ -24,7 +24,6 @@ Wolin generates assembler code for ca65 with memory config for Commodore 64, it 
 - code optimizer
 - a lot of other language features
 - writing elements to all kinds of arrays
-- add a pass for gathering symbols so they can be used before they get declared
 
 # Architecture
 
@@ -72,7 +71,7 @@ package pl.qus.wolin
 // raster interrupt colour band taken from:
 // https://gist.github.com/bremensaki/8f33cd7d67b78377881c7eb7147c0f32
 
-var interruptRoutineVector: uword^0x314 // this is C64 raster interrupt vector
+var interruptRoutineVector: uword^0x314           // this is C64 raster interrupt vector
 var cia1InerruptCtrlReg: ubyte^0xDC0D
 var vicScreenCtrlReg1: ubyte^0xD011
 var vicRasterLine: ubyte^0xD012
@@ -88,7 +87,7 @@ interrupt fun backgroundToBlue() {
     vicRasterLine = 140
     vicBorder = 6
     vicInterruptStatusReg = 0xff
-    return@0xea31
+    return@0xea31                                 // don't return from this function, continue with ROM routine
 }
 
 interrupt fun backgroundToWhite() {

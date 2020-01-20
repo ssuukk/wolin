@@ -584,6 +584,8 @@ assignmentOperator
     | MOD_ASSIGNMENT
     | BIT_ASSIGNMENT
     | BIT_DEASSIGNMENT
+    | BIT_OR_ASSIGNMENT
+    | BIT_AND_ASSIGNMENT
     ;
 
 equalityOperation
@@ -609,13 +611,14 @@ isOperator
     ;
 
 additiveOperator
-    : ADD | SUB
+    : ADD | SUB | BIT_OR
     ;
 
 multiplicativeOperation
     : MULT
     | DIV
     | MOD
+    | BIT_AND
     ;
 
 typeOperation

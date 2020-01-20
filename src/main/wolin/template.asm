@@ -1087,6 +1087,12 @@ and SP(?d)[bool] = SP(?d)[bool], SP(?s)[bool] -> """
 :
 """
 
+and ?dst[ubyte] = #?val[ubyte] -> """
+    lda {dst}
+    and #{val}
+    sta {dst}
+"""
+
 mul SP(?d)[ubyte] = SP(?d)[ubyte], #1 -> """ """
 
 mul SP(?d)[uword] = SP(?d)[uword], #2 -> """   asl {d},x"""

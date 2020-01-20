@@ -62,16 +62,16 @@ __wolin_this_ptr_hi := 176+1
 
     rts
 
-; function__wolin_pl_qus_wolin_blueBg
+; function__wolin_pl_qus_wolin_backgroundToBlue
 
-__wolin_pl_qus_wolin_blueBg:
+__wolin_pl_qus_wolin_backgroundToBlue:
 
-; let788[uword]=__wolin_pl_qus_wolin_whiteBg[uword]
+; let788[uword]=__wolin_pl_qus_wolin_backgroundToWhite[uword]
 
 
-    lda #<__wolin_pl_qus_wolin_whiteBg
+    lda #<__wolin_pl_qus_wolin_backgroundToWhite
     sta 788
-    lda #>__wolin_pl_qus_wolin_whiteBg
+    lda #>__wolin_pl_qus_wolin_backgroundToWhite
     sta 788+1
 
 
@@ -97,16 +97,16 @@ __wolin_pl_qus_wolin_blueBg:
 
     jmp 59953
 
-; function__wolin_pl_qus_wolin_whiteBg
+; function__wolin_pl_qus_wolin_backgroundToWhite
 
-__wolin_pl_qus_wolin_whiteBg:
+__wolin_pl_qus_wolin_backgroundToWhite:
 
-; let788[uword]=__wolin_pl_qus_wolin_blueBg[uword]
+; let788[uword]=__wolin_pl_qus_wolin_backgroundToBlue[uword]
 
 
-    lda #<__wolin_pl_qus_wolin_blueBg
+    lda #<__wolin_pl_qus_wolin_backgroundToBlue
     sta 788
-    lda #>__wolin_pl_qus_wolin_blueBg
+    lda #>__wolin_pl_qus_wolin_backgroundToBlue
     sta 788+1
 
 
@@ -170,19 +170,26 @@ __wolin_pl_qus_wolin_main:
     sta 53274
 
 
+; and53265[ubyte]=#127[ubyte]
+
+
+    lda 53265
+    and #127
+    sta 53265
+
+
 ; let53266[ubyte]=#140[ubyte]
 
 
-  lda $d011       ; High bit of raster line cleared, were
-  and #$7f        ; only working within single byte ranges
-  sta $d011
-  
-; let788[uword]=__wolin_pl_qus_wolin_blueBg[uword]
+    lda #140
+    sta 53266
+
+; let788[uword]=__wolin_pl_qus_wolin_backgroundToBlue[uword]
 
 
-    lda #<__wolin_pl_qus_wolin_blueBg
+    lda #<__wolin_pl_qus_wolin_backgroundToBlue
     sta 788
-    lda #>__wolin_pl_qus_wolin_blueBg
+    lda #>__wolin_pl_qus_wolin_backgroundToBlue
     sta 788+1
 
 
@@ -192,7 +199,7 @@ __wolin_pl_qus_wolin_main:
     cli
 
 
-; allocSP<__wolin_reg51>,#1
+; allocSP<__wolin_reg54>,#1
 
     dex
 
@@ -200,13 +207,13 @@ __wolin_pl_qus_wolin_main:
 
 __wolin_lab_loopStart_1:
 
-; letSP(0)<__wolin_reg51>[bool]=#1[bool]
+; letSP(0)<__wolin_reg54>[bool]=#1[bool]
 
 
     lda #1
     sta 0,x
 
-; beqSP(0)<__wolin_reg51>[bool]=#1[bool],__wolin_lab_loopStart_1<label_po_if>[uword]
+; beqSP(0)<__wolin_reg54>[bool]=#1[bool],__wolin_lab_loopStart_1<label_po_if>[uword]
 
 
     lda 0,x
@@ -216,7 +223,7 @@ __wolin_lab_loopStart_1:
 
 __wolin_lab_loopEnd_1:
 
-; freeSP<__wolin_reg51>,#1
+; freeSP<__wolin_reg54>,#1
 
     inx
 

@@ -1,5 +1,6 @@
 package pl.qus.wolin
 
+// raster interrupt colour band taken from:
 // https://gist.github.com/bremensaki/8f33cd7d67b78377881c7eb7147c0f32
 
 var interruptRoutineVector: uword^0x314 // this is C64 raster interrupt vector
@@ -14,16 +15,16 @@ var maskInterrupts: bool^CPU.I
 
 fun clearScreen^0xe544()
 
-interrupt fun blueBg() {
-    interruptRoutineVector = whiteBg
+interrupt fun backgroundToBlue() {
+    interruptRoutineVector = backgroundToWhite
     vicRasterLine = 140
     vicBorder = 6
     vicInterruptStatusReg = 0xff
     return@0xea31
 }
 
-interrupt fun whiteBg() {
-    interruptRoutineVector = blueBg
+interrupt fun backgroundToWhite() {
+    interruptRoutineVector = backgroundToBlue
     vicRasterLine = 160
     vicBorder = 1
     vicInterruptStatusReg = 0xff
@@ -36,9 +37,9 @@ fun main() {
     maskInterrupts = true                            // Suspend interrupts during init
     cia1InerruptCtrlReg = 0x7f                       // Disable CIA
     vicInterruptCtrlReg := 1                         // Enable raster interrupts
-    //vicScreenCtrlReg1 = vicScreenCtrlReg1 and 0x7f // High bit of raster line cleared, we're only working within single byte ranges
+    vicScreenCtrlReg1 &= 0x7f                        // High bit of raster line cleared, we're only working within single byte ranges
     vicRasterLine = 140                              // We want an interrupt at the top line
-    interruptRoutineVector = blueBg                  // IRQ vector addresses
+    interruptRoutineVector = backgroundToBlue        // IRQ vector addresses
     maskInterrupts = false                           // Enable interrupts again
 
     do {} while (true)                               // Eternal do-nothing loop, we're done.
