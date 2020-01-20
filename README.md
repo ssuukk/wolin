@@ -66,7 +66,68 @@ which in this case becomes:
 
 # Example code
 
-See `wolin/working.ktk` in this repo.
+```
+package pl.qus.wolin
+
+// raster interrupt colour band taken from:
+// https://gist.github.com/bremensaki/8f33cd7d67b78377881c7eb7147c0f32
+
+var interruptRoutineVector: uword^0x314 // this is C64 raster interrupt vector
+var cia1InerruptCtrlReg: ubyte^0xDC0D
+var vicScreenCtrlReg1: ubyte^0xD011
+var vicRasterLine: ubyte^0xD012
+var vicInterruptStatusReg: ubyte^0xd019
+var vicInterruptCtrlReg: ubyte^0xd01a
+var vicBorder: ubyte^53280
+var i: ubyte
+var maskInterrupts: bool^CPU.I
+
+fun clearScreen^0xe544()
+
+interrupt fun backgroundToBlue() {
+    interruptRoutineVector = backgroundToWhite
+    vicRasterLine = 140
+    vicBorder = 6
+    vicInterruptStatusReg = 0xff
+    return@0xea31
+}
+
+interrupt fun backgroundToWhite() {
+    interruptRoutineVector = backgroundToBlue
+    vicRasterLine = 160
+    vicBorder = 1
+    vicInterruptStatusReg = 0xff
+    return@0xea31
+}
+
+fun main() {
+    clearScreen()
+    vicBorder = 6                                    // Init screen and border to blue
+    maskInterrupts = true                            // Suspend interrupts during init
+    cia1InerruptCtrlReg = 0x7f                       // Disable CIA
+    vicInterruptCtrlReg := 1                         // Enable raster interrupts
+    vicScreenCtrlReg1 &= 0x7f                        // High bit of raster line cleared, we're only working within single byte ranges
+    vicRasterLine = 140                              // We want an interrupt at the top line
+    interruptRoutineVector = backgroundToBlue        // IRQ vector addresses
+    maskInterrupts = false                           // Enable interrupts again
+
+    do {} while (true)                               // Eternal do-nothing loop, we're done.
+}
+```
+
+# New syntax
+
+Syntax different from Kotlin:
+
+- `variable := 3` set bits 1 and 3 (variable must be readable)
+- `variable .= 127` clear bit 7 (variable must be readable)
+- `variable & variable` bitwise AND
+- `variable | variable` bitwise OR
+- `variable &= 3` bitwise in-place AND (variable doesn't have to be readable)
+- `variable |= 3` bitwise in-place OR (variable doesn't have to be readable)
+- `interrupt fun()` denotes interrupt routine function that can RTI instead of RTS
+- `fun xxx^location()` function attached to some address (usually ROM functions)
+- `var a:type^location` variable attached to some address (I/O registers)
 
 # Let's talk
 
