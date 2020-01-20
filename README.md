@@ -79,10 +79,9 @@ var vicRasterLine: ubyte^0xD012
 var vicInterruptStatusReg: ubyte^0xd019
 var vicInterruptCtrlReg: ubyte^0xd01a
 var vicBorder: ubyte^53280
-var i: ubyte
-var maskInterrupts: bool^CPU.I
+var maskInterrupts: bool^CPU.I                    // this boolean is attached to 6502 I flag
 
-fun clearScreen^0xe544()
+fun clearScreen^0xe544()                          // clear screen function in C64 ROM
 
 interrupt fun backgroundToBlue() {
     interruptRoutineVector = backgroundToWhite
@@ -119,7 +118,7 @@ fun main() {
 
 Syntax different from Kotlin:
 
-- `variable := 3` set bits 1 and 3 (variable must be readable)
+- `variable := 3` set bits 1 and 2 (variable must be readable)
 - `variable .= 127` clear bit 7 (variable must be readable)
 - `variable & variable` bitwise AND
 - `variable | variable` bitwise OR
@@ -128,6 +127,7 @@ Syntax different from Kotlin:
 - `interrupt fun()` denotes interrupt routine function that can RTI instead of RTS
 - `fun xxx^location()` function attached to some address (usually ROM functions)
 - `var a:type^location` variable attached to some address (I/O registers)
+- `uwordVariable = functionName` set `uwordVariable` to address of some function
 
 # Let's talk
 
