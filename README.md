@@ -104,7 +104,7 @@ fun main() {
     maskInterrupts = true                            // Suspend interrupts during init
     cia1InerruptCtrlReg = 0x7f                       // Disable CIA
     vicInterruptCtrlReg := 1                         // Enable raster interrupts
-    vicScreenCtrlReg1 &= 0x7f                        // High bit of raster line cleared, we're only working within single byte ranges
+    vicScreenCtrlReg1 .= 128                         // High bit of raster line cleared, we're only working within single byte ranges
     vicRasterLine = 140                              // We want an interrupt at the top line
     interruptRoutineVector = backgroundToBlue        // IRQ vector addresses
     maskInterrupts = false                           // Enable interrupts again

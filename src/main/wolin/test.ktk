@@ -10,6 +10,7 @@ var vicRasterLine: ubyte^0xD012
 var vicInterruptStatusReg: ubyte^0xd019
 var vicInterruptCtrlReg: ubyte^0xd01a
 var vicBorder: ubyte^53280
+var vicBackground: ubyte^53281
 var i: ubyte
 var maskInterrupts: bool^CPU.I
 
@@ -19,6 +20,7 @@ interrupt fun backgroundToBlue() {
     interruptRoutineVector = backgroundToWhite
     vicRasterLine = 140
     vicBorder = 6
+    vicBackground = 6
     vicInterruptStatusReg = 0xff
     return@0xea31
 }
@@ -27,6 +29,7 @@ interrupt fun backgroundToWhite() {
     interruptRoutineVector = backgroundToBlue
     vicRasterLine = 160
     vicBorder = 1
+    vicBackground = 1
     vicInterruptStatusReg = 0xff
     return@0xea31
 }
@@ -34,10 +37,11 @@ interrupt fun backgroundToWhite() {
 fun main() {
     clearScreen()
     vicBorder = 6                                    // Init screen and border to blue
+    vicBackground = 6
     maskInterrupts = true                            // Suspend interrupts during init
     cia1InerruptCtrlReg = 0x7f                       // Disable CIA
     vicInterruptCtrlReg := 1                         // Enable raster interrupts
-    vicScreenCtrlReg1 &= 0x7f                        // High bit of raster line cleared, we're only working within single byte ranges
+    vicScreenCtrlReg1 .= 128                         // High bit of raster line cleared, we're only working within single byte ranges
     vicRasterLine = 140                              // We want an interrupt at the top line
     interruptRoutineVector = backgroundToBlue        // IRQ vector addresses
     maskInterrupts = false                           // Enable interrupts again

@@ -16,6 +16,7 @@ ret
 // switchType to:uword by parse literal constant
 // switchType to:uword by parse literal constant
 // switchType to:uword by parse literal constant
+// switchType to:uword by parse literal constant
 // switchType to:unit by function declaration
 // switchType to:uword by parse literal constant
 
@@ -97,14 +98,14 @@ free SP<__wolin_reg8>, #2 // ASSIGNMENT target
 // == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg11>, #2 // ASSIGNMENT target
 // (do assignLeftSideVar przypisano __wolin_reg11: ubyte* = 0 (ASSIGNMENT target))
-let SP(0)<__wolin_reg11>[ubyte*] = *53273[ubyte] // przez sprawdzacz typow - simple id from var
-// switchType to:ubyte by type from pl.qus.wolin.vicInterruptStatusReg
+let SP(0)<__wolin_reg11>[ubyte*] = *53281[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.vicBackground
 // top type already set: __wolin_reg11: ubyte* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
 alloc SP<__wolin_reg12>, #1 // ASSIGNMENT value
 // (do assignRightSideFinalVar przypisano __wolin_reg12: ubyte = 0 (ASSIGNMENT value))
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg12>[ubyte] = #255[ubyte] // atomic ex
+let SP(0)<__wolin_reg12>[ubyte] = #6[ubyte] // atomic ex
 let &SP(1)<__wolin_reg11>[ubyte*] = SP(0)<__wolin_reg12>[ubyte] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg12>, #1 // ASSIGNMENT value, type = ubyte
 free SP<__wolin_reg11>, #2 // ASSIGNMENT target
@@ -113,10 +114,32 @@ free SP<__wolin_reg11>, #2 // ASSIGNMENT target
 // 
 // switchType to:unit by assignment
 // top type already set: __wolin_reg10: unit = 65535 (for expression)
-alloc SP<__wolin_reg13>, #2 // for expression
+// 
+// == ASSIGNMENT PUSH =======================================
+// 
+// == ASSIGNMENT LEFT =======================================
+alloc SP<__wolin_reg14>, #2 // ASSIGNMENT target
+// (do assignLeftSideVar przypisano __wolin_reg14: ubyte* = 0 (ASSIGNMENT target))
+let SP(0)<__wolin_reg14>[ubyte*] = *53273[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.vicInterruptStatusReg
+// top type already set: __wolin_reg14: ubyte* = 0 (ASSIGNMENT target)
+// == ASSIGNMENT RIGHT =======================================
+alloc SP<__wolin_reg15>, #1 // ASSIGNMENT value
+// (do assignRightSideFinalVar przypisano __wolin_reg15: ubyte = 0 (ASSIGNMENT value))
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg15>[ubyte] = #255[ubyte] // atomic ex
+let &SP(1)<__wolin_reg14>[ubyte*] = SP(0)<__wolin_reg15>[ubyte] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg15>, #1 // ASSIGNMENT value, type = ubyte
+free SP<__wolin_reg14>, #2 // ASSIGNMENT target
+// == ASSIGNMENT END =======================================
+// == ASSIGNMENT POP =======================================
+// 
+// switchType to:unit by assignment
+// top type already set: __wolin_reg13: unit = 65535 (for expression)
+alloc SP<__wolin_reg16>, #2 // for expression
 // switchType to:uword by parse literal constant
-// top type already set: __wolin_reg13: uword = 0 (for expression)
-free SP<__wolin_reg13>, #2 // for expression
+// top type already set: __wolin_reg16: uword = 0 (for expression)
+free SP<__wolin_reg16>, #2 // for expression
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // freeing call stack
 // return from function body
@@ -132,40 +155,18 @@ function __wolin_pl_qus_wolin_backgroundToWhite
 // == ASSIGNMENT PUSH =======================================
 // 
 // == ASSIGNMENT LEFT =======================================
-alloc SP<__wolin_reg16>, #2 // ASSIGNMENT target
-// (do assignLeftSideVar przypisano __wolin_reg16: uword* = 0 (ASSIGNMENT target))
-let SP(0)<__wolin_reg16>[uword*] = *788[uword] // przez sprawdzacz typow - simple id from var
-// switchType to:uword by type from pl.qus.wolin.interruptRoutineVector
-// top type already set: __wolin_reg16: uword* = 0 (ASSIGNMENT target)
-// == ASSIGNMENT RIGHT =======================================
-alloc SP<__wolin_reg17>, #2 // ASSIGNMENT value
-// (do assignRightSideFinalVar przypisano __wolin_reg17: uword = 0 (ASSIGNMENT value))
-let SP(0)<__wolin_reg17>[uword] = __wolin_pl_qus_wolin_backgroundToBlue[uword] // przez sprawdzacz typow - simple id from var
-// switchType to:uword by function pointer
-let &SP(2)<__wolin_reg16>[uword*] = SP(0)<__wolin_reg17>[uword] // przez sprawdzacz typow - process assignment
-free SP<__wolin_reg17>, #2 // ASSIGNMENT value, type = uword
-free SP<__wolin_reg16>, #2 // ASSIGNMENT target
-// == ASSIGNMENT END =======================================
-// == ASSIGNMENT POP =======================================
-// 
-// switchType to:unit by assignment
-// top type already set: __wolin_reg15: unit = 65535 (for expression)
-// 
-// == ASSIGNMENT PUSH =======================================
-// 
-// == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg19>, #2 // ASSIGNMENT target
-// (do assignLeftSideVar przypisano __wolin_reg19: ubyte* = 0 (ASSIGNMENT target))
-let SP(0)<__wolin_reg19>[ubyte*] = *53266[ubyte] // przez sprawdzacz typow - simple id from var
-// switchType to:ubyte by type from pl.qus.wolin.vicRasterLine
-// top type already set: __wolin_reg19: ubyte* = 0 (ASSIGNMENT target)
+// (do assignLeftSideVar przypisano __wolin_reg19: uword* = 0 (ASSIGNMENT target))
+let SP(0)<__wolin_reg19>[uword*] = *788[uword] // przez sprawdzacz typow - simple id from var
+// switchType to:uword by type from pl.qus.wolin.interruptRoutineVector
+// top type already set: __wolin_reg19: uword* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
-alloc SP<__wolin_reg20>, #1 // ASSIGNMENT value
-// (do assignRightSideFinalVar przypisano __wolin_reg20: ubyte = 0 (ASSIGNMENT value))
-// switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg20>[ubyte] = #160[ubyte] // atomic ex
-let &SP(1)<__wolin_reg19>[ubyte*] = SP(0)<__wolin_reg20>[ubyte] // przez sprawdzacz typow - process assignment
-free SP<__wolin_reg20>, #1 // ASSIGNMENT value, type = ubyte
+alloc SP<__wolin_reg20>, #2 // ASSIGNMENT value
+// (do assignRightSideFinalVar przypisano __wolin_reg20: uword = 0 (ASSIGNMENT value))
+let SP(0)<__wolin_reg20>[uword] = __wolin_pl_qus_wolin_backgroundToBlue[uword] // przez sprawdzacz typow - simple id from var
+// switchType to:uword by function pointer
+let &SP(2)<__wolin_reg19>[uword*] = SP(0)<__wolin_reg20>[uword] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg20>, #2 // ASSIGNMENT value, type = uword
 free SP<__wolin_reg19>, #2 // ASSIGNMENT target
 // == ASSIGNMENT END =======================================
 // == ASSIGNMENT POP =======================================
@@ -178,14 +179,14 @@ free SP<__wolin_reg19>, #2 // ASSIGNMENT target
 // == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg22>, #2 // ASSIGNMENT target
 // (do assignLeftSideVar przypisano __wolin_reg22: ubyte* = 0 (ASSIGNMENT target))
-let SP(0)<__wolin_reg22>[ubyte*] = *53280[ubyte] // przez sprawdzacz typow - simple id from var
-// switchType to:ubyte by type from pl.qus.wolin.vicBorder
+let SP(0)<__wolin_reg22>[ubyte*] = *53266[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.vicRasterLine
 // top type already set: __wolin_reg22: ubyte* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
 alloc SP<__wolin_reg23>, #1 // ASSIGNMENT value
 // (do assignRightSideFinalVar przypisano __wolin_reg23: ubyte = 0 (ASSIGNMENT value))
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg23>[ubyte] = #1[ubyte] // atomic ex
+let SP(0)<__wolin_reg23>[ubyte] = #160[ubyte] // atomic ex
 let &SP(1)<__wolin_reg22>[ubyte*] = SP(0)<__wolin_reg23>[ubyte] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg23>, #1 // ASSIGNMENT value, type = ubyte
 free SP<__wolin_reg22>, #2 // ASSIGNMENT target
@@ -200,14 +201,14 @@ free SP<__wolin_reg22>, #2 // ASSIGNMENT target
 // == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg25>, #2 // ASSIGNMENT target
 // (do assignLeftSideVar przypisano __wolin_reg25: ubyte* = 0 (ASSIGNMENT target))
-let SP(0)<__wolin_reg25>[ubyte*] = *53273[ubyte] // przez sprawdzacz typow - simple id from var
-// switchType to:ubyte by type from pl.qus.wolin.vicInterruptStatusReg
+let SP(0)<__wolin_reg25>[ubyte*] = *53280[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.vicBorder
 // top type already set: __wolin_reg25: ubyte* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
 alloc SP<__wolin_reg26>, #1 // ASSIGNMENT value
 // (do assignRightSideFinalVar przypisano __wolin_reg26: ubyte = 0 (ASSIGNMENT value))
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg26>[ubyte] = #255[ubyte] // atomic ex
+let SP(0)<__wolin_reg26>[ubyte] = #1[ubyte] // atomic ex
 let &SP(1)<__wolin_reg25>[ubyte*] = SP(0)<__wolin_reg26>[ubyte] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg26>, #1 // ASSIGNMENT value, type = ubyte
 free SP<__wolin_reg25>, #2 // ASSIGNMENT target
@@ -216,10 +217,54 @@ free SP<__wolin_reg25>, #2 // ASSIGNMENT target
 // 
 // switchType to:unit by assignment
 // top type already set: __wolin_reg24: unit = 65535 (for expression)
-alloc SP<__wolin_reg27>, #2 // for expression
+// 
+// == ASSIGNMENT PUSH =======================================
+// 
+// == ASSIGNMENT LEFT =======================================
+alloc SP<__wolin_reg28>, #2 // ASSIGNMENT target
+// (do assignLeftSideVar przypisano __wolin_reg28: ubyte* = 0 (ASSIGNMENT target))
+let SP(0)<__wolin_reg28>[ubyte*] = *53281[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.vicBackground
+// top type already set: __wolin_reg28: ubyte* = 0 (ASSIGNMENT target)
+// == ASSIGNMENT RIGHT =======================================
+alloc SP<__wolin_reg29>, #1 // ASSIGNMENT value
+// (do assignRightSideFinalVar przypisano __wolin_reg29: ubyte = 0 (ASSIGNMENT value))
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg29>[ubyte] = #1[ubyte] // atomic ex
+let &SP(1)<__wolin_reg28>[ubyte*] = SP(0)<__wolin_reg29>[ubyte] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg29>, #1 // ASSIGNMENT value, type = ubyte
+free SP<__wolin_reg28>, #2 // ASSIGNMENT target
+// == ASSIGNMENT END =======================================
+// == ASSIGNMENT POP =======================================
+// 
+// switchType to:unit by assignment
+// top type already set: __wolin_reg27: unit = 65535 (for expression)
+// 
+// == ASSIGNMENT PUSH =======================================
+// 
+// == ASSIGNMENT LEFT =======================================
+alloc SP<__wolin_reg31>, #2 // ASSIGNMENT target
+// (do assignLeftSideVar przypisano __wolin_reg31: ubyte* = 0 (ASSIGNMENT target))
+let SP(0)<__wolin_reg31>[ubyte*] = *53273[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.vicInterruptStatusReg
+// top type already set: __wolin_reg31: ubyte* = 0 (ASSIGNMENT target)
+// == ASSIGNMENT RIGHT =======================================
+alloc SP<__wolin_reg32>, #1 // ASSIGNMENT value
+// (do assignRightSideFinalVar przypisano __wolin_reg32: ubyte = 0 (ASSIGNMENT value))
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg32>[ubyte] = #255[ubyte] // atomic ex
+let &SP(1)<__wolin_reg31>[ubyte*] = SP(0)<__wolin_reg32>[ubyte] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg32>, #1 // ASSIGNMENT value, type = ubyte
+free SP<__wolin_reg31>, #2 // ASSIGNMENT target
+// == ASSIGNMENT END =======================================
+// == ASSIGNMENT POP =======================================
+// 
+// switchType to:unit by assignment
+// top type already set: __wolin_reg30: unit = 65535 (for expression)
+alloc SP<__wolin_reg33>, #2 // for expression
 // switchType to:uword by parse literal constant
-// top type already set: __wolin_reg27: uword = 0 (for expression)
-free SP<__wolin_reg27>, #2 // for expression
+// top type already set: __wolin_reg33: uword = 0 (for expression)
+free SP<__wolin_reg33>, #2 // for expression
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // freeing call stack
 // return from function body
@@ -241,65 +286,21 @@ call 58692[adr] // pl.qus.wolin.clearScreen
 
 // == FN_CALL END: pl.qus.wolin.clearScreen ========
 // 
-// top type already set: __wolin_reg29: unit = 65535 (for expression)
-// 
-// == ASSIGNMENT PUSH =======================================
-// 
-// == ASSIGNMENT LEFT =======================================
-alloc SP<__wolin_reg31>, #2 // ASSIGNMENT target
-// (do assignLeftSideVar przypisano __wolin_reg31: ubyte* = 0 (ASSIGNMENT target))
-let SP(0)<__wolin_reg31>[ubyte*] = *53280[ubyte] // przez sprawdzacz typow - simple id from var
-// switchType to:ubyte by type from pl.qus.wolin.vicBorder
-// top type already set: __wolin_reg31: ubyte* = 0 (ASSIGNMENT target)
-// == ASSIGNMENT RIGHT =======================================
-alloc SP<__wolin_reg32>, #1 // ASSIGNMENT value
-// (do assignRightSideFinalVar przypisano __wolin_reg32: ubyte = 0 (ASSIGNMENT value))
-// switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg32>[ubyte] = #6[ubyte] // atomic ex
-let &SP(1)<__wolin_reg31>[ubyte*] = SP(0)<__wolin_reg32>[ubyte] // przez sprawdzacz typow - process assignment
-free SP<__wolin_reg32>, #1 // ASSIGNMENT value, type = ubyte
-free SP<__wolin_reg31>, #2 // ASSIGNMENT target
-// == ASSIGNMENT END =======================================
-// == ASSIGNMENT POP =======================================
-// 
-// switchType to:unit by assignment
-// top type already set: __wolin_reg30: unit = 65535 (for expression)
-// 
-// == ASSIGNMENT PUSH =======================================
-// 
-// == ASSIGNMENT LEFT =======================================
-alloc SP<__wolin_reg34>, #2 // ASSIGNMENT target
-// (do assignLeftSideVar przypisano __wolin_reg34: bool* = 0 (ASSIGNMENT target))
-let SP(0)<__wolin_reg34>[bool*] = *CPU.I[bool] // przez sprawdzacz typow - simple id from var
-// switchType to:bool by type from pl.qus.wolin.maskInterrupts
-// top type already set: __wolin_reg34: bool* = 0 (ASSIGNMENT target)
-// == ASSIGNMENT RIGHT =======================================
-alloc SP<__wolin_reg35>, #1 // ASSIGNMENT value
-// (do assignRightSideFinalVar przypisano __wolin_reg35: bool = 0 (ASSIGNMENT value))
-// switchType to:bool by parse literal constant
-let SP(0)<__wolin_reg35>[bool] = #1[bool] // atomic ex
-let &SP(1)<__wolin_reg34>[bool*] = SP(0)<__wolin_reg35>[bool] // przez sprawdzacz typow - process assignment
-free SP<__wolin_reg35>, #1 // ASSIGNMENT value, type = bool
-free SP<__wolin_reg34>, #2 // ASSIGNMENT target
-// == ASSIGNMENT END =======================================
-// == ASSIGNMENT POP =======================================
-// 
-// switchType to:unit by assignment
-// top type already set: __wolin_reg33: unit = 65535 (for expression)
+// top type already set: __wolin_reg35: unit = 65535 (for expression)
 // 
 // == ASSIGNMENT PUSH =======================================
 // 
 // == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg37>, #2 // ASSIGNMENT target
 // (do assignLeftSideVar przypisano __wolin_reg37: ubyte* = 0 (ASSIGNMENT target))
-let SP(0)<__wolin_reg37>[ubyte*] = *56333[ubyte] // przez sprawdzacz typow - simple id from var
-// switchType to:ubyte by type from pl.qus.wolin.cia1InerruptCtrlReg
+let SP(0)<__wolin_reg37>[ubyte*] = *53280[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.vicBorder
 // top type already set: __wolin_reg37: ubyte* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
 alloc SP<__wolin_reg38>, #1 // ASSIGNMENT value
 // (do assignRightSideFinalVar przypisano __wolin_reg38: ubyte = 0 (ASSIGNMENT value))
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg38>[ubyte] = #127[ubyte] // atomic ex
+let SP(0)<__wolin_reg38>[ubyte] = #6[ubyte] // atomic ex
 let &SP(1)<__wolin_reg37>[ubyte*] = SP(0)<__wolin_reg38>[ubyte] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg38>, #1 // ASSIGNMENT value, type = ubyte
 free SP<__wolin_reg37>, #2 // ASSIGNMENT target
@@ -314,43 +315,43 @@ free SP<__wolin_reg37>, #2 // ASSIGNMENT target
 // == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg40>, #2 // ASSIGNMENT target
 // (do assignLeftSideVar przypisano __wolin_reg40: ubyte* = 0 (ASSIGNMENT target))
-let SP(0)<__wolin_reg40>[ubyte*] = *53274[ubyte] // przez sprawdzacz typow - simple id from var
-// switchType to:ubyte by type from pl.qus.wolin.vicInterruptCtrlReg
+let SP(0)<__wolin_reg40>[ubyte*] = *53281[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.vicBackground
 // top type already set: __wolin_reg40: ubyte* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
 alloc SP<__wolin_reg41>, #1 // ASSIGNMENT value
 // (do assignRightSideFinalVar przypisano __wolin_reg41: ubyte = 0 (ASSIGNMENT value))
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg41>[ubyte] = #1[ubyte] // atomic ex
-bit &SP(1)<__wolin_reg40>[ubyte*] = SP(0)<__wolin_reg41>[ubyte], #1[bool] // przez sprawdzacz typow - process assignment
+let SP(0)<__wolin_reg41>[ubyte] = #6[ubyte] // atomic ex
+let &SP(1)<__wolin_reg40>[ubyte*] = SP(0)<__wolin_reg41>[ubyte] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg41>, #1 // ASSIGNMENT value, type = ubyte
 free SP<__wolin_reg40>, #2 // ASSIGNMENT target
 // == ASSIGNMENT END =======================================
 // == ASSIGNMENT POP =======================================
 // 
-// switchType to:unit by bit op
+// switchType to:unit by assignment
 // top type already set: __wolin_reg39: unit = 65535 (for expression)
 // 
 // == ASSIGNMENT PUSH =======================================
 // 
 // == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg43>, #2 // ASSIGNMENT target
-// (do assignLeftSideVar przypisano __wolin_reg43: ubyte* = 0 (ASSIGNMENT target))
-let SP(0)<__wolin_reg43>[ubyte*] = *53265[ubyte] // przez sprawdzacz typow - simple id from var
-// switchType to:ubyte by type from pl.qus.wolin.vicScreenCtrlReg1
-// top type already set: __wolin_reg43: ubyte* = 0 (ASSIGNMENT target)
+// (do assignLeftSideVar przypisano __wolin_reg43: bool* = 0 (ASSIGNMENT target))
+let SP(0)<__wolin_reg43>[bool*] = *CPU.I[bool] // przez sprawdzacz typow - simple id from var
+// switchType to:bool by type from pl.qus.wolin.maskInterrupts
+// top type already set: __wolin_reg43: bool* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
 alloc SP<__wolin_reg44>, #1 // ASSIGNMENT value
-// (do assignRightSideFinalVar przypisano __wolin_reg44: ubyte = 0 (ASSIGNMENT value))
-// switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg44>[ubyte] = #127[ubyte] // atomic ex
-and &SP(1)<__wolin_reg43>[ubyte*] = SP(0)<__wolin_reg44>[ubyte] // przez sprawdzacz typow - process assignment
-free SP<__wolin_reg44>, #1 // ASSIGNMENT value, type = ubyte
+// (do assignRightSideFinalVar przypisano __wolin_reg44: bool = 0 (ASSIGNMENT value))
+// switchType to:bool by parse literal constant
+let SP(0)<__wolin_reg44>[bool] = #1[bool] // atomic ex
+let &SP(1)<__wolin_reg43>[bool*] = SP(0)<__wolin_reg44>[bool] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg44>, #1 // ASSIGNMENT value, type = bool
 free SP<__wolin_reg43>, #2 // ASSIGNMENT target
 // == ASSIGNMENT END =======================================
 // == ASSIGNMENT POP =======================================
 // 
-// switchType to:unit by &= op
+// switchType to:unit by assignment
 // top type already set: __wolin_reg42: unit = 65535 (for expression)
 // 
 // == ASSIGNMENT PUSH =======================================
@@ -358,14 +359,14 @@ free SP<__wolin_reg43>, #2 // ASSIGNMENT target
 // == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg46>, #2 // ASSIGNMENT target
 // (do assignLeftSideVar przypisano __wolin_reg46: ubyte* = 0 (ASSIGNMENT target))
-let SP(0)<__wolin_reg46>[ubyte*] = *53266[ubyte] // przez sprawdzacz typow - simple id from var
-// switchType to:ubyte by type from pl.qus.wolin.vicRasterLine
+let SP(0)<__wolin_reg46>[ubyte*] = *56333[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.cia1InerruptCtrlReg
 // top type already set: __wolin_reg46: ubyte* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
 alloc SP<__wolin_reg47>, #1 // ASSIGNMENT value
 // (do assignRightSideFinalVar przypisano __wolin_reg47: ubyte = 0 (ASSIGNMENT value))
 // switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg47>[ubyte] = #140[ubyte] // atomic ex
+let SP(0)<__wolin_reg47>[ubyte] = #127[ubyte] // atomic ex
 let &SP(1)<__wolin_reg46>[ubyte*] = SP(0)<__wolin_reg47>[ubyte] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg47>, #1 // ASSIGNMENT value, type = ubyte
 free SP<__wolin_reg46>, #2 // ASSIGNMENT target
@@ -379,54 +380,120 @@ free SP<__wolin_reg46>, #2 // ASSIGNMENT target
 // 
 // == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg49>, #2 // ASSIGNMENT target
-// (do assignLeftSideVar przypisano __wolin_reg49: uword* = 0 (ASSIGNMENT target))
-let SP(0)<__wolin_reg49>[uword*] = *788[uword] // przez sprawdzacz typow - simple id from var
-// switchType to:uword by type from pl.qus.wolin.interruptRoutineVector
-// top type already set: __wolin_reg49: uword* = 0 (ASSIGNMENT target)
+// (do assignLeftSideVar przypisano __wolin_reg49: ubyte* = 0 (ASSIGNMENT target))
+let SP(0)<__wolin_reg49>[ubyte*] = *53274[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.vicInterruptCtrlReg
+// top type already set: __wolin_reg49: ubyte* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
-alloc SP<__wolin_reg50>, #2 // ASSIGNMENT value
-// (do assignRightSideFinalVar przypisano __wolin_reg50: uword = 0 (ASSIGNMENT value))
-let SP(0)<__wolin_reg50>[uword] = __wolin_pl_qus_wolin_backgroundToBlue[uword] // przez sprawdzacz typow - simple id from var
-// switchType to:uword by function pointer
-let &SP(2)<__wolin_reg49>[uword*] = SP(0)<__wolin_reg50>[uword] // przez sprawdzacz typow - process assignment
-free SP<__wolin_reg50>, #2 // ASSIGNMENT value, type = uword
+alloc SP<__wolin_reg50>, #1 // ASSIGNMENT value
+// (do assignRightSideFinalVar przypisano __wolin_reg50: ubyte = 0 (ASSIGNMENT value))
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg50>[ubyte] = #1[ubyte] // atomic ex
+bit &SP(1)<__wolin_reg49>[ubyte*] = SP(0)<__wolin_reg50>[ubyte], #1[bool] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg50>, #1 // ASSIGNMENT value, type = ubyte
 free SP<__wolin_reg49>, #2 // ASSIGNMENT target
 // == ASSIGNMENT END =======================================
 // == ASSIGNMENT POP =======================================
 // 
-// switchType to:unit by assignment
+// switchType to:unit by bit op
 // top type already set: __wolin_reg48: unit = 65535 (for expression)
 // 
 // == ASSIGNMENT PUSH =======================================
 // 
 // == ASSIGNMENT LEFT =======================================
 alloc SP<__wolin_reg52>, #2 // ASSIGNMENT target
-// (do assignLeftSideVar przypisano __wolin_reg52: bool* = 0 (ASSIGNMENT target))
-let SP(0)<__wolin_reg52>[bool*] = *CPU.I[bool] // przez sprawdzacz typow - simple id from var
-// switchType to:bool by type from pl.qus.wolin.maskInterrupts
-// top type already set: __wolin_reg52: bool* = 0 (ASSIGNMENT target)
+// (do assignLeftSideVar przypisano __wolin_reg52: ubyte* = 0 (ASSIGNMENT target))
+let SP(0)<__wolin_reg52>[ubyte*] = *53265[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.vicScreenCtrlReg1
+// top type already set: __wolin_reg52: ubyte* = 0 (ASSIGNMENT target)
 // == ASSIGNMENT RIGHT =======================================
 alloc SP<__wolin_reg53>, #1 // ASSIGNMENT value
-// (do assignRightSideFinalVar przypisano __wolin_reg53: bool = 0 (ASSIGNMENT value))
-// switchType to:bool by parse literal constant
-let SP(0)<__wolin_reg53>[bool] = #0[bool] // atomic ex
-let &SP(1)<__wolin_reg52>[bool*] = SP(0)<__wolin_reg53>[bool] // przez sprawdzacz typow - process assignment
-free SP<__wolin_reg53>, #1 // ASSIGNMENT value, type = bool
+// (do assignRightSideFinalVar przypisano __wolin_reg53: ubyte = 0 (ASSIGNMENT value))
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg53>[ubyte] = #128[ubyte] // atomic ex
+bit &SP(1)<__wolin_reg52>[ubyte*] = SP(0)<__wolin_reg53>[ubyte], #0[bool] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg53>, #1 // ASSIGNMENT value, type = ubyte
 free SP<__wolin_reg52>, #2 // ASSIGNMENT target
 // == ASSIGNMENT END =======================================
 // == ASSIGNMENT POP =======================================
 // 
-// switchType to:unit by assignment
+// switchType to:unit by bit op
 // top type already set: __wolin_reg51: unit = 65535 (for expression)
-alloc SP<__wolin_reg54>, #1 // for expression
-label __wolin_lab_loopStart_1
-// FORCE TOP: __wolin_reg54: bool = 0 (for expression) -> bool
+// 
+// == ASSIGNMENT PUSH =======================================
+// 
+// == ASSIGNMENT LEFT =======================================
+alloc SP<__wolin_reg55>, #2 // ASSIGNMENT target
+// (do assignLeftSideVar przypisano __wolin_reg55: ubyte* = 0 (ASSIGNMENT target))
+let SP(0)<__wolin_reg55>[ubyte*] = *53266[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.vicRasterLine
+// top type already set: __wolin_reg55: ubyte* = 0 (ASSIGNMENT target)
+// == ASSIGNMENT RIGHT =======================================
+alloc SP<__wolin_reg56>, #1 // ASSIGNMENT value
+// (do assignRightSideFinalVar przypisano __wolin_reg56: ubyte = 0 (ASSIGNMENT value))
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg56>[ubyte] = #140[ubyte] // atomic ex
+let &SP(1)<__wolin_reg55>[ubyte*] = SP(0)<__wolin_reg56>[ubyte] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg56>, #1 // ASSIGNMENT value, type = ubyte
+free SP<__wolin_reg55>, #2 // ASSIGNMENT target
+// == ASSIGNMENT END =======================================
+// == ASSIGNMENT POP =======================================
+// 
+// switchType to:unit by assignment
+// top type already set: __wolin_reg54: unit = 65535 (for expression)
+// 
+// == ASSIGNMENT PUSH =======================================
+// 
+// == ASSIGNMENT LEFT =======================================
+alloc SP<__wolin_reg58>, #2 // ASSIGNMENT target
+// (do assignLeftSideVar przypisano __wolin_reg58: uword* = 0 (ASSIGNMENT target))
+let SP(0)<__wolin_reg58>[uword*] = *788[uword] // przez sprawdzacz typow - simple id from var
+// switchType to:uword by type from pl.qus.wolin.interruptRoutineVector
+// top type already set: __wolin_reg58: uword* = 0 (ASSIGNMENT target)
+// == ASSIGNMENT RIGHT =======================================
+alloc SP<__wolin_reg59>, #2 // ASSIGNMENT value
+// (do assignRightSideFinalVar przypisano __wolin_reg59: uword = 0 (ASSIGNMENT value))
+let SP(0)<__wolin_reg59>[uword] = __wolin_pl_qus_wolin_backgroundToBlue[uword] // przez sprawdzacz typow - simple id from var
+// switchType to:uword by function pointer
+let &SP(2)<__wolin_reg58>[uword*] = SP(0)<__wolin_reg59>[uword] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg59>, #2 // ASSIGNMENT value, type = uword
+free SP<__wolin_reg58>, #2 // ASSIGNMENT target
+// == ASSIGNMENT END =======================================
+// == ASSIGNMENT POP =======================================
+// 
+// switchType to:unit by assignment
+// top type already set: __wolin_reg57: unit = 65535 (for expression)
+// 
+// == ASSIGNMENT PUSH =======================================
+// 
+// == ASSIGNMENT LEFT =======================================
+alloc SP<__wolin_reg61>, #2 // ASSIGNMENT target
+// (do assignLeftSideVar przypisano __wolin_reg61: bool* = 0 (ASSIGNMENT target))
+let SP(0)<__wolin_reg61>[bool*] = *CPU.I[bool] // przez sprawdzacz typow - simple id from var
+// switchType to:bool by type from pl.qus.wolin.maskInterrupts
+// top type already set: __wolin_reg61: bool* = 0 (ASSIGNMENT target)
+// == ASSIGNMENT RIGHT =======================================
+alloc SP<__wolin_reg62>, #1 // ASSIGNMENT value
+// (do assignRightSideFinalVar przypisano __wolin_reg62: bool = 0 (ASSIGNMENT value))
 // switchType to:bool by parse literal constant
-let SP(0)<__wolin_reg54>[bool] = #1[bool] // atomic ex
-beq SP(0)<__wolin_reg54>[bool] = #1[bool], __wolin_lab_loopStart_1<label_po_if>[uword]
+let SP(0)<__wolin_reg62>[bool] = #0[bool] // atomic ex
+let &SP(1)<__wolin_reg61>[bool*] = SP(0)<__wolin_reg62>[bool] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg62>, #1 // ASSIGNMENT value, type = bool
+free SP<__wolin_reg61>, #2 // ASSIGNMENT target
+// == ASSIGNMENT END =======================================
+// == ASSIGNMENT POP =======================================
+// 
+// switchType to:unit by assignment
+// top type already set: __wolin_reg60: unit = 65535 (for expression)
+alloc SP<__wolin_reg63>, #1 // for expression
+label __wolin_lab_loopStart_1
+// FORCE TOP: __wolin_reg63: bool = 0 (for expression) -> bool
+// switchType to:bool by parse literal constant
+let SP(0)<__wolin_reg63>[bool] = #1[bool] // atomic ex
+beq SP(0)<__wolin_reg63>[bool] = #1[bool], __wolin_lab_loopStart_1<label_po_if>[uword]
 label __wolin_lab_loopEnd_1
-// top type already set: __wolin_reg54: bool = 0 (for expression)
-free SP<__wolin_reg54>, #1 // for expression
+// top type already set: __wolin_reg63: bool = 0 (for expression)
+free SP<__wolin_reg63>, #1 // for expression
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // freeing call stack
 // return from function body

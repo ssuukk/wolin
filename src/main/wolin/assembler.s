@@ -87,6 +87,12 @@ __wolin_pl_qus_wolin_backgroundToBlue:
     lda #6
     sta 53280
 
+; let53281[ubyte]=#6[ubyte]
+
+
+    lda #6
+    sta 53281
+
 ; let53273[ubyte]=#255[ubyte]
 
 
@@ -122,6 +128,12 @@ __wolin_pl_qus_wolin_backgroundToWhite:
     lda #1
     sta 53280
 
+; let53281[ubyte]=#1[ubyte]
+
+
+    lda #1
+    sta 53281
+
 ; let53273[ubyte]=#255[ubyte]
 
 
@@ -150,6 +162,12 @@ __wolin_pl_qus_wolin_main:
     lda #6
     sta 53280
 
+; let53281[ubyte]=#6[ubyte]
+
+
+    lda #6
+    sta 53281
+
 ; letCPU.I[bool]=#1[bool]
 
 
@@ -170,11 +188,11 @@ __wolin_pl_qus_wolin_main:
     sta 53274
 
 
-; and53265[ubyte]=#127[ubyte]
+; bit53265[ubyte]=#128[ubyte],#0[bool]
 
 
-    lda 53265
-    and #127
+    lda #$ff-128
+    and 53265
     sta 53265
 
 
@@ -199,7 +217,7 @@ __wolin_pl_qus_wolin_main:
     cli
 
 
-; allocSP<__wolin_reg54>,#1
+; allocSP<__wolin_reg63>,#1
 
     dex
 
@@ -207,13 +225,13 @@ __wolin_pl_qus_wolin_main:
 
 __wolin_lab_loopStart_1:
 
-; letSP(0)<__wolin_reg54>[bool]=#1[bool]
+; letSP(0)<__wolin_reg63>[bool]=#1[bool]
 
 
     lda #1
     sta 0,x
 
-; beqSP(0)<__wolin_reg54>[bool]=#1[bool],__wolin_lab_loopStart_1<label_po_if>[uword]
+; beqSP(0)<__wolin_reg63>[bool]=#1[bool],__wolin_lab_loopStart_1<label_po_if>[uword]
 
 
     lda 0,x
@@ -223,7 +241,7 @@ __wolin_lab_loopStart_1:
 
 __wolin_lab_loopEnd_1:
 
-; freeSP<__wolin_reg54>,#1
+; freeSP<__wolin_reg63>,#1
 
     inx
 
