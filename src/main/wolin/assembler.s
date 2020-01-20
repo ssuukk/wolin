@@ -62,10 +62,6 @@ __wolin_this_ptr_hi := 176+1
 
     rts
 
-; function__wolin_pl_qus_wolin_clearScreen
-
-__wolin_pl_qus_wolin_clearScreen:
-
 ; function__wolin_pl_qus_wolin_blueBg
 
 __wolin_pl_qus_wolin_blueBg:
@@ -105,9 +101,36 @@ __wolin_pl_qus_wolin_blueBg:
 
 __wolin_pl_qus_wolin_whiteBg:
 
-; reti
+; let788[uword]=__wolin_pl_qus_wolin_blueBg[uword]
 
-   rti
+
+    lda #<__wolin_pl_qus_wolin_blueBg
+    sta 788
+    lda #>__wolin_pl_qus_wolin_blueBg
+    sta 788+1
+
+
+; let53266[ubyte]=#160[ubyte]
+
+
+    lda #160
+    sta 53266
+
+; let53280[ubyte]=#1[ubyte]
+
+
+    lda #1
+    sta 53280
+
+; let53273[ubyte]=#255[ubyte]
+
+
+    lda #255
+    sta 53273
+
+; goto59953[adr]
+
+    jmp 59953
 
 ; function__wolin_pl_qus_wolin_main
 
@@ -120,6 +143,12 @@ __wolin_pl_qus_wolin_main:
 ; call58692[adr]
 
     jsr 58692
+
+; let53280[ubyte]=#6[ubyte]
+
+
+    lda #6
+    sta 53280
 
 ; letCPU.I[bool]=#1[bool]
 
@@ -144,9 +173,10 @@ __wolin_pl_qus_wolin_main:
 ; let53266[ubyte]=#140[ubyte]
 
 
-    lda #140
-    sta 53266
-
+  lda $d011       ; High bit of raster line cleared, were
+  and #$7f        ; only working within single byte ranges
+  sta $d011
+  
 ; let788[uword]=__wolin_pl_qus_wolin_blueBg[uword]
 
 
@@ -162,7 +192,7 @@ __wolin_pl_qus_wolin_main:
     cli
 
 
-; allocSP<__wolin_reg35>,#1
+; allocSP<__wolin_reg51>,#1
 
     dex
 
@@ -170,13 +200,13 @@ __wolin_pl_qus_wolin_main:
 
 __wolin_lab_loopStart_1:
 
-; letSP(0)<__wolin_reg35>[bool]=#1[bool]
+; letSP(0)<__wolin_reg51>[bool]=#1[bool]
 
 
     lda #1
     sta 0,x
 
-; beqSP(0)<__wolin_reg35>[bool]=#1[bool],__wolin_lab_loopStart_1<label_po_if>[uword]
+; beqSP(0)<__wolin_reg51>[bool]=#1[bool],__wolin_lab_loopStart_1<label_po_if>[uword]
 
 
     lda 0,x
@@ -186,7 +216,7 @@ __wolin_lab_loopStart_1:
 
 __wolin_lab_loopEnd_1:
 
-; freeSP<__wolin_reg35>,#1
+; freeSP<__wolin_reg51>,#1
 
     inx
 

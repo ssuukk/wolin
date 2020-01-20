@@ -1801,15 +1801,16 @@ class WolinVisitor(
         if (body != null && nowaFunkcja.location != 0)
             throw Exception("Fixed address function ${nowaFunkcja.fullName} with a body!")
 
-        state.code(
-            "\n" + """// ****************************************
+        if(state.currentFunction?.location == 0) {
+            state.code(
+                "\n" + """// ****************************************
             |// funkcja: ${nowaFunkcja}
             |// ****************************************
         """.trimMargin()
-        )
+            )
 
-        state.code("function ${state.currentFunction!!.labelName}")
-
+            state.code("function ${state.currentFunction!!.labelName}")
+        }
 //        if(state.currentClass != null) {
 //            //state.code("let __wolin_this_ptr[adr] = SPF(0)<this>[adr] // ustawienie this TODO - zapamiętać poprzedni this!!!!")
 //        }

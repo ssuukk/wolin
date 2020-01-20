@@ -534,8 +534,8 @@ allocSP<>,#4 // x = x+2
                             target.singleAssign = true
                             if(targetRef == null)
                                 target.argContext = linia.arg(0)
-                            else
-                                println("tu!")
+//                            else
+//                                println("tu!")
                         }
                         else -> target.singleAssign = false
                     }
