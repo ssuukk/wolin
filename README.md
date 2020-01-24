@@ -121,8 +121,8 @@ Syntax different from Kotlin:
 - `variable .= 127` clear bit 7 (variable must be readable)
 - `variable & variable` bitwise AND
 - `variable | variable` bitwise OR
-- `variable &= 3` bitwise in-place AND (variable doesn't have to be readable)
-- `variable |= 3` bitwise in-place OR (variable doesn't have to be readable)
+- `variable &= 3` bitwise in-place AND (variable must be readable)
+- `variable |= 3` bitwise in-place OR (variable must be readable)
 - `interrupt fun()` denotes interrupt routine function that can RTI instead of RTS
 - `fun xxx^location()` function attached to some address (usually ROM functions)
 - `var a:type^location` variable attached to some address (I/O registers)

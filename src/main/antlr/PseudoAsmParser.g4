@@ -25,7 +25,7 @@ index
     : (jocker | IntegerLiteral);
 
 immediate
-    : HASH (jocker | IntegerLiteral);
+    : HASH (jocker | IntegerLiteral | identifier);
 
 floatimmediate
     : MOD (jocker | DoubleLiteral);

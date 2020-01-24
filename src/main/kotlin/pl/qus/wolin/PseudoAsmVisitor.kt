@@ -130,13 +130,17 @@ let SP(?a)[uword] = SP(?b)[uword]
             if (templateOp.value()?.immediate()?.jocker() == null)
                 match =
                     match && templateOp.value()?.immediate()?.IntegerLiteral()?.text == dataOp.value()?.immediate()?.IntegerLiteral()?.text
-            else
+            else {
+                val integer = dataOp.value()?.immediate()?.IntegerLiteral()?.text
+                val label = dataOp.value()?.immediate()?.identifier()?.text
+
                 pary.add(
                     Pair(
                         templateOp.value()!!.immediate()!!.jocker()!!.simpleIdentifier()!!.text,
-                        dataOp.value()?.immediate()?.IntegerLiteral()?.text
+                        if(integer.isNullOrBlank()) label else integer
                     )
                 )
+            }
 
             // zgadza się lokacja lub nazwa?
             if (templateOp.value()?.addressed()?.jocker() == null) {

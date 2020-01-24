@@ -169,6 +169,8 @@ let SP(?d)[ubyte] = SP(?s)[ubyte] -> """
     lda {s},x
     sta {d},x"""
 
+
+
 // # -> SP
 
 let SP(?d)[bool] = #1[bool] -> """
@@ -212,6 +214,16 @@ let SP(?d)[uword] = #?val[uword] -> """
     sta {d},x
     lda #>{val}
     sta {d}+1,x"""
+
+
+let ?dst[uword] = #?proc[uword] -> """
+    lda #<{proc}
+    sta {dst}
+    lda #>{proc}
+    sta {dst}+1
+"""
+
+
 
 let SP(?d)[word] = #?s[ubyte] -> """
     lda #{s}
@@ -285,12 +297,6 @@ let ?label[float] = SP(?s)[float] -> """
     sta {label}+4
 """
 
-let ?dst[uword] = ?label[uword] -> """
-    lda #<{label}
-    sta {dst}
-    lda #>{label}
-    sta {dst}+1
-"""
 
 //============================================
 // SP - zmienna
@@ -405,6 +411,31 @@ let SP(?dest)[uword] = SPF(?src)[uword] -> """
     lda (__wolin_spf),y
     sta {dest}+1,x
 """
+
+let ?adr[ubyte] = SPF(?src)[ubyte] -> """
+    ldy #{src}
+    lda (__wolin_spf),y
+    sta {adr}
+"""
+
+let ?adr[uword] = SPF(?src)[uword] -> """
+    ldy #{src}
+    lda (__wolin_spf),y
+    sta {adr}
+    iny
+    lda (__wolin_spf),y
+    sta {adr}+1
+"""
+
+let SPF(?dst)[uword]=?adr[uword] -> """
+    lda {adr}
+    ldy #{dst}
+    sta (__wolin_spf),y
+    iny
+    lda {adr}+1
+    sta (__wolin_spf),y
+"""
+
 
 //============================================
 // SPE, exception stack, Y based

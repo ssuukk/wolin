@@ -2374,7 +2374,7 @@ class WolinVisitor(
                     "let ${state.varToAsm(
                         doJakiej,
                         derefDo
-                    )} = ${co.labelName}[uword] // przez sprawdzacz typow - $comment"
+                    )} = #${co.labelName}[uword] // przez sprawdzacz typow - $comment"
                 )
             } else {
                 błędzik(ctx, "Nie można przypisać $co do zmiennej $doJakiej")
