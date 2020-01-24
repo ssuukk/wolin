@@ -313,57 +313,62 @@ class WolinStateObject(val pass: Pass) {
         functiary.values.filter { it.lambdaBody != null }
 
     fun findVarInVariablaryWithDescoping(nazwa: String): Zmienna {
-        var gdzieJesteśmy = nameStitcher("")
+        try {
 
-        var zmienna: Zmienna? = variablary[nazwa]
+            var gdzieJesteśmy = nameStitcher("")
 
-        if (zmienna != null)
-            return zmienna
+            var zmienna: Zmienna? = variablary[nazwa]
 
-        if(classDerefStack.isNotEmpty()) {
-            val claz = findClass(classDerefStack.peek().type.name)
-            zmienna = findStackVector(claz.heap,claz.name+"."+nazwa).second
-        }
+            if (zmienna != null)
+                return zmienna
 
-        if (zmienna != null)
-            return zmienna
-
-
-        do {
-
-            val pattern = "$gdzieJesteśmy.$nazwa"
-
-            //println("Dla findVarInVariablaryWithDescoping - zmienna:$nazwa, pATTERN = $pattern")
-
-
-            zmienna = variablary[pattern]
-
-            // aby znaleźć zmienną w scope pliku
-            if (zmienna == null && gdzieJesteśmy == basePackage) {
-                //val ind = "$gdzieJesteśmy.$fileScopeSuffix.$nazwa"
-                val ind = "$gdzieJesteśmy.$nazwa"
-                zmienna = variablary[ind]
+            if (classDerefStack.isNotEmpty()) {
+                val claz = findClass(classDerefStack.peek().type.name)
+                zmienna = findStackVector(claz.heap, claz.name + "." + nazwa).second
             }
 
+            if (zmienna != null)
+                return zmienna
 
-            if (zmienna == null) {
-                val ostKropka = gdzieJesteśmy.lastIndexOf(".")
 
-                if (ostKropka == -1) {
-                    throw Exception("Undefined variable: $nazwa")
+            do {
+
+                val pattern = "$gdzieJesteśmy.$nazwa"
+
+                //println("Dla findVarInVariablaryWithDescoping - zmienna:$nazwa, pATTERN = $pattern")
+
+
+                zmienna = variablary[pattern]
+
+                // aby znaleźć zmienną w scope pliku
+                if (zmienna == null && gdzieJesteśmy == basePackage) {
+                    //val ind = "$gdzieJesteśmy.$fileScopeSuffix.$nazwa"
+                    val ind = "$gdzieJesteśmy.$nazwa"
+                    zmienna = variablary[ind]
                 }
-                gdzieJesteśmy = gdzieJesteśmy.substring(0, ostKropka)
+
+
+                if (zmienna == null) {
+                    val ostKropka = gdzieJesteśmy.lastIndexOf(".")
+
+                    if (ostKropka == -1) {
+                        throw Exception("Undefined variable: $nazwa")
+                    }
+                    gdzieJesteśmy = gdzieJesteśmy.substring(0, ostKropka)
+                }
+
+            } while (zmienna == null)
+
+            gdzieJesteśmy = nameStitcher("")
+
+            if (currentFunction != null && zmienna.name.startsWith(gdzieJesteśmy)) {
+                zmienna.fieldType = FieldType.LOCAL
             }
 
-        } while (zmienna == null)
-
-        gdzieJesteśmy = nameStitcher("")
-
-        if (currentFunction != null && zmienna.name.startsWith(gdzieJesteśmy)) {
-            zmienna.fieldType = FieldType.LOCAL
+            return zmienna
+        } catch (ex: Exception) {
+            throw VariableNotFound("Can't find variable '$nazwa'")
         }
-
-        return zmienna
     }
 
 //    fun varToAsmAutoDeref(register: Zmienna): String =

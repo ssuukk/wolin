@@ -21,11 +21,21 @@ var spritesFat: ubyte^0xd01d
 var spritesTall: ubyte^0xd017
 var sprite0Color: ubyte^0xd027
 
+var spriteData: ubyte[ubyte]
+var realSprite: ubyte[ubyte]^12288
+
 fun clearScreen^0xe544()
 
+fun onRasterGoto(line: ubyte, proc: uword) {
+    interruptRoutineVector = proc
+    vicRasterLine = line
+}
+
+/*********************************************************
+* Raster bar
+**********************************************************/
 interrupt fun backgroundToBlue() {
-    interruptRoutineVector = backgroundToWhite
-    vicRasterLine = 140
+    onRasterGoto(140, backgroundToWhite)
     vicBorder = 6
     vicBackground = 6
     vicInterruptStatusReg = 0xff
@@ -33,81 +43,75 @@ interrupt fun backgroundToBlue() {
 }
 
 interrupt fun backgroundToWhite() {
-    interruptRoutineVector = backgroundToBlue
-    vicRasterLine = 160
+    onRasterGoto(160, backgroundToBlue)
     vicBorder = 1
     vicBackground = 1
     vicInterruptStatusReg = 0xff
     return@0xea31
 }
 
-interrupt fun topRoutine() {
-    // top of screen - set bit
-    vicScreenCtrlReg1 := 8 // 25 rows
-    vicBorder = 0
-    interruptRoutineVector = bottomRoutine
-    vicRasterLine = 0xf9 // at line f9 set to 24 rows
-    vicInterruptStatusReg = 0xff
-    return@0xea31
-}
-
-interrupt fun bottomRoutine() {
-    vicScreenCtrlReg1 &= 0xf7 // 24 rows
-    vicBorder = 1
-    interruptRoutineVector = topRoutine
-    vicRasterLine = 0xff
-    vicInterruptStatusReg = 0xff // at line ff set to 25 rows
-    return@0xea31
-}
-
-fun onRasterGoto(line: ubyte, proc: uword) {
-    interruptRoutineVector = proc
-    vicRasterLine = line
-}
-
-// na ramkę - bit 3 vicScreenCtrlReg1
-// wyczyścić go w rządku $f2-$fa
-// ustawić na górze ekranu
-
 fun rasterBar() {
     vicBorder = 6                                    // Init screen and border to blue
     vicBackground = 6
     vicInterruptCtrlReg := 1                         // Enable raster interrupts
     vicScreenCtrlReg1 .= 128                         // High bit of raster line cleared, we're only working within single byte ranges
-    vicRasterLine = 140                              // We want an interrupt at the top line
-    //interruptRoutineVector = backgroundToBlue        // IRQ vector addresses
     onRasterGoto(140, backgroundToBlue)
 }
 
+/*********************************************************
+* Open border
+**********************************************************/
+
+interrupt fun topRoutine() {
+    vicScreenCtrlReg1 := 8 // 25 rows
+    onRasterGoto(0xf9, bottomRoutine)
+    vicInterruptStatusReg = 0xff
+    return@0xea31
+}
+
+interrupt fun bottomRoutine() {
+    vicScreenCtrlReg1 .= 8 // 24 rows
+    onRasterGoto(0xff, topRoutine)
+    vicInterruptStatusReg = 0xff // at line ff set to 25 rows
+    return@0xea31
+}
+
 fun openBorder() {
-// na ramkę - bit 3 vicScreenCtrlReg1
-// wyczyścić go w rządku $f2-$fa
-// ustawić na górze ekranu
-
-
     spritesOn := 1
     spritesFat := 1
     spritesTall := 1
     sprite0X = 100
     sprite0Y = 30
     sprite0Color = 2
+    vicBackground = 0
+
+    i = 0
+    do {
+        realSprite[i] = spriteData[i]
+        i++
+    } while (i<64)
 
     vicInterruptCtrlReg := 1                         // Enable raster interrupts
     vicScreenCtrlReg1 .= 128                         // High bit of raster line cleared, we're only working within single byte ranges
-    vicRasterLine = 0xf9
-    interruptRoutineVector = bottomRoutine
-    //onRasterGoto(0xf9, bottomRoutine)
+    onRasterGoto(0xf9, bottomRoutine)
 }
 
+/*********************************************************
+* Main function
+**********************************************************/
+
 fun main() {
-    clearScreen()
+    //clearScreen()
     maskInterrupts = true                            // Suspend interrupts during init
     cia1InerruptCtrlReg = 0x7f                       // Disable CIA
 
-    rasterBar()
-    //openBorder()
+    //rasterBar()
+    openBorder()
 
     maskInterrupts = false                           // Enable interrupts again
 
-    do {} while (true)                               // Eternal do-nothing loop, we're done.
+    do {
+        i++
+    } while (i<255)                               // Eternal do-nothing loop, we're done.
+
 }

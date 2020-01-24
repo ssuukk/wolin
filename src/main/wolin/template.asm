@@ -84,6 +84,7 @@ alloc ?val[uword] -> """    .word {val}"""
 alloc ?val[float] -> """    .float {val}"""
 alloc ?val[bool] -> """    .byte {val}"""
 alloc ?val[adr] -> """    .word {val}"""
+alloc ?val[ubyte*] -> """    .byte 1,2,3,4"""
 
 //============================================
 // SP, stos programowy oparty na X, wspiera dużo instrukcji, do 70 wordów
@@ -142,6 +143,18 @@ free SP, #?count -> """
 // SP -> SP
 
 let ?d(?dummy)[unit] = ?s(?dummy2)[unit] -> """ """
+
+
+// tablice z 8-bitowym indeksem
+let SP(?dstSP)[ubyte*] = ?arrStart[ubyte*], SP(?srcSP)[ubyte] -> """
+    ldy {srcSP},x
+    lda {arrStart},y
+    sta {dstSP},x"""
+
+let SP(?dstSP)[ubyte*] = ?arrStart[ubyte*], ?var[ubyte] -> """
+    ldy {var}
+    lda {arrStart},y
+    sta {dstSP},x"""
 
 let SP(?d)[uword] = SP(?s)[uword] -> """
     lda {s},x
@@ -745,19 +758,19 @@ let SP(?dst)[any*] = SPF(?src)[any*] -> """
 
 bit ?dst[ubyte] = #?val[ubyte], #1[bool] -> """
     lda {dst}
-    ora {val}
+    ora #{val}
     sta {dst}
 """
 
 bit ?dst[ubyte] = #?val[ubyte], #0[bool] -> """
-    lda #$ff-{val}
-    and {dst}
+    lda {dst}
+    and #$ff-{val}
     sta {dst}
 """
 
 bit &SP(?dst)[ubyte*] = #?val[ubyte], #1[bool] -> """
-    lda #{val}
-    ora ({dst},x)
+    lda ({dst},x)
+    ora #{val}
     sta ({dst},x)"""
 
 bit &SP(?dst)[ubyte*] = #?val[ubyte], #0[bool] -> """
@@ -1124,6 +1137,13 @@ and ?dst[ubyte] = #?val[ubyte] -> """
     sta {dst}
 """
 
+or ?dst[ubyte] = #?val[ubyte] -> """
+    lda {dst}
+    ora #{val}
+    sta {dst}
+"""
+
+
 mul SP(?d)[ubyte] = SP(?d)[ubyte], #1 -> """ """
 
 mul SP(?d)[uword] = SP(?d)[uword], #2 -> """   asl {d},x"""
@@ -1333,12 +1353,6 @@ let SP(?dst)[deref] = SP(?src)[ubyte] -> """
     sta ({dst},x)
 """
 
-
-// tablice z 8-bitowym indeksem
-let SP(?dstSP)[ubyte] = ?arrStart[adr], SP(?srcSP)[ubyte] -> """
-    ldy {srcSP},x
-    lda {arrStart},y
-    sta {dstSP},x"""
 
 
 

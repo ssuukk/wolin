@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.tree.ParseTree
 import pl.qus.wolin.components.*
 import pl.qus.wolin.exception.FunctionNotFound
 import pl.qus.wolin.exception.RegTypeMismatchException
+import pl.qus.wolin.exception.VariableNotFound
 import java.lang.Exception
 
 enum class Pass {
@@ -990,15 +991,14 @@ class WolinVisitor(
                                 )
                             }
                             state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.NORMAL -> {
-                                //state.rem(" allocated fast array, changing top reg to ptr")
-                                //currEntReg.type.isPointer = true
-                                state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.name}[adr], ${state.currentRegToAsm()}")
+                                state.rem(" allocated fast array, changing top reg to ptr")
+                                state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.labelName}[${state.currentShortArray!!.type.name}*], ${state.currentRegToAsm(RegOper.AMPRESAND)}")
                                 state.currentShortArray = null
                             }
                             state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.FIXED -> {
                                 state.rem(" fixed fast array, changing top reg to ptr")
                                 currEntReg.type.pointer = true
-                                state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.locationVal}[adr], ${state.currentRegToAsm()}")
+                                state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.locationVal}[${state.currentShortArray!!.type.name}*], ${state.currentRegToAsm(RegOper.AMPRESAND)}")
                                 state.currentShortArray = null
                             }
 
@@ -1029,6 +1029,8 @@ class WolinVisitor(
 
                 if (state.currentShortArray == null) {
                     state.allocReg("For calculating index", state.currentWolinType)
+                } else {
+                    state.rem("Short array")
                 }
 
                 visitExpression(ctx.expression(0))
@@ -1586,8 +1588,9 @@ class WolinVisitor(
     override fun visitSimpleIdentifier(ctx: KotlinParser.SimpleIdentifierContext): WolinStateObject {
         when {
             ctx.Identifier() != null -> {
-
                 try {
+//                    if(ctx.Identifier().text == "i")
+//                        println("tu!")
                     val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
 
                     if (zmienna.type.shortIndex && zmienna.type.elementOccupiesOneByte) {
@@ -1620,7 +1623,7 @@ class WolinVisitor(
                     }
 
                     state.switchType(zmienna.type, "type from ${zmienna.name}", true)
-                } catch (ex: Exception) {
+                } catch (ex: VariableNotFound) {
                     try {
                         val proc = state.findProc(ctx.Identifier().text)
                         checkTypeAndAddAssignment(
