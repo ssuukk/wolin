@@ -62,600 +62,81 @@ __wolin_this_ptr_hi := 176+1
 
     rts
 
-; function__wolin_pl_qus_wolin_onRasterGoto
-
-__wolin_pl_qus_wolin_onRasterGoto:
-
-; let788[uword]=SPF(0)<pl.qus.wolin.onRasterGoto.proc>[uword]
-
-
-    ldy #0
-    lda (__wolin_spf),y
-    sta 788
-    iny
-    lda (__wolin_spf),y
-    sta 788+1
-
-
-; let53266[ubyte]=SPF(2)<pl.qus.wolin.onRasterGoto.line>[ubyte]
-
-
-    ldy #2
-    lda (__wolin_spf),y
-    sta 53266
-
-
-; freeSPF<pl.qus.wolin.onRasterGoto.__fnargs>,#3
-
-
-    clc
-    lda __wolin_spf
-    adc #3
-    sta __wolin_spf
-    bcc :+
-    inc __wolin_spf+1
-:
-
-; ret
-
-    rts
-
-; function__wolin_pl_qus_wolin_backgroundToBlue
-
-__wolin_pl_qus_wolin_backgroundToBlue:
-
-; allocSPF,#3
-
-
-    clc
-    lda __wolin_spf
-    sbc #3
-    sta __wolin_spf
-    bcs :+
-    dec __wolin_spf+1
-:
-
-; letSPF(2)[ubyte]=#140[ubyte]
-
-
-    ldy #2
-    lda #140
-    sta (__wolin_spf),y
-
-; letSPF(0)[uword]=#__wolin_pl_qus_wolin_backgroundToWhite[uword]
-
-
-    ldy #0
-    lda #<__wolin_pl_qus_wolin_backgroundToWhite
-    sta (__wolin_spf),y
-    iny
-    lda #>__wolin_pl_qus_wolin_backgroundToWhite
-    sta (__wolin_spf),y
-
-; call__wolin_pl_qus_wolin_onRasterGoto[adr]
-
-    jsr __wolin_pl_qus_wolin_onRasterGoto
-
-; let53280[ubyte]=#6[ubyte]
-
-
-    lda #6
-    sta 53280
-
-; let53281[ubyte]=#6[ubyte]
-
-
-    lda #6
-    sta 53281
-
-; let53273[ubyte]=#255[ubyte]
-
-
-    lda #255
-    sta 53273
-
-; goto59953[adr]
-
-    jmp 59953
-
-; function__wolin_pl_qus_wolin_backgroundToWhite
-
-__wolin_pl_qus_wolin_backgroundToWhite:
-
-; allocSPF,#3
-
-
-    clc
-    lda __wolin_spf
-    sbc #3
-    sta __wolin_spf
-    bcs :+
-    dec __wolin_spf+1
-:
-
-; letSPF(2)[ubyte]=#160[ubyte]
-
-
-    ldy #2
-    lda #160
-    sta (__wolin_spf),y
-
-; letSPF(0)[uword]=#__wolin_pl_qus_wolin_backgroundToBlue[uword]
-
-
-    ldy #0
-    lda #<__wolin_pl_qus_wolin_backgroundToBlue
-    sta (__wolin_spf),y
-    iny
-    lda #>__wolin_pl_qus_wolin_backgroundToBlue
-    sta (__wolin_spf),y
-
-; call__wolin_pl_qus_wolin_onRasterGoto[adr]
-
-    jsr __wolin_pl_qus_wolin_onRasterGoto
-
-; let53280[ubyte]=#1[ubyte]
-
-
-    lda #1
-    sta 53280
-
-; let53281[ubyte]=#1[ubyte]
-
-
-    lda #1
-    sta 53281
-
-; let53273[ubyte]=#255[ubyte]
-
-
-    lda #255
-    sta 53273
-
-; goto59953[adr]
-
-    jmp 59953
-
-; function__wolin_pl_qus_wolin_rasterBar
-
-__wolin_pl_qus_wolin_rasterBar:
-
-; let53280[ubyte]=#6[ubyte]
-
-
-    lda #6
-    sta 53280
-
-; let53281[ubyte]=#6[ubyte]
-
-
-    lda #6
-    sta 53281
-
-; bit53274[ubyte]=#1[ubyte],#1[bool]
-
-
-    lda 53274
-    ora #1
-    sta 53274
-
-
-; bit53265[ubyte]=#128[ubyte],#0[bool]
-
-
-    lda 53265
-    and #$ff-128
-    sta 53265
-
-
-; allocSPF,#3
-
-
-    clc
-    lda __wolin_spf
-    sbc #3
-    sta __wolin_spf
-    bcs :+
-    dec __wolin_spf+1
-:
-
-; letSPF(2)[ubyte]=#140[ubyte]
-
-
-    ldy #2
-    lda #140
-    sta (__wolin_spf),y
-
-; letSPF(0)[uword]=#__wolin_pl_qus_wolin_backgroundToBlue[uword]
-
-
-    ldy #0
-    lda #<__wolin_pl_qus_wolin_backgroundToBlue
-    sta (__wolin_spf),y
-    iny
-    lda #>__wolin_pl_qus_wolin_backgroundToBlue
-    sta (__wolin_spf),y
-
-; call__wolin_pl_qus_wolin_onRasterGoto[adr]
-
-    jsr __wolin_pl_qus_wolin_onRasterGoto
-
-; ret
-
-    rts
-
-; function__wolin_pl_qus_wolin_topRoutine
-
-__wolin_pl_qus_wolin_topRoutine:
-
-; bit53265[ubyte]=#8[ubyte],#1[bool]
-
-
-    lda 53265
-    ora #8
-    sta 53265
-
-
-; allocSPF,#3
-
-
-    clc
-    lda __wolin_spf
-    sbc #3
-    sta __wolin_spf
-    bcs :+
-    dec __wolin_spf+1
-:
-
-; letSPF(2)[ubyte]=#249[ubyte]
-
-
-    ldy #2
-    lda #249
-    sta (__wolin_spf),y
-
-; letSPF(0)[uword]=#__wolin_pl_qus_wolin_bottomRoutine[uword]
-
-
-    ldy #0
-    lda #<__wolin_pl_qus_wolin_bottomRoutine
-    sta (__wolin_spf),y
-    iny
-    lda #>__wolin_pl_qus_wolin_bottomRoutine
-    sta (__wolin_spf),y
-
-; call__wolin_pl_qus_wolin_onRasterGoto[adr]
-
-    jsr __wolin_pl_qus_wolin_onRasterGoto
-
-; let53273[ubyte]=#255[ubyte]
-
-
-    lda #255
-    sta 53273
-
-; goto59953[adr]
-
-    jmp 59953
-
-; function__wolin_pl_qus_wolin_bottomRoutine
-
-__wolin_pl_qus_wolin_bottomRoutine:
-
-; bit53265[ubyte]=#8[ubyte],#0[bool]
-
-
-    lda 53265
-    and #$ff-8
-    sta 53265
-
-
-; allocSPF,#3
-
-
-    clc
-    lda __wolin_spf
-    sbc #3
-    sta __wolin_spf
-    bcs :+
-    dec __wolin_spf+1
-:
-
-; letSPF(2)[ubyte]=#255[ubyte]
-
-
-    ldy #2
-    lda #255
-    sta (__wolin_spf),y
-
-; letSPF(0)[uword]=#__wolin_pl_qus_wolin_topRoutine[uword]
-
-
-    ldy #0
-    lda #<__wolin_pl_qus_wolin_topRoutine
-    sta (__wolin_spf),y
-    iny
-    lda #>__wolin_pl_qus_wolin_topRoutine
-    sta (__wolin_spf),y
-
-; call__wolin_pl_qus_wolin_onRasterGoto[adr]
-
-    jsr __wolin_pl_qus_wolin_onRasterGoto
-
-; let53273[ubyte]=#255[ubyte]
-
-
-    lda #255
-    sta 53273
-
-; goto59953[adr]
-
-    jmp 59953
-
-; function__wolin_pl_qus_wolin_openBorder
-
-__wolin_pl_qus_wolin_openBorder:
-
-; bit53269[ubyte]=#1[ubyte],#1[bool]
-
-
-    lda 53269
-    ora #1
-    sta 53269
-
-
-; bit53277[ubyte]=#1[ubyte],#1[bool]
-
-
-    lda 53277
-    ora #1
-    sta 53277
-
-
-; bit53271[ubyte]=#1[ubyte],#1[bool]
-
-
-    lda 53271
-    ora #1
-    sta 53271
-
-
-; let53248[ubyte]=#100[ubyte]
-
-
-    lda #100
-    sta 53248
-
-; let53249[ubyte]=#30[ubyte]
-
-
-    lda #30
-    sta 53249
-
-; let53287[ubyte]=#2[ubyte]
-
-
-    lda #2
-    sta 53287
-
-; let53281[ubyte]=#0[ubyte]
-
-
-    lda #0
-    sta 53281
-
-; let__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte]=#0[ubyte]
-
-
-    lda #0
-    sta __wolin_pl_qus_wolin_i
-
-; allocSP<__wolin_reg98>,#1
-
-    dex
-
-; label__wolin_lab_loopStart_1
-
-__wolin_lab_loopStart_1:
-
-; allocSP<__wolin_reg101>,#2
-
-
-    dex
-    dex
-
-; letSP(0)<__wolin_reg101>[ubyte*]=12288[ubyte*],__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte]
-
-
-    ldy __wolin_pl_qus_wolin_i
-    lda 12288,y
-    sta 0,x
-
-; allocSP<__wolin_reg103>,#2
-
-
-    dex
-    dex
-
-; letSP(0)<__wolin_reg103>[ubyte*]=__wolin_pl_qus_wolin_spriteData[ubyte*],__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte]
-
-
-    ldy __wolin_pl_qus_wolin_i
-    lda __wolin_pl_qus_wolin_spriteData,y
-    sta 0,x
-
-; let&SP(2)<__wolin_reg101>[ubyte*]=&SP(0)<__wolin_reg103>[ubyte*]
-
-
-    lda (0,x)
-    sta (2,x)
-
-
-; freeSP<__wolin_reg103>,#2
-
-
-    inx
-    inx
-
-; freeSP<__wolin_reg101>,#2
-
-
-    inx
-    inx
-
-; add__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte],#1[ubyte]
-
-
-    inc __wolin_pl_qus_wolin_i
-
-; evallessSP(0)<__wolin_reg98>[bool]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte],#64[ubyte]
-
-
-    lda #1 ; mniejsze
-    sta 0,x
-    lda __wolin_pl_qus_wolin_i
-    cmp #64
-    bcc :+
-    lda #0 ; jednak wieksze
-    sta 0,x
-:
-
-
-; beqSP(0)<__wolin_reg98>[bool]=#1[bool],__wolin_lab_loopStart_1<label_po_if>[uword]
-
-
-    lda 0,x
-    bne __wolin_lab_loopStart_1
-
-; label__wolin_lab_loopEnd_1
-
-__wolin_lab_loopEnd_1:
-
-; freeSP<__wolin_reg98>,#1
-
-    inx
-
-; bit53274[ubyte]=#1[ubyte],#1[bool]
-
-
-    lda 53274
-    ora #1
-    sta 53274
-
-
-; bit53265[ubyte]=#128[ubyte],#0[bool]
-
-
-    lda 53265
-    and #$ff-128
-    sta 53265
-
-
-; allocSPF,#3
-
-
-    clc
-    lda __wolin_spf
-    sbc #3
-    sta __wolin_spf
-    bcs :+
-    dec __wolin_spf+1
-:
-
-; letSPF(2)[ubyte]=#249[ubyte]
-
-
-    ldy #2
-    lda #249
-    sta (__wolin_spf),y
-
-; letSPF(0)[uword]=#__wolin_pl_qus_wolin_bottomRoutine[uword]
-
-
-    ldy #0
-    lda #<__wolin_pl_qus_wolin_bottomRoutine
-    sta (__wolin_spf),y
-    iny
-    lda #>__wolin_pl_qus_wolin_bottomRoutine
-    sta (__wolin_spf),y
-
-; call__wolin_pl_qus_wolin_onRasterGoto[adr]
-
-    jsr __wolin_pl_qus_wolin_onRasterGoto
-
-; ret
-
-    rts
-
 ; function__wolin_pl_qus_wolin_main
 
 __wolin_pl_qus_wolin_main:
 
-; letCPU.I[bool]=#1[bool]
+; allocSPF,#1
 
 
-    sei
-
-
-; let56333[ubyte]=#127[ubyte]
-
-
-    lda #127
-    sta 56333
-
-; allocSPF,#0
-
- 
-
-; call__wolin_pl_qus_wolin_openBorder[adr]
-
-    jsr __wolin_pl_qus_wolin_openBorder
-
-; letCPU.I[bool]=#0[bool]
-
-
-    cli
-
-
-; allocSP<__wolin_reg128>,#1
-
-    dex
-
-; label__wolin_lab_loopStart_2
-
-__wolin_lab_loopStart_2:
-
-; add__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte],#1[ubyte]
-
-
-    inc __wolin_pl_qus_wolin_i
-
-; evallessSP(0)<__wolin_reg128>[bool]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[ubyte],#255[ubyte]
-
-
-    lda #1 ; mniejsze
-    sta 0,x
-    lda __wolin_pl_qus_wolin_i
-    cmp #255
-    bcc :+
-    lda #0 ; jednak wieksze
-    sta 0,x
+    clc
+    lda __wolin_spf
+    sbc #1
+    sta __wolin_spf
+    bcs :+
+    dec __wolin_spf+1
 :
 
+; saveSP
 
-; beqSP(0)<__wolin_reg128>[bool]=#1[bool],__wolin_lab_loopStart_2<label_po_if>[uword]
+
+    txa
+    pha
+
+; restoreCPU.XY[uword]
 
 
-    lda 0,x
-    bne __wolin_lab_loopStart_2
+    pla
+    tay
+    pla
+    tax
 
-; label__wolin_lab_loopEnd_2
 
-__wolin_lab_loopEnd_2:
+; restoreCPU.A[ubyte]
 
-; freeSP<__wolin_reg128>,#1
 
-    inx
+    pla
+
+; call65496[adr]
+
+    jsr 65496
+
+; letSPF(0)<pl.qus.wolin.save.__returnValue>[bool]=CPU.C[bool]
+
+
+    ldy #0
+    lda #1
+    bcs :+
+    lda #0
+:
+    sta (__wolin_spf),y
+
+
+
+; restoreSP
+
+
+    pla
+    tax
+
+; let__wolin_pl_qus_wolin_wynik<pl.qus.wolin.wynik>[bool]=SPF(0)<pl.qus.wolin.save.__returnValue>[bool]
+
+
+    ldy #0
+    lda (__wolin_spf),y
+    sta __wolin_pl_qus_wolin_wynik
+
+
+; freeSPF<pl.qus.wolin.save.__returnValue>,#1
+
+
+    clc
+    lda __wolin_spf
+    adc #1
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
 
 ; ret
 
@@ -669,19 +150,11 @@ __wolin_indirect_jsr:
 
     jmp 65535
 
-; label__wolin_pl_qus_wolin_spriteData
+; label__wolin_pl_qus_wolin_wynik
 
-__wolin_pl_qus_wolin_spriteData:
+__wolin_pl_qus_wolin_wynik:
 
-; alloc0[ubyte*]
-
-    .byte 1,2,3,4
-
-; label__wolin_pl_qus_wolin_i
-
-__wolin_pl_qus_wolin_i:
-
-; alloc0[ubyte]
+; alloc0[bool]
 
     .byte 0
 

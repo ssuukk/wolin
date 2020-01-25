@@ -142,6 +142,10 @@ free SP, #?count -> """
 
 // SP -> SP
 
+let CPU.A[ubyte] = #?val[ubyte] -> """
+    lda #{val}
+"""
+
 let ?d(?dummy)[unit] = ?s(?dummy2)[unit] -> """ """
 
 
@@ -347,6 +351,12 @@ free SPF, #?count -> """
     bcc :+
     inc __wolin_spf+1
 :"""
+
+let ?dst[bool] = SPF(?src)[bool] -> """
+    ldy #{src}
+    lda (__wolin_spf),y
+    sta {dst}
+"""
 
 let SPF(?d)[ubyte] = #?val[ubyte] -> """
     ldy #{d}
@@ -920,6 +930,16 @@ let SP(?d)[adr] = ?s[adr] -> """
     sta {d}+1,x"""
 
 
+add SP(?d)[ubyte*] = ?adr[ubyte*], ?idx[ubyte] -> """
+    clc
+    lda #<{adr}
+    adc {idx}
+    sta {d},x
+    lda #>{adr}
+    adc #0
+    sta {d}+1,x
+"""
+
 add &SP(?d)[ubyte*] = &SP(?d)[ubyte*], SPF(?s)[ubyte] -> """
     clc
     lda ({d},x)
@@ -1057,45 +1077,19 @@ let CPU.Y[ubyte] = SP(?s)[ubyte] -> """
     tay
 """
 
-callasm CPU.A[ubyte] = #?v[ubyte] -> """
-    lda #{v}
-    sta __kotlin_call_stub :+ 1
-"""
-
-callasm CPU.X[ubyte] = #?v[ubyte] -> """
-    lda #{v}
-    sta __kotlin_call_stub :+ 3
-"""
-
-callasm CPU.Y[ubyte] = #?v[ubyte] -> """
-    lda #{v}
-    sta __kotlin_call_stub :+ 5
-"""
-
-callasm CPU.XY[adr] = ?v[adr] -> """
-    lda #<{v}
-    sta __kotlin_call_stub :+ 3
-    lda #>{v}
-    sta __kotlin_call_stub :+ 5
-"""
-
-callasm ?adr[adr] -> """
-    txa
-    pha
-    lda #<{adr}
-    sta __kotlin_call_stub :+ 7
-    lda #>{adr}
-    sta __kotlin_call_stub :+ 8
-    jsr __kotlin_call_stub
-    pla
-    tax
-"""
-
-save CPU.X -> """
+save SP -> """
     txa
     pha"""
 
-restore CPU.X -> """
+restore SP -> """
+    pla
+    tax"""
+
+save CPU.X[ubyte] -> """
+    txa
+    pha"""
+
+restore CPU.X[ubyte] -> """
     pla
     tax"""
 
@@ -1107,11 +1101,40 @@ restore CPU.Y -> """
     pla
     tay"""
 
-save CPU.A -> """
+save CPU.A[ubyte] -> """
     pha"""
 
-restore CPU.A -> """
+restore CPU.A[ubyte] -> """
     pla"""
+
+restore CPU.XY[uword] -> """
+    pla
+    tay
+    pla
+    tax
+"""
+
+restore CPU.YX[uword] -> """
+    pla
+    tax
+    pla
+    tay
+"""
+
+
+
+save SP(?src)[ubyte] -> """
+    lda {src},x
+    pha
+"""
+
+save SP(?src)[uword] -> """
+    lda {src},x
+    pha
+    lda {src}+1,x
+    pha
+"""
+
 
 //============================================
 // arytmetyka
@@ -1295,6 +1318,17 @@ let SPF(?dst)[any*]=SPF(?src)[any*] -> """
     ldy #{dst}
     iny
     sta (__wolin_spf),y
+"""
+
+//letSPF(0)<pl.qus.wolin.save.__returnValue>[bool]=CPU.C[bool]
+let SPF(?dst)[bool] = CPU.C[bool] -> """
+    ldy #{dst}
+    lda #1
+    bcs :+
+    lda #0
+:
+    sta (__wolin_spf),y
+
 """
 
 let SP(?dst)[any*] = SPF(?src)[uword] -> """

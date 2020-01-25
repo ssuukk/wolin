@@ -1,117 +1,14 @@
 package pl.qus.wolin
 
-// raster interrupt colour band taken from:
-// https://gist.github.com/bremensaki/8f33cd7d67b78377881c7eb7147c0f32
+fun save^0xffd8(zpPointerToStart: ubyte^CPU.A, endAddr: uword^CPU.XY): bool^CPU.C // C == 1 means error occured
+fun chrin^0xffcf(): ubyte^CPU.A
 
-var interruptRoutineVector: uword^0x314 // this is C64 raster interrupt vector
-var cia1InerruptCtrlReg: ubyte^0xDC0D
-var vicScreenCtrlReg1: ubyte^0xD011
-var vicRasterLine: ubyte^0xD012
-var vicInterruptStatusReg: ubyte^0xd019
-var vicInterruptCtrlReg: ubyte^0xd01a
-var vicBorder: ubyte^53280
-var vicBackground: ubyte^53281
-var i: ubyte
-var maskInterrupts: bool^CPU.I
-
-var spritesOn: ubyte^0xd015
-var sprite0X: ubyte^0xd000
-var sprite0Y: ubyte^0xd001
-var spritesFat: ubyte^0xd01d
-var spritesTall: ubyte^0xd017
-var sprite0Color: ubyte^0xd027
-
-var spriteData: ubyte[ubyte]
-var realSprite: ubyte[ubyte]^12288
-
-fun clearScreen^0xe544()
-
-fun onRasterGoto(line: ubyte, proc: uword) {
-    interruptRoutineVector = proc
-    vicRasterLine = line
-}
-
-/*********************************************************
-* Raster bar
-**********************************************************/
-interrupt fun backgroundToBlue() {
-    onRasterGoto(140, backgroundToWhite)
-    vicBorder = 6
-    vicBackground = 6
-    vicInterruptStatusReg = 0xff
-    return@0xea31
-}
-
-interrupt fun backgroundToWhite() {
-    onRasterGoto(160, backgroundToBlue)
-    vicBorder = 1
-    vicBackground = 1
-    vicInterruptStatusReg = 0xff
-    return@0xea31
-}
-
-fun rasterBar() {
-    vicBorder = 6                                    // Init screen and border to blue
-    vicBackground = 6
-    vicInterruptCtrlReg := 1                         // Enable raster interrupts
-    vicScreenCtrlReg1 .= 128                         // High bit of raster line cleared, we're only working within single byte ranges
-    onRasterGoto(140, backgroundToBlue)
-}
-
-/*********************************************************
-* Open border
-**********************************************************/
-
-interrupt fun topRoutine() {
-    vicScreenCtrlReg1 := 8 // 25 rows
-    onRasterGoto(0xf9, bottomRoutine)
-    vicInterruptStatusReg = 0xff
-    return@0xea31
-}
-
-interrupt fun bottomRoutine() {
-    vicScreenCtrlReg1 .= 8 // 24 rows
-    onRasterGoto(0xff, topRoutine)
-    vicInterruptStatusReg = 0xff // at line ff set to 25 rows
-    return@0xea31
-}
-
-fun openBorder() {
-    spritesOn := 1
-    spritesFat := 1
-    spritesTall := 1
-    sprite0X = 100
-    sprite0Y = 30
-    sprite0Color = 2
-    vicBackground = 0
-
-    i = 0
-    do {
-        realSprite[i] = spriteData[i]
-        i++
-    } while (i<64)
-
-    vicInterruptCtrlReg := 1                         // Enable raster interrupts
-    vicScreenCtrlReg1 .= 128                         // High bit of raster line cleared, we're only working within single byte ranges
-    onRasterGoto(0xf9, bottomRoutine)
-}
+val wynik: bool
 
 /*********************************************************
 * Main function
 **********************************************************/
 
 fun main() {
-    //clearScreen()
-    maskInterrupts = true                            // Suspend interrupts during init
-    cia1InerruptCtrlReg = 0x7f                       // Disable CIA
-
-    //rasterBar()
-    openBorder()
-
-    maskInterrupts = false                           // Enable interrupts again
-
-    do {
-        i++
-    } while (i<255)                               // Eternal do-nothing loop, we're done.
-
+    wynik = save(10,12345)
 }

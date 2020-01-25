@@ -30,11 +30,12 @@ class Zmienna(
 
 
     override fun toString(): String {
-        return "$name: $type = $immediateValue ($comment)"
+        return "$name: $type = $immediateValue ($comment) ${locationTxt} ${locationVal}"
     }
 
     val labelName: String get() = "__wolin_${name.replace(".","_")}"
 
+    val location: String get() = "${locationVal ?: locationTxt}"
 
     val immediateValue: String get() = when {
         type.name == "bool" -> if(intValue == 0L) "0" else "1"

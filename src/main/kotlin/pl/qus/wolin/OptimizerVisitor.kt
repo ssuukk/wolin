@@ -76,18 +76,18 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
                 val targetDeref = template.target(0)?.operand()?.referencer(0)?.text
 
                 if (instrukcja != "alloc" && instrukcja != "free") {
-                    if (firstArg != null) {
-                        println("Nie można usunąć ${firstArg.numer} bo ma first arg")
-                        registers[firstArg.numer]?.canBeRemoved = false
-                    }
+//                    if (firstArg != null) {
+//                        println("Nie można usunąć ${firstArg.numer} bo ma first arg w $instrukcja")
+//                        registers[firstArg.numer]?.canBeRemoved = false
+//                    }
 
                     if (secondArg != null) {
-                        println("Nie można usunąć ${secondArg.numer} bo ma second arg")
+                        println("Nie można usunąć ${secondArg.numer} bo ma second arg  w $instrukcja")
                         registers[secondArg.numer]?.canBeRemoved = false
                     }
 
                     if (instrukcja != "let" && instrukcja != "bit" && target != null) {
-                        println("Nie można usunąć ${target.numer} bo nie let i ma target")
+                        println("Nie można usunąć ${target.numer} bo nie let i ma target w $instrukcja")
                         registers[target.numer]?.canBeRemoved = false
                     }
 
@@ -228,7 +228,7 @@ allocSP<>,#4 // x = x+2
                                 println("usuwam free ${removedRegistr.numer}")
                                 linieIterator.remove()
                             }
-                        } else if ((instrukcja == "let" || instrukcja == "bit") && target?.numer == removedRegistr.numer && linia.arg().size == 1 && refType != "&") {
+                        } else if (/*(instrukcja == "let" || instrukcja == "bit") &&*/target?.numer == removedRegistr.numer && linia.arg().size == 1 && refType != "&") {
                             println("usuwam pierwsze podstawienie do ${removedRegistr.numer}")
                             linieIterator.remove()
                         } else if (state.insideOptimizedReg == removedRegistr.numer) {
@@ -259,16 +259,18 @@ allocSP<>,#4 // x = x+2
 
                             if (firstArg != null && firstArg.numer < removedRegistr.numer) {
                                 val vector = extractSPVector(linia.arg(0).operand()) - removedRegistr.wielkość
+                                val child = getFirstArg(linia)
                                 changeVector(
-                                    (linia.children[3] as PseudoAsmParser.ArgContext).children[0] as PseudoAsmParser.OperandContext,
+                                    (child as PseudoAsmParser.ArgContext).children[0] as PseudoAsmParser.OperandContext,
                                     vector
                                 )
                             }
 
                             if (secondArg != null && secondArg.numer < removedRegistr.numer) {
                                 val vector = extractSPVector(linia.arg(1).operand()) - removedRegistr.wielkość
+                                val child = getSecondArg(linia)
                                 changeVector(
-                                    (linia.children[5] as PseudoAsmParser.ArgContext).children[0] as PseudoAsmParser.OperandContext,
+                                    (child as PseudoAsmParser.ArgContext).children[0] as PseudoAsmParser.OperandContext,
                                     vector
                                 )
                             }
@@ -409,25 +411,27 @@ allocSP<>,#4 // x = x+2
                             )
                             kopia.copyFrom(correctedFirstArg)
 
-                            linia.children[3] = correctedFirstArg
+                            setFirstArg(linia, correctedFirstArg)
+
                             print("Po zastąpieniu:${linia.text}")
                             state.replaced = true
                         } catch (ex: java.lang.Exception) {
-                            // tego nie da się podmienić
+                            val x = linia.target().isEmpty()
+                            println("************ Błąd optymalizacji!")
                         }
                     }
                     if (secondArg?.numer == regNr) {
                         println("\nMogę zastąpić tu drugi:${linia.text}")
                         try {
                             val correctedSecondArg = replaceInArg(linia.arg(1), registers[regNr]!!.argContext!!)
-                            linia.children[5] = correctedSecondArg
+                            setSecondArg(linia, correctedSecondArg)
+
                             print("Po zastąpieniu:${linia.text}")
                             state.replaced = true
                         } catch (ex: java.lang.Exception) {
-                            // tego nie da się podmienić
+                            println("************ Błąd optymalizacji!")
                         }
                     }
-
                 }
             }
         }
@@ -677,6 +681,36 @@ allocSP<>,#4 // x = x+2
             }
         }
     }
+
+
+    fun getFirstArg(linia: PseudoAsmParser.LiniaContext): ParseTree {
+        return if(linia.target().isNotEmpty())
+            linia.children[3]
+        else
+            linia.children[1]
+    }
+
+    fun getSecondArg(linia: PseudoAsmParser.LiniaContext): ParseTree {
+        return if(linia.target().isNotEmpty())
+            linia.children[5]
+        else
+            linia.children[3]
+    }
+
+    fun setFirstArg(linia: PseudoAsmParser.LiniaContext, child: PseudoAsmParser.ArgContext) {
+        if(linia.target().isNotEmpty())
+            linia.children[3] = child
+        else
+            linia.children[1] = child
+    }
+
+    fun setSecondArg(linia: PseudoAsmParser.LiniaContext, child: PseudoAsmParser.ArgContext) {
+        if(linia.target().isNotEmpty())
+            linia.children[5] = child
+        else
+            linia.children[3] = child
+    }
+
 
 }
 

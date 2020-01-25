@@ -706,7 +706,6 @@ class WolinVisitor(
                             atomEx.simpleIdentifier()?.Identifier()?.text ?: throw Exception("Pusta nazwa procedury")
 
                         val callSuffix = prawo.callSuffix()
-                        val arguments = callSuffix.valueArguments()
 
                         val prototyp = try {
                             val klasa = state.findClass(procName)
@@ -724,6 +723,8 @@ class WolinVisitor(
                             }
                         }
 
+                        val arguments = callSuffix.valueArguments()
+
                         if (state.classDerefStack.isNotEmpty() && prototyp.arguments.size - 1 != arguments.valueArgument()?.size)
                             błędzik(ctx, "Wrong number of arguments in method call $procName")
                         else if (state.classDerefStack.isEmpty() && prototyp.arguments.size != arguments.valueArgument()?.size)
@@ -737,10 +738,6 @@ class WolinVisitor(
 
                         state.fnCallAllocRetAndArgs(prototyp)
 
-                        if (prototyp.arguments.any { it.allocation == AllocType.FIXED && it.locationTxt == "CPU.X" }) {
-                            state.code("save CPU.X // save SP, as X is used by native call argument")
-                        }
-
                         if (state.classDerefStack.isNotEmpty()) {
                             state.rem("== FN_CALL: ARG #THIS ${prototyp.fullName}")
                             val found = state.findStackVector(state.callStack, "${prototyp.fullName}.this")
@@ -750,65 +747,12 @@ class WolinVisitor(
                             )
                         }
 
-                        arguments.valueArgument()?.forEachIndexed { i, it ->
-                            state.rem("== FN_CALL: ARG #$i (${it.text}) ${prototyp.fullName}")
-                            state.allocReg("for call argument $i", prototyp.arguments[i].type)
+                        if (prototyp.location != 0)
+                            callAsm(ctx, prototyp, arguments)
+                        else
+                            callNormal(ctx, prototyp, arguments)
 
-                            // w valueArgumentContext jest ExpressionContext
-                            visitValueArgument(it)
-
-                            if (prototyp.arguments[i].allocation == AllocType.FIXED) {
-                                // dla argumentów CPU koelejność musi być A, Y, X!!!
-                                state.code(
-                                    "let ${prototyp.arguments[i].locationVal}[${prototyp.arguments[i].type.typeForAsm}] = ${state.currentRegToAsm()}"
-                                )
-                                if (prototyp.arguments[i].locationTxt?.startsWith("CPU.") == true)
-                                    state.code("save ${prototyp.arguments[i].locationTxt}")
-                            } else {
-                                val found = state.findStackVector(state.callStack, prototyp.arguments[i].name)
-
-                                state.code(
-                                    "let SPF(${found.first})[${found.second.type.typeForAsm}] = ${state.currentRegToAsm()}"
-                                )
-                            }
-
-                            state.freeReg("for call argument $i, type = ${prototyp.arguments[i].type}")
-                        }
-
-                        state.switchType(prototyp.type, "function return type 2")
-
-                        (prototyp.arguments.size - 1 downTo 0).forEach {
-                            val arg = prototyp.arguments[it]
-
-                            if (arg.allocation == AllocType.FIXED && arg.locationTxt?.startsWith("CPU.") == true) {
-                                state.code("restore ${arg.locationTxt} // fill register for call")
-                            }
-                        }
-
-                        state.code(state.getFunctionCallCode(procName))
-
-                        if (prototyp.arguments.any { it.allocation == AllocType.FIXED && it.locationTxt == "CPU.X" }) {
-                            state.code("restore CPU.X // restore SP, as X is used by native call")
-                        }
-
-                        state.fnCallReleaseArgs(prototyp)
-
-                        if (!prototyp.type.isUnit) {
-                            val zwrotka = state.findStackVector(state.callStack, prototyp.returnName).second
-                            checkTypeAndAddAssignment(
-                                ctx,
-                                state.currentReg,
-                                zwrotka,
-                                "copy return parameter",
-                                RegOper.VALUE,
-                                RegOper.VALUE
-                            )
-                        }
-
-                        //state.fnCallReleaseRet(prototyp)
                         state.currentFunction?.calledFunctions?.add(prototyp)
-
-                        //state.code("free SPF<${prototyp.fullName}.__returnValue>, #${prototyp.type.sizeOnStack}")
 
                         if (state.currentClass != null)
                             state.code("point HEAP = this")
@@ -992,13 +936,21 @@ class WolinVisitor(
                             }
                             state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.NORMAL -> {
                                 state.rem(" allocated fast array, changing top reg to ptr")
-                                state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.labelName}[${state.currentShortArray!!.type.name}*], ${state.currentRegToAsm(RegOper.AMPRESAND)}")
+                                state.code(
+                                    "add ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.labelName}[${state.currentShortArray!!.type.name}*], ${state.currentRegToAsm(
+                                        RegOper.AMPRESAND
+                                    )}"
+                                )
                                 state.currentShortArray = null
                             }
                             state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.FIXED -> {
                                 state.rem(" fixed fast array, changing top reg to ptr")
                                 currEntReg.type.pointer = true
-                                state.code("let ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.locationVal}[${state.currentShortArray!!.type.name}*], ${state.currentRegToAsm(RegOper.AMPRESAND)}")
+                                state.code(
+                                    "add ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.locationVal}[${state.currentShortArray!!.type.name}*], ${state.currentRegToAsm(
+                                        RegOper.AMPRESAND
+                                    )}"
+                                )
                                 state.currentShortArray = null
                             }
 
@@ -2303,17 +2255,19 @@ class WolinVisitor(
                     )
                 }
                 BitOp.AndBit -> {
-                    state.code("and ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(
-                        co,
-                        derefCo
-                    )} // przez sprawdzacz typow - $comment"
+                    state.code(
+                        "and ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(
+                            co,
+                            derefCo
+                        )} // przez sprawdzacz typow - $comment"
                     )
                 }
                 BitOp.OrBit -> {
-                    state.code("or ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(
-                        co,
-                        derefCo
-                    )} // przez sprawdzacz typow - $comment"
+                    state.code(
+                        "or ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(
+                            co,
+                            derefCo
+                        )} // przez sprawdzacz typow - $comment"
                     )
                 }
             }
@@ -2458,6 +2412,194 @@ class WolinVisitor(
         }
     }
 
+    fun callNormal(
+        ctx: KotlinParser.PostfixUnaryExpressionContext,
+        prototyp: Funkcja,
+        arguments: KotlinParser.ValueArgumentsContext
+    ) {
+        arguments.valueArgument()?.forEachIndexed { i, it ->
+            state.rem("== FN_CALL: ARG #$i (${it.text}) ${prototyp.fullName}")
+            state.allocReg("for call argument $i", prototyp.arguments[i].type)
+
+            // w valueArgumentContext jest ExpressionContext
+            visitValueArgument(it)
+
+            if (prototyp.arguments[i].allocation == AllocType.FIXED) {
+                // dla argumentów CPU koelejność musi być A, Y, X!!!
+                state.code(
+                    "let ${prototyp.arguments[i].locationVal}[${prototyp.arguments[i].type.typeForAsm}] = ${state.currentRegToAsm()}"
+                )
+                if (prototyp.arguments[i].locationTxt?.startsWith("CPU.") == true)
+                    state.code("save ${prototyp.arguments[i].locationTxt}")
+            } else {
+                val found = state.findStackVector(state.callStack, prototyp.arguments[i].name)
+
+                state.code(
+                    "let SPF(${found.first})[${found.second.type.typeForAsm}] = ${state.currentRegToAsm()}"
+                )
+            }
+
+            state.freeReg("for call argument $i, type = ${prototyp.arguments[i].type}")
+        }
+
+        state.switchType(prototyp.type, "function return type 2")
+
+        (prototyp.arguments.size - 1 downTo 0).forEach {
+            val arg = prototyp.arguments[it]
+
+            if (arg.allocation == AllocType.FIXED && arg.locationTxt?.startsWith("CPU.") == true) {
+                state.code("restore ${arg.locationTxt} // fill register for call")
+            }
+        }
+
+        state.code(state.getFunctionCallCode(prototyp.fullName))
+
+        if (prototyp.arguments.any { it.allocation == AllocType.FIXED && it.locationTxt == "CPU.X" }) {
+            state.code("restore CPU.X // restore SP, as X is used by native call")
+        }
+
+        state.fnCallReleaseArgs(prototyp)
+
+        if (!prototyp.type.isUnit) {
+            val zwrotka = state.findStackVector(state.callStack, prototyp.returnName).second
+            checkTypeAndAddAssignment(
+                ctx,
+                state.currentReg,
+                zwrotka,
+                "copy return parameter",
+                RegOper.VALUE,
+                RegOper.VALUE
+            )
+        }
+
+    }
+
+    fun callAsm(
+        ctx: KotlinParser.PostfixUnaryExpressionContext,
+        prototyp: Funkcja,
+        arguments: KotlinParser.ValueArgumentsContext
+    ) {
+        /*
+        save^0xffd8(zpPointerToStart: ubyte^CPU.A, endAddr: uword^CPU.XY): ubyte^CPU.C // 	C==1 - błąd, A=nr błędu
+
+        save(10, 13435)
+
+        alloc SPF, #1 // na wartość zwrotną
+        save CPU.X
+        let CPU.A = 10
+        let CPU.XY = 13435
+        call 0xffd8
+        let SPF(0)<xxxxxx.__returnValue>[ubyte] = CPU.C
+        restore CPU.X
+         */
+
+        /*
+
+
+        if(funkcja.type != Typ.unit)
+            state.code("alloc SPF, #${funkcja.type.sizeOnStack} // for return value")
+
+        state.code("save CPU.X")
+        orderedArgs.forEach {
+            when {
+                it.locationVal != null -> state.code("let ${it.locationVal} = 666")
+                it.locationTxt != null -> state.code("let ${it.locationTxt} = 666")
+            }
+        }
+        state.code("call ${funkcja.location}")
+
+        if(funkcja.type != Typ.unit)
+            state.code("let SPF(0)<asm.__returnValue>[${funkcja.type.name} = 666 // lokacja wartości zwrotnej")
+
+        state.code("restore CPU.X")
+
+         */
+
+
+        val argPairs = List(prototyp.arguments.size) { i -> Pair(i, prototyp.arguments[i]) }
+
+        val orderedArgs = argPairs.sortedWith(Comparator { arg1, arg2 ->
+            val o1 = arg1.second
+            val o2 = arg2.second
+            // "CPU.A" < "CPU.?"
+            if (o1.locationTxt?.contains("A") == true && o2.locationTxt?.contains("A") == false)
+                -1
+            // "CPU.?" > "CPU.A"
+            else if (o1.locationTxt?.contains("A") == false && o2.locationTxt?.contains("A") == true)
+                1
+            // 0xffff < "CPU.A"
+            else if (o1.locationVal != null && o2.locationTxt != null)
+                -1
+            // "CPU.A" > 0xffff
+            else if (o1.locationTxt != null && o2.locationVal != null)
+                1
+            else if (o1.locationVal != null && o2.locationVal != null)
+                o1.locationVal!!.compareTo(o2.locationVal!!)
+            else
+                o2.locationTxt!!.compareTo(o2.locationTxt!!)
+        })
+
+        orderedArgs.forEach {
+            state.rem("Arg: ${it.first}: ${it.second}")
+        }
+
+        val validArgs = prototyp.arguments.filter { it.allocation == AllocType.FIXED }
+
+        if (validArgs.size != prototyp.arguments.size)
+            błędzik(ctx, "Can't use Wolin-style arguments in native calls!")
+
+        state.code("save SP")
+
+        orderedArgs.map { it.first }.forEach { i ->
+            val it = arguments.valueArgument()!![i]
+
+            state.rem("== FN_CALL: ARG #$i (${it.text}) ${prototyp.fullName}")
+            state.allocReg("for call argument $i", prototyp.arguments[i].type)
+
+            visitValueArgument(it)
+
+//            state.code(
+//                "let ${prototyp.arguments[i].location}[${prototyp.arguments[i].type.typeForAsm}] = ${state.currentRegToAsm()}"
+//            )
+
+            state.code("save ${state.currentRegToAsm()} // ${prototyp.arguments[i].location}")
+
+            state.freeReg("for call argument $i, type = ${prototyp.arguments[i].type}")
+        }
+
+        state.switchType(prototyp.type, "function return type 2")
+
+        orderedArgs.map { it.first }.reversed().forEach { i ->
+            state.code("restore ${prototyp.arguments[i].location}[${prototyp.arguments[i].type.name}]")
+        }
+
+        // tutaj: pull w odwróconej kolejności argumentów
+        state.code(state.getFunctionCallCode(prototyp.fullName))
+
+        state.fnCallReleaseArgs(prototyp)
+
+
+        if (!prototyp.type.isUnit) {
+            val zwrotka = state.findStackVector(state.callStack, prototyp.returnName).second
+
+            state.code("let ${state.varToAsm(zwrotka)} = CPU.C[bool] // lokacja wartości zwrotnej")
+
+            state.code("restore SP")
+
+            checkTypeAndAddAssignment(
+                ctx,
+                state.currentReg,
+                zwrotka,
+                "copy return parameter",
+                RegOper.VALUE,
+                RegOper.VALUE
+            )
+        } else {
+            state.code("restore SP")
+        }
+
+        state.rem("wywołanie natywnej")
+    }
 
 }
 
