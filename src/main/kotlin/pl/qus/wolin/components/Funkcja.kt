@@ -13,6 +13,8 @@ class Funkcja(
 )
 {
 
+    var fullReturnType: Zmienna? = null
+
     var returnAddress: Int = -1
 
     var isInterrupt: Boolean = false

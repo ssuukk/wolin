@@ -1135,6 +1135,19 @@ save SP(?src)[uword] -> """
     pha
 """
 
+save #?val[ubyte] -> """
+    lda #{val}
+    pha
+"""
+
+save #?val[uword] -> """
+    lda #<{val}
+    pha
+    lda #>{val}
+    pha
+"""
+
+
 
 //============================================
 // arytmetyka

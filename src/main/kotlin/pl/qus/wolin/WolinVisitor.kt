@@ -973,7 +973,10 @@ class WolinVisitor(
         when (ctx.expression().size) {
             1 -> {
 
-                state.assignStack.first()?.isArray = true
+//                if(state.assignStack.isEmpty())
+//                    błędzik(ctx, "Problem with array access")
+
+                state.assignStack.firstOrNull()?.isArray = true
 
                 val prevReg = state.currentReg!!
 
@@ -1628,6 +1631,7 @@ class WolinVisitor(
 
             val zwrotka = state.createVar(nowa.returnName, ctx.type(0), null, FieldType.ARGUMENT)
 
+            nowa.fullReturnType = zwrotka
             nowa.type = zwrotka.type.copy()
 
             if (nowa.isInterrupt && nowa.type != Typ.unit)
@@ -2479,43 +2483,6 @@ class WolinVisitor(
         prototyp: Funkcja,
         arguments: KotlinParser.ValueArgumentsContext
     ) {
-        /*
-        save^0xffd8(zpPointerToStart: ubyte^CPU.A, endAddr: uword^CPU.XY): ubyte^CPU.C // 	C==1 - błąd, A=nr błędu
-
-        save(10, 13435)
-
-        alloc SPF, #1 // na wartość zwrotną
-        save CPU.X
-        let CPU.A = 10
-        let CPU.XY = 13435
-        call 0xffd8
-        let SPF(0)<xxxxxx.__returnValue>[ubyte] = CPU.C
-        restore CPU.X
-         */
-
-        /*
-
-
-        if(funkcja.type != Typ.unit)
-            state.code("alloc SPF, #${funkcja.type.sizeOnStack} // for return value")
-
-        state.code("save CPU.X")
-        orderedArgs.forEach {
-            when {
-                it.locationVal != null -> state.code("let ${it.locationVal} = 666")
-                it.locationTxt != null -> state.code("let ${it.locationTxt} = 666")
-            }
-        }
-        state.code("call ${funkcja.location}")
-
-        if(funkcja.type != Typ.unit)
-            state.code("let SPF(0)<asm.__returnValue>[${funkcja.type.name} = 666 // lokacja wartości zwrotnej")
-
-        state.code("restore CPU.X")
-
-         */
-
-
         val argPairs = List(prototyp.arguments.size) { i -> Pair(i, prototyp.arguments[i]) }
 
         val orderedArgs = argPairs.sortedWith(Comparator { arg1, arg2 ->
@@ -2582,7 +2549,7 @@ class WolinVisitor(
         if (!prototyp.type.isUnit) {
             val zwrotka = state.findStackVector(state.callStack, prototyp.returnName).second
 
-            state.code("let ${state.varToAsm(zwrotka)} = CPU.C[bool] // lokacja wartości zwrotnej")
+            state.code("let ${state.varToAsm(zwrotka)} = ${prototyp.fullReturnType!!.location}[${prototyp.type.name}] // lokacja wartości zwrotnej")
 
             state.code("restore SP")
 

@@ -2,6 +2,9 @@ package pl.qus.wolin
 
 fun save^0xffd8(zpPointerToStart: ubyte^CPU.A, endAddr: uword^CPU.XY): bool^CPU.C // C == 1 means error occured
 fun chrin^0xffcf(): ubyte^CPU.A
+fun getin^0xffe4(): ubyte^CPU.A
+fun chrout^0xffd2(char: ubyte^CPU.A): bool^CPU.C
+fun clearScreen^0xe544()
 
 val wynik: bool
 
@@ -9,6 +12,19 @@ val wynik: bool
 * Main function
 **********************************************************/
 
+fun print(string: ubyte[ubyte]) {
+    var i: ubyte
+    var char: ubyte = string[0]
+    while (char != 0) {
+        chrout(char)
+        i++
+        char = string[i]
+    }
+}
+
 fun main() {
-    wynik = save(10,12345)
+    //wynik = save(10,12345)
+    clearScreen()
+    chrout(65)
+    chrout(66)
 }
