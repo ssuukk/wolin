@@ -2546,7 +2546,7 @@ class WolinVisitor(
         state.fnCallReleaseArgs(prototyp)
 
 
-        if (!prototyp.type.isUnit) {
+        if (!prototyp.type.isUnit && state.assignStack.isNotEmpty()) {
             val zwrotka = state.findStackVector(state.callStack, prototyp.returnName).second
 
             state.code("let ${state.varToAsm(zwrotka)} = ${prototyp.fullReturnType!!.location}[${prototyp.type.name}] // lokacja wartości zwrotnej")

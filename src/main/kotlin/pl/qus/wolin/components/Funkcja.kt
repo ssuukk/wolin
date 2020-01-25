@@ -39,6 +39,19 @@ class Funkcja(
 
     override fun toString(): String = "fun $fullName(${arguments.joinToString()}):${type.name}"
 
+        fun releaseCalledFunction(state: WolinStateObject) {
+            try {
+                state.fnCallReleaseRet(this)
+                if(this.type != Typ.unit)
+                    state.code("free SPF <${this.returnName}>, #${this.type.sizeOnStack} // free return value of ${this.fullName} from call stack")
+            } catch (ex: Exception) {
+                val a = state.currentFunction?.fullName
+                println("tu")
+            }
+
+    }
+
+
     fun releaseCalledFunctionsStack(state: WolinStateObject) {
         calledFunctions.forEach {
             try {

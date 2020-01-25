@@ -62,189 +62,9 @@ __wolin_this_ptr_hi := 176+1
 
     rts
 
-; function__wolin_pl_qus_wolin_print
-
-__wolin_pl_qus_wolin_print:
-
-; allocSP<__wolin_reg3>,#2
-
-
-    dex
-    dex
-
-; allocSP<__wolin_reg4>,#2
-
-
-    dex
-    dex
-
-; freeSP<__wolin_reg4>,#2
-
-
-    inx
-    inx
-
-; freeSP<__wolin_reg3>,#2
-
-
-    inx
-    inx
-
-; allocSP<__wolin_reg6>,#1
-
-    dex
-
-; label__wolin_lab_loopStart_1
-
-__wolin_lab_loopStart_1:
-
-; allocSPF,#1
-
-
-    clc
-    lda __wolin_spf
-    sbc #1
-    sta __wolin_spf
-    bcs :+
-    dec __wolin_spf+1
-:
-
-; saveSP
-
-
-    txa
-    pha
-
-; restoreCPU.A[ubyte]
-
-
-    pla
-
-; call65490[adr]
-
-    jsr 65490
-
-; letSPF(0)<pl.qus.wolin.chrout.__returnValue>[bool]=CPU.C[bool]
-
-
-    ldy #0
-    lda #1
-    bcs :+
-    lda #0
-:
-    sta (__wolin_spf),y
-
-
-
-; restoreSP
-
-
-    pla
-    tax
-
-; allocSP<__wolin_reg14>,#2
-
-
-    dex
-    dex
-
-; letSP(0)<__wolin_reg14>[ubyte*]=*SPF(1)<pl.qus.wolin.print..char>[ubyte]
-
-
-    clc
-    lda __wolin_spf
-    adc #1
-    sta 0,x
-    lda __wolin_spf+1
-    adc #0
-    sta 0+1,x
-
-; allocSP<__wolin_reg15>,#2
-
-
-    dex
-    dex
-
-; let&SP(2)<__wolin_reg14>[ubyte*]=&SP(0)<__wolin_reg15>[ubyte*]
-
-
-    lda (0,x)
-    sta (2,x)
-
-
-; freeSP<__wolin_reg15>,#2
-
-
-    inx
-    inx
-
-; freeSP<__wolin_reg14>,#2
-
-
-    inx
-    inx
-
-; goto__wolin_lab_loopStart_1[adr]
-
-    jmp __wolin_lab_loopStart_1
-
-; label__wolin_lab_loopEnd_1
-
-__wolin_lab_loopEnd_1:
-
-; freeSP<__wolin_reg6>,#1
-
-    inx
-
-; freeSPF<pl.qus.wolin.print.__fnargs>,#3
-
-
-    clc
-    lda __wolin_spf
-    adc #3
-    sta __wolin_spf
-    bcc :+
-    inc __wolin_spf+1
-:
-
-; freeSPF<pl.qus.wolin.chrout.__returnValue>,#1
-
-
-    clc
-    lda __wolin_spf
-    adc #1
-    sta __wolin_spf
-    bcc :+
-    inc __wolin_spf+1
-:
-
-; ret
-
-    rts
-
 ; function__wolin_pl_qus_wolin_main
 
 __wolin_pl_qus_wolin_main:
-
-; allocSPF,#0
-
- 
-
-; saveSP
-
-
-    txa
-    pha
-
-; call58692[adr]
-
-    jsr 58692
-
-; restoreSP
-
-
-    pla
-    tax
 
 ; allocSPF,#1
 
@@ -278,18 +98,6 @@ __wolin_pl_qus_wolin_main:
 ; call65490[adr]
 
     jsr 65490
-
-; letSPF(0)<pl.qus.wolin.chrout.__returnValue>[bool]=CPU.C[bool]
-
-
-    ldy #0
-    lda #1
-    bcs :+
-    lda #0
-:
-    sta (__wolin_spf),y
-
-
 
 ; restoreSP
 
@@ -347,6 +155,14 @@ __wolin_pl_qus_wolin_main:
 
     pla
     tax
+
+; let__wolin_pl_qus_wolin_wynik<pl.qus.wolin.wynik>[bool]=SPF(0)<pl.qus.wolin.chrout.__returnValue>[bool]
+
+
+    ldy #0
+    lda (__wolin_spf),y
+    sta __wolin_pl_qus_wolin_wynik
+
 
 ; freeSPF<pl.qus.wolin.chrout.__returnValue>,#1
 

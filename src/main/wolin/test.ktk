@@ -11,7 +11,7 @@ val wynik: bool
 /*********************************************************
 * Main function
 **********************************************************/
-
+/*
 fun print(string: ubyte[ubyte]) {
     var i: ubyte
     var char: ubyte = string[0]
@@ -21,10 +21,10 @@ fun print(string: ubyte[ubyte]) {
         char = string[i]
     }
 }
-
+*/
 fun main() {
     //wynik = save(10,12345)
-    clearScreen()
+    //clearScreen()
     chrout(65)
-    chrout(66)
+    wynik = chrout(66)
 }
