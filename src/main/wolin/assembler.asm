@@ -54,6 +54,8 @@ call 65490[adr] // pl.qus.wolin.chrout
 restore SP
 // wywołanie natywnej
 // == FN_CALL END: pl.qus.wolin.chrout ========
+// ***** fnCallReleaseRet usuwanie zwrotki pl.qus.wolin.chrout ze stosu
+free SPF <pl.qus.wolin.chrout.__returnValue>, #1 // free return value of pl.qus.wolin.chrout from call stack
 // 
 // top type already set: __wolin_reg1: bool = 0 (for expression) null null
 free SP<__wolin_reg1>, #1 // for expression
@@ -94,6 +96,8 @@ restore SP
 let SP(0)<__wolin_reg5>[bool] = SPF(0)<pl.qus.wolin.chrout.__returnValue>[bool] // przez sprawdzacz typow - copy return parameter
 // wywołanie natywnej
 // == FN_CALL END: pl.qus.wolin.chrout ========
+// ***** fnCallReleaseRet usuwanie zwrotki pl.qus.wolin.chrout ze stosu
+free SPF <pl.qus.wolin.chrout.__returnValue>, #1 // free return value of pl.qus.wolin.chrout from call stack
 // 
 let &SP(1)<__wolin_reg4>[bool*] = SP(0)<__wolin_reg5>[bool] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg5>, #1 // ASSIGNMENT value, type = bool
@@ -105,10 +109,6 @@ free SP<__wolin_reg4>, #2 // ASSIGNMENT target
 // top type already set: __wolin_reg3: unit = 65535 (for expression) null null
 // caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
 // freeing call stack
-// ***** fnCallReleaseRet usuwanie zwrotki pl.qus.wolin.chrout ze stosu
-free SPF <pl.qus.wolin.chrout.__returnValue>, #1 // free return value of pl.qus.wolin.chrout from call stack
-// ***** fnCallReleaseRet usuwanie zwrotki pl.qus.wolin.chrout ze stosu
-free SPF <pl.qus.wolin.chrout.__returnValue>, #1 // free return value of pl.qus.wolin.chrout from call stack
 // return from function body
 ret
 

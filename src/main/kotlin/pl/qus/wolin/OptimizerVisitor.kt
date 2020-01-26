@@ -42,7 +42,6 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
     }
 
 
-
     fun markSingleAssignmentRegs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         registers.forEach {
             checkIfOnlyOneAssignment(ctx, it.value.numer)
@@ -102,7 +101,7 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
         }
     }
 
-fun markReplacablePointerTargets(ctx: PseudoAsmParser.PseudoAsmFileContext) {
+    fun markReplacablePointerTargets(ctx: PseudoAsmParser.PseudoAsmFileContext) {
 /*
     1) zmienna w adresie
 
@@ -129,21 +128,21 @@ fun markReplacablePointerTargets(ctx: PseudoAsmParser.PseudoAsmFileContext) {
 
  */
 
-    val pointerRegs = registers
-        .filter { !it.value.canBeRemoved && it.value.firstAssignIsPointer() }
-        .filter { extractStackType(it.value.argContext?.operand()!!)!="SPF"}
+        val pointerRegs = registers
+            .filter { !it.value.canBeRemoved && it.value.firstAssignIsPointer() }
+            .filter { extractStackType(it.value.argContext?.operand()!!) != "SPF" }
 
-    registers.forEach { it.value.canBeRemoved = false }
-    pointerRegs.forEach { it.value.canBeRemoved = true }
+        registers.forEach { it.value.canBeRemoved = false }
+        pointerRegs.forEach { it.value.canBeRemoved = true }
 
-    do {
-        pointerRegs.forEach {
-            replaceAllOccurencesOfPointerRegister(ctx, it.key)
-        }
-    } while (state.replaced)
+        do {
+            pointerRegs.forEach {
+                replaceAllOccurencesOfPointerRegister(ctx, it.key)
+            }
+        } while (state.replaced)
 
-    removeAndShiftArgs(ctx)
-}
+        removeAndShiftArgs(ctx)
+    }
 
 
     fun optimizeReturns() {
@@ -172,15 +171,60 @@ ret
     }
 
     fun consolidateAllocs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
+        println("== Consolidating subsequent alloc/free ==")
+
+        var previous: PseudoAsmParser.LiniaContext? = null
+
         ctx.children.iterator().let { linieIterator ->
             while (linieIterator.hasNext()) {
-                val linia = linieIterator.next()
-
-                if (linia is PseudoAsmParser.LiniaContext) {
+                val current = linieIterator.next()
+                if (current is PseudoAsmParser.LiniaContext) {
 
                     // jeśli free/alloc lub przypisanie do danego rejestru, to usunąć i przesunąć wektory
 
-                    val instrukja = linia.instrukcja().simpleIdentifier().text
+
+                    val currentOp = current.instrukcja().simpleIdentifier().text
+                    val prevOp = previous?.instrukcja()?.simpleIdentifier()?.text
+
+                    val currentStack = try {
+                        extractStackType(getFirstArg(current).getChild(0) as PseudoAsmParser.OperandContext)
+                    } catch (ex: Exception) {
+                        null
+                    }
+                    val prevStack = try {
+                        extractStackType(getFirstArg(previous!!).getChild(0) as PseudoAsmParser.OperandContext)
+                    } catch (ex: Exception) {
+                        null
+                    }
+
+                    if ((currentStack == prevStack) && (currentOp == "free" || currentOp == "alloc") && (prevOp == "free" || prevOp == "alloc")) {
+                        val currentSize =
+                            getSecondArg(current).text.removePrefix("#").toInt() * if (currentOp == "free") 1 else -1
+                        val prevSize =
+                            getSecondArg(previous!!).text.removePrefix("#").toInt() * if (prevOp == "free") 1 else -1
+
+                       val consolidatedSum = currentSize + prevSize
+
+                        val consolidatedOp = if(consolidatedSum > 0)
+                            "free"
+                        else
+                            "alloc"
+
+                        println("$currentSize + $prevSize = $consolidatedSum")
+
+                        // linia.instrukcja.simpleIdentifier
+                        val operandContext =previous!!.getChild(0)!!.getChild(0) as PseudoAsmParser.SimpleIdentifierContext
+                        operandContext.children[0] = createTerminalNode(consolidatedOp)
+
+                        val valueContext = getSecondArg(previous!!).getChild(0).getChild(0).getChild(0) as PseudoAsmParser.ImmediateContext
+
+                        valueContext.children[1] = createTerminalNode(consolidatedSum.toString())
+
+                        linieIterator.remove()
+                    } else {
+                        previous = current
+                    }
+
 
                     /*
 freeSP<>,#4  // x = x+4
@@ -536,7 +580,7 @@ allocSP<>,#4 // x = x+2
                         linia.arg().size > 1 -> target.singleAssign = false
                         instrukcja == "let" -> {
                             target.singleAssign = true
-                            if(targetRef == null)
+                            if (targetRef == null)
                                 target.argContext = linia.arg(0)
 //                            else
 //                                println("tu!")
@@ -683,29 +727,79 @@ allocSP<>,#4 // x = x+2
     }
 
 
+    fun createTerminalNode(contents: String): ParseTree {
+        val kopia = object : Token {
+            //val textCopy = ctx.text.substring(0)
+
+            override fun getTokenSource(): TokenSource {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun getType(): Int {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun getStopIndex(): Int {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun getText(): String {
+                return contents
+            }
+
+            override fun getChannel(): Int {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun getTokenIndex(): Int {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun getCharPositionInLine(): Int {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun getStartIndex(): Int {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun getLine(): Int {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun getInputStream(): CharStream {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+        }
+        return TerminalNodeImpl(kopia)
+    }
+
+
+
     fun getFirstArg(linia: PseudoAsmParser.LiniaContext): ParseTree {
-        return if(linia.target().isNotEmpty())
+        return if (linia.target().isNotEmpty())
             linia.children[3]
         else
             linia.children[1]
     }
 
     fun getSecondArg(linia: PseudoAsmParser.LiniaContext): ParseTree {
-        return if(linia.target().isNotEmpty())
+        return if (linia.target().isNotEmpty())
             linia.children[5]
         else
             linia.children[3]
     }
 
     fun setFirstArg(linia: PseudoAsmParser.LiniaContext, child: PseudoAsmParser.ArgContext) {
-        if(linia.target().isNotEmpty())
+        if (linia.target().isNotEmpty())
             linia.children[3] = child
         else
             linia.children[1] = child
     }
 
     fun setSecondArg(linia: PseudoAsmParser.LiniaContext, child: PseudoAsmParser.ArgContext) {
-        if(linia.target().isNotEmpty())
+        if (linia.target().isNotEmpty())
             linia.children[5] = child
         else
             linia.children[3] = child

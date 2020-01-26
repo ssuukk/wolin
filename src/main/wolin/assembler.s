@@ -105,16 +105,9 @@ __wolin_pl_qus_wolin_main:
     pla
     tax
 
-; allocSPF,#1
+; allocSPF<pl.qus.wolin.chrout.__returnValue>,#0
 
-
-    clc
-    lda __wolin_spf
-    sbc #1
-    sta __wolin_spf
-    bcs :+
-    dec __wolin_spf+1
-:
+ 
 
 ; saveSP
 
@@ -156,6 +149,17 @@ __wolin_pl_qus_wolin_main:
     pla
     tax
 
+; freeSPF<pl.qus.wolin.chrout.__returnValue>,#1
+
+
+    clc
+    lda __wolin_spf
+    adc #1
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
+
 ; let__wolin_pl_qus_wolin_wynik<pl.qus.wolin.wynik>[bool]=SPF(0)<pl.qus.wolin.chrout.__returnValue>[bool]
 
 
@@ -163,28 +167,6 @@ __wolin_pl_qus_wolin_main:
     lda (__wolin_spf),y
     sta __wolin_pl_qus_wolin_wynik
 
-
-; freeSPF<pl.qus.wolin.chrout.__returnValue>,#1
-
-
-    clc
-    lda __wolin_spf
-    adc #1
-    sta __wolin_spf
-    bcc :+
-    inc __wolin_spf+1
-:
-
-; freeSPF<pl.qus.wolin.chrout.__returnValue>,#1
-
-
-    clc
-    lda __wolin_spf
-    adc #1
-    sta __wolin_spf
-    bcc :+
-    inc __wolin_spf+1
-:
 
 ; ret
 

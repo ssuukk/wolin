@@ -31,7 +31,7 @@ class WolinVisitor(
         state.fnDeclFreeStackAndRet(state.currentFunction!!)
 
         state.rem("freeing call stack")
-        state.currentFunction?.releaseCalledFunctionsStack(state)
+        //state.currentFunction?.releaseCalledFunctionsStack(state)
 
         state.rem("return from function body")
         when {
@@ -752,12 +752,13 @@ class WolinVisitor(
                         else
                             callNormal(ctx, prototyp, arguments)
 
-                        state.currentFunction?.calledFunctions?.add(prototyp)
-
                         if (state.currentClass != null)
                             state.code("point HEAP = this")
 
                         state.rem("== FN_CALL END: ${prototyp.fullName} ========")
+
+                        prototyp.releaseCalledFunction(state)
+
                         state.rem("")
                     }
                     // =================================================================================================
@@ -1174,8 +1175,7 @@ class WolinVisitor(
         visitStatements(blok)
         state.fnCallReleaseArgs(nowaFunkcja)
 
-        //state.fnCallReleaseRet(nowaFunkcja)
-        state.currentFunction?.calledFunctions?.add(nowaFunkcja)
+        //state.currentFunction?.calledFunctions?.add(nowaFunkcja)
 
         state.codeOn = true
 
@@ -1784,8 +1784,6 @@ class WolinVisitor(
 
         state.currentFunction = null
 
-        konstruktor.releaseCalledFunctionsStack(state)
-
         state.rem("return from constructor")
         state.code("ret")
 
@@ -2033,7 +2031,7 @@ class WolinVisitor(
                 RegOper.VALUE
             )
 
-        state.currentFunction?.calledFunctions?.add(functionToCall)
+        //state.currentFunction?.calledFunctions?.add(functionToCall)
 
     }
 

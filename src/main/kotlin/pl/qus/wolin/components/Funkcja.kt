@@ -30,7 +30,7 @@ class Funkcja(
     val labelName: String get() = "__wolin_${fullName.replace(".","_")}"
     var fields: MutableList<Zmienna> = mutableListOf()
 
-    val calledFunctions = mutableListOf<Funkcja>()
+    //val calledFunctions = mutableListOf<Funkcja>()
 
     fun addField(nowa: Zmienna) {
         if(fields.none { it.name == nowa.name})
@@ -52,17 +52,17 @@ class Funkcja(
     }
 
 
-    fun releaseCalledFunctionsStack(state: WolinStateObject) {
-        calledFunctions.forEach {
-            try {
-                state.fnCallReleaseRet(it)
-                if(it.type != Typ.unit)
-                    state.code("free SPF <${it.returnName}>, #${it.type.sizeOnStack} // free return value of ${it.fullName} from call stack")
-            } catch (ex: Exception) {
-                val a = state.currentFunction?.fullName
-                println("tu")
-            }
-        }
-        calledFunctions.clear()
-    }
+//    fun releaseCalledFunctionsStack(state: WolinStateObject) {
+//        calledFunctions.forEach {
+//            try {
+//                state.fnCallReleaseRet(it)
+//                if(it.type != Typ.unit)
+//                    state.code("free SPF <${it.returnName}>, #${it.type.sizeOnStack} // free return value of ${it.fullName} from call stack")
+//            } catch (ex: Exception) {
+//                val a = state.currentFunction?.fullName
+//                println("tu")
+//            }
+//        }
+//        calledFunctions.clear()
+//    }
 }

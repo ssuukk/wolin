@@ -399,6 +399,8 @@ free SPF<pl.qus.wolin.allocMem.__returnValue>, #2
 
          */
 
+        visitor.consolidateAllocs(asmContext)
+
         outStream.use {
 
             asmContext.linia().iterator().forEach {
