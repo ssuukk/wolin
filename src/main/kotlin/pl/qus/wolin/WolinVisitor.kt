@@ -1774,6 +1774,8 @@ class WolinVisitor(
 
         state.freeReg("for returning this")
 
+        funkcjaAlloc.releaseCalledFunction(state)
+
         state.initializedClassFields().forEach {
             println("Aktualna klasa: ${state!!.currentClass!!.name}")
             state.rem("inicjalizacja zmiennej ${it.name}")

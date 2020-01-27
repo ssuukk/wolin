@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.antlr.v4.runtime.tree.TerminalNodeImpl
+import pl.qus.wolin.exception.ReplaceInArgException
 
 class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
     val state = PseudoAsmStateObject()
@@ -445,8 +446,9 @@ allocSP<>,#4 // x = x+2
 //                else /*
                 if (instrukcja != "free" && instrukcja != "alloc") {
                     if (firstArg?.numer == regNr) {
-                        println("\nMogę zastąpić tu pierwszy:${linia.text}")
-                        try {
+                        println("====================================================================")
+                        println("oper target = *replace*, arg\n${linia.text}")
+//                        try {
                             val correctedFirstArg = replaceInArg(linia.arg(0), registers[regNr]!!.argContext!!)
 
                             val kopia = PseudoAsmParser.ArgContext(
@@ -457,24 +459,24 @@ allocSP<>,#4 // x = x+2
 
                             setFirstArg(linia, correctedFirstArg)
 
-                            print("Po zastąpieniu:${linia.text}")
+                            print("${linia.text}")
                             state.replaced = true
-                        } catch (ex: java.lang.Exception) {
-                            val x = linia.target().isEmpty()
-                            println("************ Błąd optymalizacji!")
-                        }
+//                        } catch (ex: ReplaceInArgException) {
+//                            println("************ Błąd optymalizacji!")
+//                        }
                     }
                     if (secondArg?.numer == regNr) {
-                        println("\nMogę zastąpić tu drugi:${linia.text}")
-                        try {
+                        println("====================================================================")
+                        println("oper target = arg, *replace*\n${linia.text}")
+//                        try {
                             val correctedSecondArg = replaceInArg(linia.arg(1), registers[regNr]!!.argContext!!)
                             setSecondArg(linia, correctedSecondArg)
 
-                            print("Po zastąpieniu:${linia.text}")
+                            print("${linia.text}")
                             state.replaced = true
-                        } catch (ex: java.lang.Exception) {
-                            println("************ Błąd optymalizacji!")
-                        }
+//                        } catch (ex: java.lang.Exception) {
+//                            println("************ Błąd optymalizacji!")
+//                        }
                     }
                 }
             }
@@ -488,24 +490,29 @@ allocSP<>,#4 // x = x+2
 
         val s = source.text
         val d = destination.text
+        val sourceTypeRef = source.operand().typeName().firstOrNull()?.referencer()?.firstOrNull()?.text
 
 
         if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == "*") {
             // &(destination) a source jest *X -> X
             ((source.children[0] as PseudoAsmParser.OperandContext).children[0] as PseudoAsmParser.ReferencerContext).children.clear()
-            println("&*")
-        } else if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == null) {
+            println("drop pointer &*")
+        }
+        else if(destination.operand().referencer(0)?.text == "&" &&  sourceTypeRef == "*") {
+            println("dereferencing pointer")
+        }
+        else if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == null) {
             // &(destination) a source jest X -> błąd
-            throw Exception("Can't optimize")
+            throw ReplaceInArgException("Can't insert $s into &(.)")
         } else if (destination.operand().referencer(0)?.text == "*" && source.operand().referencer(0)?.text == "*") {
             // *(destination) a source jest *X -> błąd
-            throw Exception("Can't optimize")
+            throw ReplaceInArgException("Can't insert $s* into *(.)")
         } else if (destination.operand().referencer(0)?.text == "*" && source.operand().referencer(0)?.text == null) {
             // *(destination) a source jest X -> *X
             //source.operand().referencer().add(PseudoAsmParser.ReferencerContext())
-            println("wskaźnik")
+            println("pointer")
         } else {
-            println("1:1")
+            println("straight replace")
             // else -> X
         }
 
