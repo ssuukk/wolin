@@ -203,14 +203,6 @@ __wolin_pl_qus_wolin_SummingClass_sum:
     lda (__wolin_spf),y
     sta __wolin_this_ptr+1
 
-; letSPF(2)<pl.qus.wolin.SummingClass.sum.__returnValue>[ubyte]=&SP(0)<__wolin_reg6>[ubyte*]
-
-
-    lda (0,x)
-    ldy #2
-    sta (__wolin_spf),y
-
-
 ; freeSPF<pl.qus.wolin.SummingClass.sum.__fnargs>,#2
 
 

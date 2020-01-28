@@ -355,13 +355,20 @@ allocSP<>,#4 // x = x+2
             while (linie.hasNext()) {
                 val linia = linie.next()
 
-                val target = extractTarget(linia)
                 val instrukcja = linia.instrukcja().simpleIdentifier().text
 
-                val referencer = linia.target(0)?.operand()?.referencer(0)?.text
 
                 if (instrukcja != "free" && instrukcja != "alloc") {
-                    if (target?.numer == regNr && referencer == "&") {
+                    val targetReferencer = linia.target(0)?.operand()?.referencer(0)?.text
+
+                    val target = extractTarget(linia)
+                    val firstArg = extractReg(linia, 0)
+                    val secondArg = extractReg(linia, 1)
+
+                    val a1Referencer = linia.arg(0)?.operand()?.referencer(0)?.text
+                    val a2Referencer = linia.arg(1)?.operand()?.referencer(0)?.text
+
+                    if (target?.numer == regNr && targetReferencer == "&") {
                         println("\nMogę zastąpić tu pointer:${linia.text}")
                         try {
                             val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!.argContext!!)
@@ -376,9 +383,45 @@ allocSP<>,#4 // x = x+2
                             print("Po zastąpieniu:${linia.text}")
                             state.replaced = true
                         } catch (ex: java.lang.Exception) {
-                            // tego nie da się podmienić
+                            println("BŁĄD PODMIANY POINTERA TARGET!")
                         }
                     }
+
+                    if (firstArg?.numer == regNr && a1Referencer == "&") {
+                        println("\nMogę zastąpić tu pierwszy arg:${linia.text}")
+                        try {
+                            val corrected1arg = replaceInArg(linia.arg(0), registers[regNr]!!.argContext!!)
+
+                            val kopia = PseudoAsmParser.ArgContext(
+                                corrected1arg.ruleContext as ParserRuleContext,
+                                corrected1arg.invokingState
+                            )
+                            kopia.copyFrom(corrected1arg)
+                            setFirstArg(linia, corrected1arg)
+                            print("Po zastąpieniu:${linia.text}")
+                            state.replaced = true
+                        } catch (ex: java.lang.Exception) {
+                            println("BŁĄD PODMIANY POINTERA ARG1!")
+                        }
+                    }
+                    if (secondArg?.numer == regNr && a2Referencer == "&") {
+                        println("\nMogę zastąpić tu drugi arg:${linia.text}")
+                        try {
+                            val corrected1arg = replaceInArg(linia.arg(1), registers[regNr]!!.argContext!!)
+
+                            val kopia = PseudoAsmParser.ArgContext(
+                                corrected1arg.ruleContext as ParserRuleContext,
+                                corrected1arg.invokingState
+                            )
+                            kopia.copyFrom(corrected1arg)
+                            setSecondArg(linia, corrected1arg)
+                            print("Po zastąpieniu:${linia.text}")
+                            state.replaced = true
+                        } catch (ex: java.lang.Exception) {
+                            println("BŁĄD PODMIANY POINTERA ARG2!")
+                        }
+                    }
+
                 }
             }
         }
