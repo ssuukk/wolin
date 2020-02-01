@@ -4,7 +4,6 @@ import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.antlr.v4.runtime.tree.TerminalNodeImpl
-import pl.qus.wolin.exception.ReplaceInArgException
 
 class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
     val state = PseudoAsmStateObject()
@@ -146,8 +145,10 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
 
         do {
             pointerRegs.forEach {
-                println("Trying to trplace pointer ${it.value}")
+                println("Trying to replace pointer ${it.value}")
                 replaceAllOccurencesOfPointerRegister(ctx, it.key)
+                if(!state.replaced)
+                    it.value.canBeRemoved = false
             }
         } while (state.replaced)
 
@@ -522,41 +523,40 @@ ret
     }
 
     private fun replaceInArg(
-        destination: PseudoAsmParser.ArgContext,
-        source: PseudoAsmParser.ArgContext
+        intoThisField: PseudoAsmParser.ArgContext,
+        thisField: PseudoAsmParser.ArgContext
     ): PseudoAsmParser.ArgContext {
 
         //TODO - ponieważ nie upraszczam referencji od razu, potrzebny tu mechanizm, który je będzie kumulował,
         // bo w tej chwili, jeżeli wstawię *xx to pola &xx, to & zostanie nadpisany *, a potrzebuje zostawić je oba
 
+        val s = thisField.text
+        val d = intoThisField.text
+        val sourceTypeRef = thisField.operand().typeName().firstOrNull()?.referencer()?.firstOrNull()?.text
+
 /*
-        val s = source.text
-        val d = destination.text
-        val sourceTypeRef = source.operand().typeName().firstOrNull()?.referencer()?.firstOrNull()?.text
-
-
-        if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == "*") {
+        if (intoThisField.operand().referencer(0)?.text == "&" && thisField.operand().referencer(0)?.text == "*") {
             // &(destination) a source jest *X -> X
-            ((source.children[0] as PseudoAsmParser.OperandContext).children[0] as PseudoAsmParser.ReferencerContext).children.clear()
+            ((thisField.children[0] as PseudoAsmParser.OperandContext).children[0] as PseudoAsmParser.ReferencerContext).children.clear()
             println("drop pointer &*")
         }
-        else if(destination.operand().referencer(0)?.text == "&" &&  sourceTypeRef == "*") {
+        else if(intoThisField.operand().referencer(0)?.text == "&" &&  sourceTypeRef == "*") {
             println("dereferencing pointer")
         }
-        else if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == null) {
+        else if (intoThisField.operand().referencer(0)?.text == "&" && thisField.operand().referencer(0)?.text == null) {
             // &(destination) a source jest X -> błąd
 
             // dereferencja nie-pointera, ok - po prostu wstawiamy wartość
 
-            val a = source.operand().value().immediate().text
+            val a = thisField.operand().value().immediate().text
 
 //            throw ReplaceInArgException("Can't insert $s into &(.)")
 //            ((source.children[0] as PseudoAsmParser.OperandContext).children[0] as PseudoAsmParser.ReferencerContext).children.clear()
 //            println("drop pointer &*")
-        } else if (destination.operand().referencer(0)?.text == "*" && source.operand().referencer(0)?.text == "*") {
+        } else if (intoThisField.operand().referencer(0)?.text == "*" && thisField.operand().referencer(0)?.text == "*") {
             // *(destination) a source jest *X -> błąd
             throw ReplaceInArgException("Can't insert $s* into *(.)")
-        } else if (destination.operand().referencer(0)?.text == "*" && source.operand().referencer(0)?.text == null) {
+        } else if (intoThisField.operand().referencer(0)?.text == "*" && thisField.operand().referencer(0)?.text == null) {
             // *(destination) a source jest X -> *X
             //source.operand().referencer().add(PseudoAsmParser.ReferencerContext())
             println("pointer")
@@ -565,34 +565,49 @@ ret
             // else -> X
         }
 */
-        return source
+
+        val intoReference = intoThisField.operand().referencer()
+        val thisReference = thisField.operand().referencer()
+
+        val referenceryRazem = intoReference + thisReference
+        if(thisField.operand().children[0] is PseudoAsmParser.ReferencerContext) {
+            // usunąć pierwszy kontekst referencera, zastąpić go referenceryRazem, dopisać resztę
+            val stareDzieci = thisField.operand().children.drop(1)
+            thisField.operand().children = referenceryRazem + stareDzieci
+        }
+        else {
+            val stareDzieci = thisField.operand().children
+            thisField.operand().children = referenceryRazem + stareDzieci
+        }
+
+        return thisField
     }
 
 
     private fun replaceInTarget(
-        destination: PseudoAsmParser.TargetContext,
-        source: PseudoAsmParser.ArgContext
+        intoThisField: PseudoAsmParser.TargetContext,
+        thisField: PseudoAsmParser.ArgContext
     ): PseudoAsmParser.TargetContext {
 
         //TODO - ponieważ nie upraszczam referencji od razu, potrzebny tu mechanizm, który je będzie kumulował,
         // bo w tej chwili, jeżeli wstawię *xx to pola &xx, to & zostanie nadpisany *, a potrzebuje zostawić je oba
 
 /*
-        val s = source.text
-        val d = destination.text
+        val s = thisField.text
+        val d = intoThisField.text
 
 
-        if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == "*") {
+        if (intoThisField.operand().referencer(0)?.text == "&" && thisField.operand().referencer(0)?.text == "*") {
             // &(destination) a source jest *X -> X
-            ((source.children[0] as PseudoAsmParser.OperandContext).children[0] as PseudoAsmParser.ReferencerContext).children.clear()
+            ((thisField.children[0] as PseudoAsmParser.OperandContext).children[0] as PseudoAsmParser.ReferencerContext).children.clear()
             println("&*")
-        } else if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == null && source.operand().typeName().firstOrNull()?.referencer()?.firstOrNull()?.text == null) {
+        } else if (intoThisField.operand().referencer(0)?.text == "&" && thisField.operand().referencer(0)?.text == null && thisField.operand().typeName().firstOrNull()?.referencer()?.firstOrNull()?.text == null) {
             //val a = source.operand().typeName().firstOrNull()?.referencer()?.firstOrNull()?.text
-            throw Exception("Can't put plain (${source.text}) value into &")
-        } else if (destination.operand().referencer(0)?.text == "*" && source.operand().referencer(0)?.text == "*") {
+            throw Exception("Can't put plain (${thisField.text}) value into &")
+        } else if (intoThisField.operand().referencer(0)?.text == "*" && thisField.operand().referencer(0)?.text == "*") {
             // *(destination) a source jest *X -> błąd
-            throw Exception("Can't put pointer value (${source.text}) into *")
-        } else if (destination.operand().referencer(0)?.text == "*" && source.operand().referencer(0)?.text == null) {
+            throw Exception("Can't put pointer value (${thisField.text}) into *")
+        } else if (intoThisField.operand().referencer(0)?.text == "*" && thisField.operand().referencer(0)?.text == null) {
             // *(destination) a source jest X -> *X
             //source.operand().referencer().add(PseudoAsmParser.ReferencerContext())
             println("wskaźnik")
@@ -601,10 +616,26 @@ ret
             // else -> X
         }
 */
-        val zw = PseudoAsmParser.TargetContext(destination.ruleContext as ParserRuleContext, destination.invokingState)
-        zw.children = source.children
 
-        return zw
+        val intoReference = intoThisField.operand().referencer()
+        val thisReference = thisField.operand().referencer()
+        val zwrotka = PseudoAsmParser.TargetContext(intoThisField.ruleContext as ParserRuleContext, intoThisField.invokingState)
+
+        val referenceryRazem = intoReference + thisReference
+        if(thisField.operand().children[0] is PseudoAsmParser.ReferencerContext) {
+            // usunąć pierwszy kontekst referencera, zastąpić go referenceryRazem, dopisać resztę
+            val stareDzieci = thisField.operand().children.drop(1)
+            thisField.operand().children = referenceryRazem + stareDzieci
+        }
+        else {
+            val stareDzieci = thisField.operand().children
+            thisField.operand().children = referenceryRazem + stareDzieci
+        }
+
+
+        zwrotka.children = thisField.children
+
+        return zwrotka
     }
 
 

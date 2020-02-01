@@ -94,6 +94,12 @@ __wolin_lab_loopStart_1:
     lda 0,x
     beq __wolin_lab_loopEnd_1
 
+; allocSP<__wolin_reg10>,#2
+
+
+    dex
+    dex
+
 ; add__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword],#1[uword]
 
 
@@ -105,6 +111,12 @@ __wolin_lab_loopStart_1:
     adc #>1
     sta __wolin_pl_qus_wolin_i+1
 
+
+; freeSP<__wolin_reg10>,#2
+
+
+    inx
+    inx
 
 ; add__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte]=__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte],#1[ubyte]
 
