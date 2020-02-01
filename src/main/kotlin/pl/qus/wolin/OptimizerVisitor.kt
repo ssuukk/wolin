@@ -93,16 +93,18 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
 
                     val exTar = registers[target?.numer]
 
-                    if (targetDeref == "&") {
-                        println("Nie można usunąć ${target!!.numer} bo target deref jest & (arc cont:${exTar?.argContext?.text})")
-                        registers[target.numer]?.canBeRemoved = false
-                    }
+//                    if (targetDeref == "&") {
+//                        println("Nie można usunąć ${target!!.numer} bo target deref jest & (arc cont:${exTar?.argContext?.text})")
+//                        registers[target.numer]?.canBeRemoved = false
+//                    }
                 }
             }
         }
     }
 
     fun markReplacablePointerTargets(ctx: PseudoAsmParser.PseudoAsmFileContext) {
+
+        println("== Marking replacable pointer regs ==")
 /*
     1) zmienna w adresie
 
@@ -130,14 +132,21 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
  */
 
         val pointerRegs = registers
-            .filter { !it.value.canBeRemoved && it.value.firstAssignIsPointer() }
-            .filter { extractStackType(it.value.argContext?.operand()!!) != "SPF" }
+            .filter { it.value.firstAssignIsPointer() }
+
+//        val pointerRegs = registers
+//            .filter { !it.value.canBeRemoved && it.value.firstAssignIsPointer() }
+//            .filter { extractStackType(it.value.argContext?.operand()!!) != "SPF" }
 
         registers.forEach { it.value.canBeRemoved = false }
-        pointerRegs.forEach { it.value.canBeRemoved = true }
+        pointerRegs.forEach {
+            it.value.canBeRemoved = true
+            println("Pointer reg can be removed:${it.value}")
+        }
 
         do {
             pointerRegs.forEach {
+                println("Trying to trplace pointer ${it.value}")
                 replaceAllOccurencesOfPointerRegister(ctx, it.key)
             }
         } while (state.replaced)
@@ -225,21 +234,6 @@ ret
                     } else {
                         previous = current
                     }
-
-
-                    /*
-freeSP<>,#4  // x = x+4
-allocSP<>,#2 // x = x-2
-
-// suma = 4 - 2 = 2 -> freeSP #2
-
-freeSP<>,#2  // x = x-4
-allocSP<>,#4 // x = x+2
-
-// suma = -4 + 2 = -2 -> allocSP #2
-
- */
-                    //linieIterator.
                 }
             }
         }
@@ -357,9 +351,10 @@ allocSP<>,#4 // x = x+2
 
                 val instrukcja = linia.instrukcja().simpleIdentifier().text
 
-
                 if (instrukcja != "free" && instrukcja != "alloc") {
                     val targetReferencer = linia.target(0)?.operand()?.referencer(0)?.text
+                    val targetTypeReferencer = linia.target(0)?.operand()?.typeName()?.firstOrNull()?.referencer()?.firstOrNull()?.text
+                    val destinationTypeReferencer = registers[regNr]!!.argContext!!.operand()?.typeName()?.firstOrNull()?.referencer()?.firstOrNull()?.text
 
                     val target = extractTarget(linia)
                     val firstArg = extractReg(linia, 0)
@@ -368,7 +363,7 @@ allocSP<>,#4 // x = x+2
                     val a1Referencer = linia.arg(0)?.operand()?.referencer(0)?.text
                     val a2Referencer = linia.arg(1)?.operand()?.referencer(0)?.text
 
-                    if (target?.numer == regNr && targetReferencer == "&") {
+                    if (target?.numer == regNr && (targetReferencer == "&" || (targetReferencer.isNullOrBlank() && targetTypeReferencer == "*"))) {
                         println("\nMogę zastąpić tu pointer:${linia.text}")
                         try {
                             val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!.argContext!!)
@@ -383,7 +378,7 @@ allocSP<>,#4 // x = x+2
                             print("Po zastąpieniu:${linia.text}")
                             state.replaced = true
                         } catch (ex: java.lang.Exception) {
-                            println("BŁĄD PODMIANY POINTERA TARGET!")
+                            println(ex.message)
                         }
                     }
 
@@ -401,7 +396,7 @@ allocSP<>,#4 // x = x+2
                             print("Po zastąpieniu:${linia.text}")
                             state.replaced = true
                         } catch (ex: java.lang.Exception) {
-                            println("BŁĄD PODMIANY POINTERA ARG1!")
+                            println(ex.message)
                         }
                     }
                     if (secondArg?.numer == regNr && a2Referencer == "&") {
@@ -418,7 +413,7 @@ allocSP<>,#4 // x = x+2
                             print("Po zastąpieniu:${linia.text}")
                             state.replaced = true
                         } catch (ex: java.lang.Exception) {
-                            println("BŁĄD PODMIANY POINTERA ARG2!")
+                            println(ex.message)
                         }
                     }
 
@@ -576,12 +571,12 @@ allocSP<>,#4 // x = x+2
             // &(destination) a source jest *X -> X
             ((source.children[0] as PseudoAsmParser.OperandContext).children[0] as PseudoAsmParser.ReferencerContext).children.clear()
             println("&*")
-        } else if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == null) {
-            // &(destination) a source jest X -> błąd
-            throw Exception("Can't optimize")
+        } else if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == null && source.operand().typeName().firstOrNull()?.referencer()?.firstOrNull()?.text == null) {
+            //val a = source.operand().typeName().firstOrNull()?.referencer()?.firstOrNull()?.text
+            throw Exception("Can't put plain (${source.text}) value into &")
         } else if (destination.operand().referencer(0)?.text == "*" && source.operand().referencer(0)?.text == "*") {
             // *(destination) a source jest *X -> błąd
-            throw Exception("Can't optimize")
+            throw Exception("Can't put pointer value (${source.text}) into *")
         } else if (destination.operand().referencer(0)?.text == "*" && source.operand().referencer(0)?.text == null) {
             // *(destination) a source jest X -> *X
             //source.operand().referencer().add(PseudoAsmParser.ReferencerContext())

@@ -938,9 +938,7 @@ class WolinVisitor(
                             state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.NORMAL -> {
                                 state.rem(" allocated fast array, changing top reg to ptr")
                                 state.code(
-                                    "add ${state.varToAsm(currEntReg)} = ${state.currentShortArray!!.labelName}[${state.currentShortArray!!.type.name}*], ${state.currentRegToAsm(
-                                        RegOper.AMPRESAND
-                                    )}"
+                                    "add ${state.varToAsm(currEntReg)} = ${state.varToAsm(state.currentShortArray!!)}, &${state.currentRegToAsm()}"
                                 )
                                 state.currentShortArray = null
                             }
@@ -992,9 +990,9 @@ class WolinVisitor(
                 visitExpression(ctx.expression(0))
 
                 if (state.currentShortArray == null)
-                    state.forceTopOregType(Typ.uword.apply { this.pointer = true }) // typ indeksu
+                    state.forceTopOregType(Typ.uword.apply { this.pointer = false }) // typ indeksu
                 else
-                    state.forceTopOregType(Typ.ubyte.apply { this.pointer = true }) // typ indeksu
+                    state.forceTopOregType(Typ.ubyte.apply { this.pointer = false }) // typ indeksu
 
 
                 // ARRAYCODE
@@ -2529,7 +2527,7 @@ class WolinVisitor(
 //                "let ${prototyp.arguments[i].location}[${prototyp.arguments[i].type.typeForAsm}] = ${state.currentRegToAsm()}"
 //            )
 
-            state.code("save ${state.currentRegToAsm()} // ${prototyp.arguments[i].location}")
+            state.code("save ${state.currentRegToAsm(RegOper.AMPRESAND)} // ${prototyp.arguments[i].location}")
 
             state.freeReg("for call argument $i, type = ${prototyp.arguments[i].type}")
         }

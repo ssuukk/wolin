@@ -616,7 +616,7 @@ bne SPE = ?value, ?dest[adr] -> """
     bne {dest}"""
 
 // skocz jeśli s == 1 (bne)
-bne SP(?s)[bool] = #1[bool], ?dest[uword] -> """
+bne SP(?s)[bool] = #1[bool], ?dest[adr] -> """
     lda {s},x
     beq {dest}"""
 
@@ -634,6 +634,16 @@ bne SP(?s)[bool] = #0[bool], ?dest[uword] -> """
 beq SP(?s)[bool] = #0[bool], ?dest[uword] -> """
     lda {s},x
     beq {dest}"""
+
+evalneq SP(?dest)[bool] = SPF(?left)[ubyte], #0[ubyte] -> """
+    lda #1 ; rozne
+    sta {dest},x
+    ldy #{left}
+    lda (__wolin_spf), y
+    bne :+
+    lda #0 ; jednak rowne
+    sta {dest},x
+"""
 
 evalneq SP(?dest)[bool] = ?left[ubyte], #?right[ubyte] -> """
     lda #1 ; rozne
@@ -1121,7 +1131,11 @@ restore CPU.YX[uword] -> """
     tay
 """
 
-
+save SPF(?src)[ubyte] -> """
+    ldy #{src}
+    lda (__wolin_spf),y
+    pha
+"""
 
 save SP(?src)[ubyte] -> """
     lda {src},x
@@ -1201,6 +1215,14 @@ div SP(?d)[ubyte] = SP(?d)[ubyte], #8 -> """
 // itd dla ze znakiem jest inny lsr/asl
 
 div SP(?d)[word] = SP(?dzielna)[word],SP(?dzielnik)[word] -> """  jsr stack_div"""
+
+//add SP(0)<__wolin_reg3>[ubyte] = __wolin_pl_qus_wolin_print_string[ubyte*], #0[ubyte]
+add SP(?dummya)[?dummyb] = ?dummyc[?dummyd*], #0[?dummye] -> """"""
+
+add SPF(?dest)[ubyte] = SPF(?dest)[ubyte], #1[ubyte] -> """
+    ldy #{dest}
+    inc (__wolin_spf),y
+"""
 
 add ?dest[ubyte] = ?dest[ubyte], #1[ubyte] -> """
     inc {dest}"""
@@ -1333,7 +1355,6 @@ let SPF(?dst)[any*]=SPF(?src)[any*] -> """
     sta (__wolin_spf),y
 """
 
-//letSPF(0)<pl.qus.wolin.save.__returnValue>[bool]=CPU.C[bool]
 let SPF(?dst)[bool] = CPU.C[bool] -> """
     ldy #{dst}
     lda #1
