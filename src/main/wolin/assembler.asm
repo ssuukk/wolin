@@ -40,7 +40,7 @@ alloc SP<__wolin_reg6>, #2 // RIGHT for <
 // switchType to:uword by parse literal constant
 let SP(0)<__wolin_reg6>[uword] = #1000[uword] // atomic ex
 // top type already set: __wolin_reg6: uword = 0 (RIGHT for <) null null
-evalless SP(4)<__wolin_reg4>[bool] = &SP(2)<__wolin_reg5>[uword*], SP(0)<__wolin_reg6>[uword]
+evalless &SP(4)<__wolin_reg4>[bool] = &SP(2)<__wolin_reg5>[uword*], &SP(0)<__wolin_reg6>[uword]
 free SP<__wolin_reg6>, #2 // RIGHT for <
 free SP<__wolin_reg5>, #2 // LEFT for <
 // top type already set: __wolin_reg4: bool = 0 (for while condition) null null
@@ -61,7 +61,7 @@ let SP(0)<__wolin_reg11>[uword] = *__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]
 add __wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword] = __wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword], #1[uword] // simple id
 // switchType to:uword by ++ operator
 // FORCE TOP: __wolin_reg11: uword = 0 (For calculating index) null null -> uword
-add SP(2)<__wolin_reg10>[ubyte*] = SP(2)<__wolin_reg10>[ubyte*], SP(0)<__wolin_reg11>[uword] // long index, single byte per element array
+add SP(2)<__wolin_reg10>[ubyte*] = SP(2)<__wolin_reg10>[ubyte*], &SP(0)<__wolin_reg11>[uword] // long index, single byte per element array (tutaj)
 free SP<__wolin_reg11>, #2 // For calculating index
 // **ARRAY Changing current type to prevReg type __wolin_reg10: ubyte* = 0 (arr_deref) null null
 //  after index

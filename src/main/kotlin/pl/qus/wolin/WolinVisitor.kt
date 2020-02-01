@@ -1006,7 +1006,7 @@ class WolinVisitor(
                             state.code(
                                 "add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.varToAsm(
                                     state.currentReg, RegOper.AMPRESAND
-                                )} // long index, single byte per element array"
+                                )} // long index, single byte per element array (tutaj)"
                             )
                         }
                     }

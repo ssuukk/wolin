@@ -374,14 +374,14 @@ class WolinStateObject(val pass: Pass) {
 //    fun varToAsmAutoDeref(register: Zmienna): String =
 //        ""+(if(register.type.isPointer) "&" else "") + varToAsmNoType(register) + "[${register.type.typeForAsm}]"
 
-    fun varToAsm(register: Zmienna, derefType: RegOper = RegOper.VALUE): String {
-        val finalDeref =
-            if (derefType == RegOper.STAR && register.type.isPointer)
-                RegOper.VALUE
-            else if (derefType == RegOper.AMPRESAND && !register.type.isPointer)
-                RegOper.VALUE
-            else
-                derefType
+    fun varToAsm(register: Zmienna, finalDeref: RegOper = RegOper.VALUE): String {
+//        val finalDeref =
+//            if (derefType == RegOper.STAR && register.type.isPointer)
+//                RegOper.VALUE
+//            else if (derefType == RegOper.AMPRESAND && !register.type.isPointer)
+//                RegOper.VALUE
+//            else
+//                derefType
 
         return when (finalDeref) {
             RegOper.AMPRESAND -> "&"

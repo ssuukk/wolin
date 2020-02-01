@@ -88,22 +88,6 @@ __wolin_pl_qus_wolin_main:
 
 __wolin_lab_loopStart_1:
 
-; evallessSP(0)<__wolin_reg4>[bool]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword],#1000[uword]
-
-
-    lda #1 ; mniejsze
-    sta 0,x
-    lda __wolin_pl_qus_wolin_i+1
-    cmp #>1000
-    bcc :+ ; mniejsze
-    lda __wolin_pl_qus_wolin_i
-    cmp #<1000
-    bcc :+ ; mniejsze
-    lda #0 ; jednak wieksze
-    sta 0,x
-:
-
-
 ; bneSP(0)<__wolin_reg4>[bool]=#1[bool],__wolin_lab_loopEnd_1<label_po_if>[adr]
 
 

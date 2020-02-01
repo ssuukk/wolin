@@ -363,7 +363,7 @@ ret
                     val a1Referencer = linia.arg(0)?.operand()?.referencer(0)?.text
                     val a2Referencer = linia.arg(1)?.operand()?.referencer(0)?.text
 
-                    if (target?.numer == regNr && (targetReferencer == "&" || (targetReferencer.isNullOrBlank() && targetTypeReferencer == "*"))) {
+                    if (target?.numer == regNr && (targetReferencer == "&" /*|| (targetReferencer.isNullOrBlank() && targetTypeReferencer == "*")*/)) {
                         println("\nMogę zastąpić tu pointer:${linia.text}")
                         try {
                             val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!.argContext!!)
@@ -526,6 +526,10 @@ ret
         source: PseudoAsmParser.ArgContext
     ): PseudoAsmParser.ArgContext {
 
+        //TODO - ponieważ nie upraszczam referencji od razu, potrzebny tu mechanizm, który je będzie kumulował,
+        // bo w tej chwili, jeżeli wstawię *xx to pola &xx, to & zostanie nadpisany *, a potrzebuje zostawić je oba
+
+/*
         val s = source.text
         val d = destination.text
         val sourceTypeRef = source.operand().typeName().firstOrNull()?.referencer()?.firstOrNull()?.text
@@ -541,7 +545,14 @@ ret
         }
         else if (destination.operand().referencer(0)?.text == "&" && source.operand().referencer(0)?.text == null) {
             // &(destination) a source jest X -> błąd
-            throw ReplaceInArgException("Can't insert $s into &(.)")
+
+            // dereferencja nie-pointera, ok - po prostu wstawiamy wartość
+
+            val a = source.operand().value().immediate().text
+
+//            throw ReplaceInArgException("Can't insert $s into &(.)")
+//            ((source.children[0] as PseudoAsmParser.OperandContext).children[0] as PseudoAsmParser.ReferencerContext).children.clear()
+//            println("drop pointer &*")
         } else if (destination.operand().referencer(0)?.text == "*" && source.operand().referencer(0)?.text == "*") {
             // *(destination) a source jest *X -> błąd
             throw ReplaceInArgException("Can't insert $s* into *(.)")
@@ -553,7 +564,7 @@ ret
             println("straight replace")
             // else -> X
         }
-
+*/
         return source
     }
 
@@ -563,6 +574,10 @@ ret
         source: PseudoAsmParser.ArgContext
     ): PseudoAsmParser.TargetContext {
 
+        //TODO - ponieważ nie upraszczam referencji od razu, potrzebny tu mechanizm, który je będzie kumulował,
+        // bo w tej chwili, jeżeli wstawię *xx to pola &xx, to & zostanie nadpisany *, a potrzebuje zostawić je oba
+
+/*
         val s = source.text
         val d = destination.text
 
@@ -585,10 +600,10 @@ ret
             println("1:1")
             // else -> X
         }
-
+*/
         val zw = PseudoAsmParser.TargetContext(destination.ruleContext as ParserRuleContext, destination.invokingState)
         zw.children = source.children
-        //return source
+
         return zw
     }
 
