@@ -16,8 +16,11 @@ Currently supporting:
 - functions at fixed memory locations with native arguments like `fun setLfs^0xffba(lfn: ubyte^CPU.A, channel: ubyte^CPU.Y, dev: ubyte^CPU.X)`
 - getting values from long / fast (1-byte index, 1-byte element) arrays
 
+Extra perks:
 
-Wolin generates assembler code for ca65 with memory config for Commodore 64, it is very easy, though, to port it to other architectures via intermediate code to native code templates
+- whole generated code (apart from function-local variables, globals and objects) operates exclusively on zero page, treating it like a big heap of CPU registers, namely 72 CPU registers in default Wolin configuration for C64. I can't really imagine a piece of code that would use beyond this limit.
+
+- Wolin generates assembler code for ca65 with memory config for Commodore 64, it is very easy, though, to port it to other architectures via intermediate code to native code templates
 
 # TODOs
 
