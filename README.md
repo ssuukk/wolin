@@ -18,13 +18,12 @@ Currently supporting:
 
 Extra perks:
 
-- whole generated code (apart from function-local variables, globals and objects) operates exclusively on zero page, treating it like a big heap of CPU registers, namely 72 CPU registers in default Wolin configuration for C64. I can't really imagine a piece of code that would use beyond this limit.
+- whole generated code (apart from function-local variables, globals and objects) operates exclusively on zero page, treating it like a big heap of CPU registers, namely 72 CPU registers in default Wolin configuration for C64. Due to how the regs get freed/allocated I can't really imagine a piece of code that would use beyond this limit
 
 - Wolin generates assembler code for ca65 with memory config for Commodore 64, it is very easy, though, to port it to other architectures via intermediate code to native code templates
 
 # TODOs
 
-- code optimizer
 - a lot of other language features
 - writing elements to all kinds of arrays
 
@@ -85,17 +84,20 @@ var maskInterrupts: bool^CPU.I                    // this boolean is attached to
 
 fun clearScreen^0xe544()                          // clear screen function in C64 ROM
 
+fun onRasterGoto(line: ubyte, proc: uword) {
+    interruptRoutineVector = proc
+    vicRasterLine = line
+}
+
 interrupt fun backgroundToBlue() {
-    interruptRoutineVector = backgroundToWhite
-    vicRasterLine = 140
+    onRasterGoto(140, backgroundToWhite)
     vicBorder = 6
     vicInterruptStatusReg = 0xff
     return@0xea31                                 // don't return from this function, continue with ROM routine
 }
 
 interrupt fun backgroundToWhite() {
-    interruptRoutineVector = backgroundToBlue
-    vicRasterLine = 160
+    onRasterGoto(160, backgroundToBlue)
     vicBorder = 1
     vicInterruptStatusReg = 0xff
     return@0xea31
