@@ -14,16 +14,6 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
 
     val nonAssignOpcodes = listOf("bne", "beq")
 
-    // TODO
-    // błąd optymalizatora!
-    // kiedy do SP zapisujemy rejestr SPF, lub inny, to po napotkaniu alloc SPF musimy dodać do wektora tego rejestru n
-    // a po napotkaniu free SPF musimy odjąć od wektora tego rejestru n!
-    //
-    // np:
-    // let SP(0)<__wolin_reg18>[any*] = SPF(0)<pl.qus.wolin.main..testowa>[any*] // przez sprawdzacz typow - simple id from var
-    // napotykamy alloc SPF, #3
-    // więc w SP(0) powinno być teraz:
-    // SPF(3)<pl.qus.wolin.main..testowa>[any*]
 
     /**
      * Zebranie wszystkich możliwych rejestrów

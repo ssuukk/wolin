@@ -212,30 +212,6 @@ Wolin
 		pl.qus.a
 
 
-3. skonsolidować następujące po sobie W CIĄGU dealokacje/alllokacje (NIC nie moze byc miedzy nimi, zwlaszcza label):
-
-freeSP<>,#4  // x = x+4
-allocSP<>,#2 // x = x-2
-
-// suma = 4 - 2 = 2 -> freeSP #2
-
-freeSP<>,#2  // x = x-4
-allocSP<>,#4 // x = x+2
-
-// suma = -4 + 2 = -2 -> allocSP #2
-
-allocSP,#1
-allocSP,#1
-
-// daje allocSP,#2
-
-potem dla x mamy:
-
-TXA
-CLC
-ADC #n
-TAX
-
 4. wszystko po throw wyciąć aż do najbliższego labela
 
 throw SP(0)[uword] // nie martwimy sie o sotsy, bo te odtworzy obsluga wyjatku
@@ -336,6 +312,35 @@ ret
      */
 
 
+    // TODO - przesunąć deallokacje SPF za ostatnie użycie danego rejestru
+    /*
+call __wolin_pl_qus_wolin_allocMem[adr]
+free SPF<pl.qus.wolin.allocMem.__returnValue>, #2 <------- musi być na końcu
+let SPF(0)<pl.qus.wolin.SomeClass.pl.qus.wolin.SomeClass.__returnValue>[any*] = SPF(2)<pl.qus.wolin.allocMem.__returnValue>[uword]
+setup HEAP = SPF(2)<pl.qus.wolin.allocMem.__returnValue>[uword]
+<----- tu musi być
+     */
+    // TODO - przesunąć wektory SPF posługując się stosem funkcji
+    /*
+call __wolin_pl_qus_wolin_allocMem[adr]
+let SPF(2)<pl.qus.wolin.SomeClass.pl.qus.wolin.SomeClass.__returnValue>[any*] = SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
+setup HEAP = SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
+free SPF<pl.qus.wolin.allocMem.__returnValue>, #2
+
+     */
+    // TODO
+    // błąd optymalizatora!
+    // kiedy do SP zapisujemy rejestr SPF, lub inny, to po napotkaniu alloc SPF musimy dodać do wektora tego rejestru n
+    // a po napotkaniu free SPF musimy odjąć od wektora tego rejestru n!
+    //
+    // np:
+    // let SP(0)<__wolin_reg18>[any*] = SPF(0)<pl.qus.wolin.main..testowa>[any*] // przez sprawdzacz typow - simple id from var
+    // napotykamy alloc SPF, #3
+    // więc w SP(0) powinno być teraz:
+    // SPF(3)<pl.qus.wolin.main..testowa>[any*]
+
+
+
     @JvmStatic
     fun main(args: Array<String>) {
 // gradlew generateGrammarSource
@@ -393,23 +398,6 @@ ret
 
         //visitor.markReplacablePointerTargets(asmContext)
         //visitor.removeAndShiftTargets(asmContext)
-
-        // TODO - przesunąć deallokacje SPF za ostatnie użycie danego rejestru
-        /*
-call __wolin_pl_qus_wolin_allocMem[adr]
-free SPF<pl.qus.wolin.allocMem.__returnValue>, #2 <------- musi być na końcu
-let SPF(0)<pl.qus.wolin.SomeClass.pl.qus.wolin.SomeClass.__returnValue>[any*] = SPF(2)<pl.qus.wolin.allocMem.__returnValue>[uword]
-setup HEAP = SPF(2)<pl.qus.wolin.allocMem.__returnValue>[uword]
-<----- tu musi być
-         */
-        // TODO - przesunąć wektory SPF posługując się stosem funkcji
-        /*
-call __wolin_pl_qus_wolin_allocMem[adr]
-let SPF(2)<pl.qus.wolin.SomeClass.pl.qus.wolin.SomeClass.__returnValue>[any*] = SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
-setup HEAP = SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
-free SPF<pl.qus.wolin.allocMem.__returnValue>, #2
-
-         */
 
         visitor.consolidateAllocs(asmContext)
 

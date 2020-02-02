@@ -924,7 +924,4 @@ class WolinStateObject(val pass: Pass) {
             code("float ${labelMaker("floatConst", i)}[uword] = %$float")
         }
     }
-
-
-
 }
