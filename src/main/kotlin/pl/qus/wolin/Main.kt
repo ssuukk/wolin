@@ -354,6 +354,18 @@ ret
             FileOutputStream(File("src/main/wolin/assembler_opt1.asm"))
         )
 
+        // ciekawostka. Po ostatnich zmianach mamy:
+        /*
+        free SP<__wolin_reg5>, #2
+        let &SP(-1)<__wolin_reg5>[ubyte*] = &#65[ubyte]
+
+        więc to jest znak, że trzeba przesunąć to:
+
+        let &SP(0)<__wolin_reg5>[ubyte*] = &#65[ubyte]
+        free SP<__wolin_reg5>, #2
+
+         */
+
         translateAsm(
             FileInputStream(File("src/main/wolin/assembler_opt1.asm")),
             FileInputStream(File("src/main/wolin/template.asm"))
@@ -375,11 +387,11 @@ ret
         // tu można wygenerować ponownie plik tekstowy, pewnie nawet trzeba, tu się przesuwa funkcyjne rejestry
         visitor.replaceSingleAssignmentRegWithItsValue(asmContext)
         // sprawdzić, czy dany rejestr występuje tylko jako free/alloc +ew. let rejestr =, tylko odflaguje
-        visitor.unmarkIrreplacableRegs(asmContext)
+        visitor.markRegIfStillUsed(asmContext)
         // usuwa oflagowane rejestry
         visitor.removeAndShiftArgs(asmContext)
 
-        visitor.markReplacablePointerTargets(asmContext)
+        //visitor.markReplacablePointerTargets(asmContext)
         //visitor.removeAndShiftTargets(asmContext)
 
         // TODO - przesunąć deallokacje SPF za ostatnie użycie danego rejestru

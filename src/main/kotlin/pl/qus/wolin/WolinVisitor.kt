@@ -1551,7 +1551,7 @@ class WolinVisitor(
                     } else {
                         if (zmienna.allocation == AllocType.FIXED && zmienna.type.array) {
                             state.code(
-                                "let ${state.currentRegToAsm()} = ${zmienna.locationVal}[${zmienna.type.typeForAsm}] // simple id - fixed array var"
+                                "let ${state.currentRegToAsm()} = #${zmienna.locationVal}[uword] // simple id - fixed array var"
                             )
                         } else if (state.assignStack.processingLeftSide) {
                             checkTypeAndAddAssignment(

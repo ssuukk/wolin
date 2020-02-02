@@ -50,6 +50,12 @@ __wolin_this_ptr := 176
 __wolin_this_ptr_hi := 176+1
 
 
+; let__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte]=#0[ubyte]
+
+
+    lda #0
+    sta __wolin_pl_qus_wolin_chr
+
 ; let__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]=#0[ubyte]
 
 
@@ -57,12 +63,6 @@ __wolin_this_ptr_hi := 176+1
     sta __wolin_pl_qus_wolin_i
     lda #0
     sta __wolin_pl_qus_wolin_i+1
-
-; let__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte]=#0[ubyte]
-
-
-    lda #0
-    sta __wolin_pl_qus_wolin_chr
 
 ; allocSPF,#0
 
@@ -80,59 +80,16 @@ __wolin_this_ptr_hi := 176+1
 
 __wolin_pl_qus_wolin_main:
 
-; allocSP<__wolin_reg4>,#1
-
-    dex
-
-; label__wolin_lab_loopStart_1
-
-__wolin_lab_loopStart_1:
-
-; bneSP(0)<__wolin_reg4>[bool]=#1[bool],__wolin_lab_loopEnd_1<label_po_if>[adr]
-
-
-    lda 0,x
-    beq __wolin_lab_loopEnd_1
-
-; allocSP<__wolin_reg10>,#2
+; allocSP<__wolin_reg5>,#2
 
 
     dex
     dex
 
-; add__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword],#1[uword]
-
-
-    clc
-    lda __wolin_pl_qus_wolin_i
-    adc #<1
-    sta __wolin_pl_qus_wolin_i
-    lda __wolin_pl_qus_wolin_i+1
-    adc #>1
-    sta __wolin_pl_qus_wolin_i+1
-
-
-; freeSP<__wolin_reg10>,#2
+; freeSP<__wolin_reg5>,#2
 
 
     inx
-    inx
-
-; add__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte]=__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte],#1[ubyte]
-
-
-    inc __wolin_pl_qus_wolin_chr
-
-; goto__wolin_lab_loopStart_1[adr]
-
-    jmp __wolin_lab_loopStart_1
-
-; label__wolin_lab_loopEnd_1
-
-__wolin_lab_loopEnd_1:
-
-; freeSP<__wolin_reg4>,#1
-
     inx
 
 ; ret
@@ -147,14 +104,6 @@ __wolin_indirect_jsr:
 
     jmp 65535
 
-; label__wolin_pl_qus_wolin_i
-
-__wolin_pl_qus_wolin_i:
-
-; alloc0[uword]
-
-    .word 0
-
 ; label__wolin_pl_qus_wolin_chr
 
 __wolin_pl_qus_wolin_chr:
@@ -162,4 +111,20 @@ __wolin_pl_qus_wolin_chr:
 ; alloc0[ubyte]
 
     .byte 0
+
+; label__wolin_pl_qus_wolin_string
+
+__wolin_pl_qus_wolin_string:
+
+; alloc0[ubyte*]
+
+    .byte 1,2,3,4
+
+; label__wolin_pl_qus_wolin_i
+
+__wolin_pl_qus_wolin_i:
+
+; alloc0[uword]
+
+    .word 0
 

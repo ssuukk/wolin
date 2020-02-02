@@ -30,7 +30,7 @@ class Zmienna(
 
 
     override fun toString(): String {
-        return "$name: $type = $immediateValue ($comment) ${locationTxt} ${locationVal}"
+        return "$name: $type = $immediateValue ($comment) location = ${locationTxt}, ${locationVal}"
     }
 
     val labelName: String get() = "__wolin_${name.replace(".","_")}"

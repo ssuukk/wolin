@@ -4,12 +4,15 @@ import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.antlr.v4.runtime.tree.TerminalNodeImpl
+import java.util.*
+import kotlin.math.abs
 
 class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
     val state = PseudoAsmStateObject()
 
     val registers = mutableMapOf<Int, Register>()
 
+    val nonAssignOpcodes = listOf("bne", "beq")
 
     // TODO
     // błąd optymalizatora!
@@ -26,6 +29,7 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
      * Zebranie wszystkich możliwych rejestrów
      */
     fun gatherAllSPRegs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
+        println("== looking for registers ==")
         ctx.linia()?.iterator()?.let { linie ->
             while (linie.hasNext()) {
                 val template = linie.next()
@@ -43,6 +47,7 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
 
 
     fun markSingleAssignmentRegs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
+        println("== looking for single-assignment registers ==")
         registers.forEach {
             checkIfOnlyOneAssignment(ctx, it.value.numer)
         }
@@ -52,45 +57,53 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
     }
 
     fun replaceSingleAssignmentRegWithItsValue(ctx: PseudoAsmParser.PseudoAsmFileContext) {
-        do {
-            println("=== Replace pass ===")
-            registers.filter { it.value.singleAssign }.forEach {
-                replaceAllOccurencesOfSingleAssignRegistersWithTheirValues(ctx, it.value.numer)
-            }
-        } while (state.replaced)
+        val xxx = registers.filter { it.value.singleAssign }.map { it.value.numer }
+        val toDo = Stack<Int>()
+        toDo.addAll(xxx)
+
+        while (toDo.isNotEmpty()) {
+            val reg = toDo.pop()
+
+            do {
+                println("=== Replace pass for reg$reg ===")
+
+                replaceAllOccurencesOfSingleAssignRegistersWithTheirValues(ctx, reg)
+            } while (state.replaced)
+        }
     }
 
-    fun unmarkIrreplacableRegs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
+    fun markRegIfStillUsed(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         // sprawdzić, czy dany rejestr występuje tylko jako free/alloc +ew. let rejestr =
+
+        println("=== Checking if reg still present after replace ===")
+
         ctx.linia()?.iterator()?.let { linie ->
             while (linie.hasNext()) {
-                val template = linie.next()
+                val linia = linie.next()
 
-                val target = extractTarget(template)
-                val firstArg = extractReg(template, 0)
-                val secondArg = extractReg(template, 1)
+                val target = extractTarget(linia)
+                val firstArg = extractReg(linia, 0)
+                val secondArg = extractReg(linia, 1)
 
-                val instrukcja = template.instrukcja().simpleIdentifier().text
+                val instrukcja = linia.instrukcja().simpleIdentifier().text
 
-                val targetDeref = template.target(0)?.operand()?.referencer(0)?.text
+                //val targetDeref = linia.target(0)?.operand()?.referencer(0)?.text
 
                 if (instrukcja != "alloc" && instrukcja != "free") {
-//                    if (firstArg != null) {
-//                        println("Nie można usunąć ${firstArg.numer} bo ma first arg w $instrukcja")
-//                        registers[firstArg.numer]?.canBeRemoved = false
-//                    }
+                    if (firstArg != null) {
+                        println("Nie można usunąć ${firstArg.numer} bo ma first arg w ${linia.text}")
+                        registers[firstArg.numer]?.canBeRemoved = false
+                    }
 
                     if (secondArg != null) {
-                        println("Nie można usunąć ${secondArg.numer} bo ma second arg  w $instrukcja")
+                        println("Nie można usunąć ${secondArg.numer} bo ma second arg  w ${linia.text}")
                         registers[secondArg.numer]?.canBeRemoved = false
                     }
 
-                    if (instrukcja != "let" && instrukcja != "bit" && target != null) {
-                        println("Nie można usunąć ${target.numer} bo nie let i ma target w $instrukcja")
+                    if (instrukcja != "let" && target != null) {
+                        println("Nie można usunąć ${target.numer} bo nie let i ma target w ${linia.text}")
                         registers[target.numer]?.canBeRemoved = false
                     }
-
-                    val exTar = registers[target?.numer]
 
 //                    if (targetDeref == "&") {
 //                        println("Nie można usunąć ${target!!.numer} bo target deref jest & (arc cont:${exTar?.argContext?.text})")
@@ -147,7 +160,7 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
             pointerRegs.forEach {
                 println("Trying to replace pointer ${it.value}")
                 replaceAllOccurencesOfPointerRegister(ctx, it.key)
-                if(!state.replaced)
+                if (!state.replaced)
                     it.value.canBeRemoved = false
             }
         } while (state.replaced)
@@ -214,9 +227,9 @@ ret
                         val prevSize =
                             getSecondArg(previous!!).text.removePrefix("#").toInt() * if (prevOp == "free") 1 else -1
 
-                       val consolidatedSum = currentSize + prevSize
+                        val consolidatedSum = currentSize + prevSize
 
-                        val consolidatedOp = if(consolidatedSum > 0)
+                        val consolidatedOp = if (consolidatedSum > 0)
                             "free"
                         else
                             "alloc"
@@ -224,12 +237,14 @@ ret
                         println("$currentSize + $prevSize = $consolidatedSum")
 
                         // linia.instrukcja.simpleIdentifier
-                        val operandContext =previous!!.getChild(0)!!.getChild(0) as PseudoAsmParser.SimpleIdentifierContext
+                        val operandContext =
+                            previous!!.getChild(0)!!.getChild(0) as PseudoAsmParser.SimpleIdentifierContext
                         operandContext.children[0] = createTerminalNode(consolidatedOp)
 
-                        val valueContext = getSecondArg(previous!!).getChild(0).getChild(0).getChild(0) as PseudoAsmParser.ImmediateContext
+                        val valueContext =
+                            getSecondArg(previous!!).getChild(0).getChild(0).getChild(0) as PseudoAsmParser.ImmediateContext
 
-                        valueContext.children[1] = createTerminalNode(consolidatedSum.toString())
+                        valueContext.children[1] = createTerminalNode(abs(consolidatedSum).toString())
 
                         linieIterator.remove()
                     } else {
@@ -241,7 +256,7 @@ ret
     }
 
     fun removeAndShiftArgs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
-        registers.filter { it.value.canBeRemoved }.map { it.value }.forEach { removedRegistr ->
+        registers.filter { it.value.canBeRemoved && it.value.singleAssign }.map { it.value }.forEach { removedRegistr ->
             ctx.children.iterator().let { linieIterator ->
                 while (linieIterator.hasNext()) {
                     val linia = linieIterator.next()
@@ -272,7 +287,6 @@ ret
                             println("usuwam pierwsze podstawienie do ${removedRegistr.numer}")
                             linieIterator.remove()
                         } else if (state.insideOptimizedReg == removedRegistr.numer) {
-                            // todo - przesunąć rejestry
                             /*
                             przy wyrugowaniu rejestru wszystkie odwołania do rejestrów leżących POD NIM na stosie muszą mieć zmniejszane indeksy
                                     o rozmiar tego rejestru aż do momentu, kiedy tenże rejestr byłby faktycznie zwolniony
@@ -330,6 +344,10 @@ ret
     }
 
     private fun changeVector(operand: PseudoAsmParser.OperandContext, vector: Int) {
+        if(vector < 0) {
+            println("regx moved beyond 'free regx' fo4 ${operand.text}")
+            //throw Exception("regx moved beyond 'free regx' fo4 ${operand.text}")
+        }
         val indeks =
             if (operand.children[0] is PseudoAsmParser.ReferencerContext)
                 (((operand.children[1] as PseudoAsmParser.ValueContext).children[0] as PseudoAsmParser.AddressedContext).children[2] as PseudoAsmParser.IndexContext)
@@ -354,8 +372,11 @@ ret
 
                 if (instrukcja != "free" && instrukcja != "alloc") {
                     val targetReferencer = linia.target(0)?.operand()?.referencer(0)?.text
-                    val targetTypeReferencer = linia.target(0)?.operand()?.typeName()?.firstOrNull()?.referencer()?.firstOrNull()?.text
-                    val destinationTypeReferencer = registers[regNr]!!.argContext!!.operand()?.typeName()?.firstOrNull()?.referencer()?.firstOrNull()?.text
+                    val targetTypeReferencer =
+                        linia.target(0)?.operand()?.typeName()?.firstOrNull()?.referencer()?.firstOrNull()?.text
+                    val destinationTypeReferencer =
+                        registers[regNr]!!.argContext!!.operand()?.typeName()?.firstOrNull()?.referencer()
+                            ?.firstOrNull()?.text
 
                     val target = extractTarget(linia)
                     val firstArg = extractReg(linia, 0)
@@ -438,6 +459,8 @@ ret
                 val firstArg = extractReg(linia, 0)
                 val secondArg = extractReg(linia, 1)
 
+                val target = extractTarget(linia)
+
                 val instrukcja = linia.instrukcja().simpleIdentifier().text
 
 //                if (instrukcja == "free") {
@@ -483,23 +506,45 @@ ret
 //                    }
 //                }
 //                else /*
+
+                val targetDeref = linia.target(0)?.operand()?.referencer(0)?.text
+
                 if (instrukcja != "free" && instrukcja != "alloc") {
+                    if (target?.numer == regNr && targetDeref == "&") {
+                        println("====================================================================")
+                        println("oper *replace* = arg, arg\n${linia.text}")
+
+                        val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!.argContext!!)
+
+                        val kopia = PseudoAsmParser.TargetContext(
+                            correctedTarget.ruleContext as ParserRuleContext,
+                            correctedTarget.invokingState
+                        )
+
+                        kopia.copyFrom(correctedTarget)
+
+                        linia.children[1] = correctedTarget
+
+                        print("${linia.text}")
+                        state.replaced = true
+
+                    }
                     if (firstArg?.numer == regNr) {
                         println("====================================================================")
                         println("oper target = *replace*, arg\n${linia.text}")
 //                        try {
-                            val correctedFirstArg = replaceInArg(linia.arg(0), registers[regNr]!!.argContext!!)
+                        val correctedFirstArg = replaceInArg(linia.arg(0), registers[regNr]!!.argContext!!)
 
-                            val kopia = PseudoAsmParser.ArgContext(
-                                correctedFirstArg.ruleContext as ParserRuleContext,
-                                correctedFirstArg.invokingState
-                            )
-                            kopia.copyFrom(correctedFirstArg)
+                        val kopia = PseudoAsmParser.ArgContext(
+                            correctedFirstArg.ruleContext as ParserRuleContext,
+                            correctedFirstArg.invokingState
+                        )
+                        kopia.copyFrom(correctedFirstArg)
 
-                            setFirstArg(linia, correctedFirstArg)
+                        setFirstArg(linia, correctedFirstArg)
 
-                            print("${linia.text}")
-                            state.replaced = true
+                        print("${linia.text}")
+                        state.replaced = true
 //                        } catch (ex: ReplaceInArgException) {
 //                            println("************ Błąd optymalizacji!")
 //                        }
@@ -508,11 +553,11 @@ ret
                         println("====================================================================")
                         println("oper target = arg, *replace*\n${linia.text}")
 //                        try {
-                            val correctedSecondArg = replaceInArg(linia.arg(1), registers[regNr]!!.argContext!!)
-                            setSecondArg(linia, correctedSecondArg)
+                        val correctedSecondArg = replaceInArg(linia.arg(1), registers[regNr]!!.argContext!!)
+                        setSecondArg(linia, correctedSecondArg)
 
-                            print("${linia.text}")
-                            state.replaced = true
+                        print("${linia.text}")
+                        state.replaced = true
 //                        } catch (ex: java.lang.Exception) {
 //                            println("************ Błąd optymalizacji!")
 //                        }
@@ -570,12 +615,11 @@ ret
         val thisReference = thisField.operand().referencer()
 
         val referenceryRazem = intoReference + thisReference
-        if(thisField.operand().children[0] is PseudoAsmParser.ReferencerContext) {
+        if (thisField.operand().children[0] is PseudoAsmParser.ReferencerContext) {
             // usunąć pierwszy kontekst referencera, zastąpić go referenceryRazem, dopisać resztę
             val stareDzieci = thisField.operand().children.drop(1)
             thisField.operand().children = referenceryRazem + stareDzieci
-        }
-        else {
+        } else {
             val stareDzieci = thisField.operand().children
             thisField.operand().children = referenceryRazem + stareDzieci
         }
@@ -619,15 +663,15 @@ ret
 
         val intoReference = intoThisField.operand().referencer()
         val thisReference = thisField.operand().referencer()
-        val zwrotka = PseudoAsmParser.TargetContext(intoThisField.ruleContext as ParserRuleContext, intoThisField.invokingState)
+        val zwrotka =
+            PseudoAsmParser.TargetContext(intoThisField.ruleContext as ParserRuleContext, intoThisField.invokingState)
 
         val referenceryRazem = intoReference + thisReference
-        if(thisField.operand().children[0] is PseudoAsmParser.ReferencerContext) {
+        if (thisField.operand().children[0] is PseudoAsmParser.ReferencerContext) {
             // usunąć pierwszy kontekst referencera, zastąpić go referenceryRazem, dopisać resztę
             val stareDzieci = thisField.operand().children.drop(1)
             thisField.operand().children = referenceryRazem + stareDzieci
-        }
-        else {
+        } else {
             val stareDzieci = thisField.operand().children
             thisField.operand().children = referenceryRazem + stareDzieci
         }
@@ -654,8 +698,6 @@ ret
 
                 val targetRef = linia.target()?.firstOrNull()?.operand()?.referencer()?.firstOrNull()?.text
 
-                val nazwa = linia.arg(0)?.operand()?.name(0)?.identifier()?.simpleIdentifier(0)?.text // __wolin_reg3
-
                 if (instrukcja == "alloc") {
                     if (firstArg?.numer == nr) {
                         state.insideOptimizedReg = nr
@@ -668,15 +710,17 @@ ret
                     // sprawdzić, czy jest to proste podstawienie, jeśli nie - ustawić redundant na false
 
                     when {
-                        linia.arg().size > 1 -> target.singleAssign = false
+                        targetRef == "&" -> {
+                        }
+                        nonAssignOpcodes.contains(instrukcja) -> {
+                        }
+                        target.argContext != null -> {
+                            target.singleAssign = false
+                        }
                         instrukcja == "let" -> {
                             target.singleAssign = true
-                            if (targetRef == null)
-                                target.argContext = linia.arg(0)
-//                            else
-//                                println("tu!")
+                            target.argContext = linia.arg(0)
                         }
-                        else -> target.singleAssign = false
                     }
                 }
             }
@@ -865,7 +909,6 @@ ret
         }
         return TerminalNodeImpl(kopia)
     }
-
 
 
     fun getFirstArg(linia: PseudoAsmParser.LiniaContext): ParseTree {
