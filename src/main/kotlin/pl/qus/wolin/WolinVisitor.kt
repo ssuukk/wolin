@@ -35,7 +35,7 @@ class WolinVisitor(
 
         state.rem("return from function body")
         when {
-            state.currentFunction?.returnAddress != -1 -> state.code("goto ${state.currentFunction?.returnAddress}[adr]")
+            state.currentFunction?.returnAddress != -1 -> state.code("goto ${state.currentFunction?.returnAddress}[uword]")
             state.currentFunction?.isInterrupt == true -> state.code("reti")
             else -> state.code("ret")
         }
@@ -865,7 +865,7 @@ class WolinVisitor(
 
                         if (safeDeref) {
                             state.code("evaleq costam[bool] = ${state.currentReg}[loc], null // safe deref")
-                            state.code("beq costam[bool] = #0, jakis_label[adr] // safe deref")
+                            state.code("beq costam[bool] = #0, jakis_label[uword] // safe deref")
                         }
 
                         state.rem(" postfix unary w dereferencji")
@@ -1190,7 +1190,7 @@ class WolinVisitor(
         state.switchType(test, "lambda declaration")
         state.inferTopOperType()
 
-        state.code("let ${state.currentRegToAsm()} = ${nowaFunkcja.labelName}[adr]")
+        state.code("let ${state.currentRegToAsm()} = ${nowaFunkcja.labelName}[uword]")
 
         return state
     }
@@ -1220,11 +1220,11 @@ class WolinVisitor(
 
         visitExpression(ctx.expression())
 
-        state.code("bne ${state.currentRegToAsm()} = #1[bool], $afterBodyLabel<label_po_if>[adr]")
+        state.code("bne ${state.currentRegToAsm()} = #1[bool], $afterBodyLabel<label_po_if>[uword]")
 
         visitControlStructureBody(ctx.controlStructureBody())
 
-        state.code("goto $condLabel[adr]")
+        state.code("goto $condLabel[uword]")
 
         state.code("label $afterBodyLabel")
 
@@ -1363,10 +1363,10 @@ class WolinVisitor(
                     "bne ${state.varToAsm(resultReg)} = #1[bool], ${labelMaker(
                         "whenEndLabel",
                         state.whenCounter
-                    )}[adr]"
+                    )}[uword]"
                 )
             else
-                state.code("bne ${state.varToAsm(resultReg)} = #1[bool], $nextLabel[adr]")
+                state.code("bne ${state.varToAsm(resultReg)} = #1[bool], $nextLabel[uword]")
         else {
             state.code("evaleq ${state.varToAsm(boolReg)} = ${state.varToAsm(resultReg)}, ${state.varToAsm(condReg)}")
             if (state.lastWhenEntry)
@@ -1374,10 +1374,10 @@ class WolinVisitor(
                     "bne ${state.varToAsm(boolReg)} = #1[bool], ${labelMaker(
                         "whenEndLabel",
                         state.whenCounter
-                    )}[adr]"
+                    )}[uword]"
                 )
             else
-                state.code("bne ${state.varToAsm(boolReg)} = #1[bool], $nextLabel[adr]")
+                state.code("bne ${state.varToAsm(boolReg)} = #1[bool], $nextLabel[uword]")
         }
 
         state.rem("when operacja")
@@ -1387,7 +1387,7 @@ class WolinVisitor(
         else if (whenTrue.expression() != null) visitExpression(whenTrue.expression())
 
         if (!state.lastWhenEntry)
-            state.code("goto ${labelMaker("whenEndLabel", state.whenCounter)}[adr]")
+            state.code("goto ${labelMaker("whenEndLabel", state.whenCounter)}[uword]")
 
         return state
     }
@@ -1421,7 +1421,7 @@ class WolinVisitor(
 
         when {
             body.size == 1 -> {
-                state.code("bne ${state.varToAsm(condBoolRes)} = #1[bool], $elseLabel<label_po_if>[adr]")
+                state.code("bne ${state.varToAsm(condBoolRes)} = #1[bool], $elseLabel<label_po_if>[uword]")
                 state.rem(" body dla true")
                 visitControlStructureBody(body[0])
                 state.rem(" label po if")
@@ -1431,10 +1431,10 @@ class WolinVisitor(
             body.size == 2 -> {
                 //val elseLabel = labelMaker("elseExpression",state.labelCounter)
 
-                state.code("bne ${state.varToAsm(condBoolRes)} = #1[bool], $elseLabel<label_DO_else>[adr]")
+                state.code("bne ${state.varToAsm(condBoolRes)} = #1[bool], $elseLabel<label_DO_else>[uword]")
                 state.rem(" body dla true")
                 visitControlStructureBody(body[0])
-                state.code("goto $endIfLabel[adr]")
+                state.code("goto $endIfLabel[uword]")
                 state.code("label $elseLabel")
                 state.rem(" body dla false/else")
                 visitControlStructureBody(body[1])
@@ -1474,12 +1474,12 @@ class WolinVisitor(
         state.rem(" try")
         state.code("alloc SP<catch_addr>, #2 // catch block entry point")
         state.code("let SP(0)[uword] = ${labelMaker("catch_block_start", state.labelCounter)}[uword]")
-        state.code("call __wolin_create_exception_entry[adr]")
+        state.code("call __wolin_create_exception_entry[uword]")
 
         visitBlock(tryBlock)
 
         state.code("free SPE, #5 // remove exception table entry")
-        state.code("goto ${labelMaker("after_catch_block_end", state.labelCounter)}[adr]")
+        state.code("goto ${labelMaker("after_catch_block_end", state.labelCounter)}[uword]")
         state.code("")
         state.rem(" catch")
         state.code("label ${labelMaker("catch_block_start", state.labelCounter)}")
@@ -1523,11 +1523,11 @@ class WolinVisitor(
                 state.code("throw SP(0)[uword] // nie martwimy sie o sotsy, bo te odtworzy obsluga wyjatku")
             }
             ctx.BREAK() != null -> {
-                state.code("goto ${labelMaker("loopEnd", state.loopCounter)}[adr]")
+                state.code("goto ${labelMaker("loopEnd", state.loopCounter)}[uword]")
                 state.switchType(Typ.unit, "break expression")
             }
             ctx.CONTINUE() != null -> {
-                state.code("goto ${labelMaker("loopStart", state.loopCounter)}[adr]")
+                state.code("goto ${labelMaker("loopStart", state.loopCounter)}[uword]")
                 state.switchType(Typ.unit, "continue expression")
             }
             else -> {
@@ -1949,8 +1949,8 @@ class WolinVisitor(
 
             state.code("")
             state.code("label __wolin_throw_exception")
-            state.code("bne SPE = __wolin_spe_top, __wolin_process_exception[adr] // jesli mamy blok catch, to go obslugujemy")
-            state.code("let __wolin_exception_ptr[adr] = 0[adr]")
+            state.code("bne SPE = __wolin_spe_top, __wolin_process_exception[uword] // jesli mamy blok catch, to go obslugujemy")
+            state.code("let __wolin_exception_ptr[uword] = 0[uword]")
             state.code("crash")
 
             state.code("")
@@ -1960,7 +1960,7 @@ class WolinVisitor(
             state.code("let SPC[ubyte] = SPE(2)[ubyte] // przywrócenie stosu CPU, takiego jak był w bloku try")
             state.code("let SP[ubyte] = SPE(3)[ubyte] // przywrócenie stosu wolina")
             state.code("free SPE, #5")
-            state.code("goto __wolin_spe_zp_vector[deref]")
+            state.code("goto __wolin_spe_zp_vector[uword*]")
         }
 
         return state
@@ -2014,7 +2014,7 @@ class WolinVisitor(
         }
 
         state.rem(" po argumentach dla ${functionToCall.fullName}")
-        state.code("call ${functionToCall.labelName}[adr]")
+        state.code("call ${functionToCall.labelName}[uword]")
 
         state.fnCallReleaseArgs(functionToCall)
 
@@ -2473,7 +2473,6 @@ class WolinVisitor(
                 RegOper.VALUE
             )
         }
-
     }
 
     fun callAsm(

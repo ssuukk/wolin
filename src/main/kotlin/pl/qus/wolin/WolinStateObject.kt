@@ -884,9 +884,9 @@ class WolinStateObject(val pass: Pass) {
         }
 
         val call = when {
-            proc.location != 0 -> "call ${proc.location}[adr] // ${proc.fullName}\n"
-            lambda -> "call ${proc.labelName}[deref] // lambda call\n"
-            else -> "call ${proc.labelName}[adr]\n"
+            proc.location != 0 -> "call ${proc.location}[uword] // ${proc.fullName}\n"
+            lambda -> "call ${proc.labelName}[uword*] // lambda call\n"
+            else -> "call ${proc.labelName}[uword]\n"
         }
 
         switchType(proc.type, "function call", false)
@@ -908,8 +908,8 @@ class WolinStateObject(val pass: Pass) {
         """.trimMargin()
         )
 
-        code("label __wolin_indirect_jsr")
-        code("goto 65535[adr]")
+//        code("label __wolin_indirect_jsr")
+//        code("goto 65535[adr]")
 
         variablary.filter { it.value.fieldType == FieldType.STATIC }.forEach {
             code("label ${it.value.labelName}")

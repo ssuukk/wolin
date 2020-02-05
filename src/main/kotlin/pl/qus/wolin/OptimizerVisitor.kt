@@ -41,6 +41,9 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
         registers.forEach {
             checkIfOnlyOneAssignment(ctx, it.value.numer)
         }
+        registers.filter { it.value.argContext == null }.forEach {
+            it.value.singleAssign = false
+        }
         registers.filter { it.value.singleAssign }.forEach {
             println("Single assignment:${it}")
         }
@@ -157,6 +160,33 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
 
         removeAndShiftArgs(ctx)
     }
+
+    fun moveFreeBehindLastOp(regNr: Int) {
+        /*
+add SP(0)<__wolin_reg10>[ubyte*] = SP(0)<__wolin_reg10>[ubyte*], &*__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]
+reg9 - SP(2)
+reg8 - SP(3)
+free SP<__wolin_reg10>, #2
+reg9 - SP(0)
+reg8 - SP(1)
+add __wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte] = __wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte], #1[ubyte]
+let &SP(-2)<__wolin_reg10>[ubyte*] = &*__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte]
+
+przenosząc rejest SP(n) w dół kodu muszę dodać do każdego rejestru <=n wielkość tego rejestru, czyli:
+
+add SP(0)<__wolin_reg10>[ubyte*] = SP(0)<__wolin_reg10>[ubyte*], &*__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]
+reg9 - SP(2)
+reg8 - SP(3)
+stąd przeniosłem reg10 o wielkości 2 ------->
+reg9 - SP(0+2)                              |
+reg8 - SP(1+2)                              |
+add __wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte] = __wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte], #1[ubyte]
+let &SP(-2+2)<__wolin_reg10>[ubyte*] = &*__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte]
+free SP<__wolin_reg10>, #2 <-----------------
+
+         */
+    }
+
 
 
     fun optimizeReturns() {
@@ -335,7 +365,7 @@ ret
 
     private fun changeVector(operand: PseudoAsmParser.OperandContext, vector: Int) {
         if(vector < 0) {
-            println("regx moved beyond 'free regx' fo4 ${operand.text}")
+            println("regx moved beyond 'free regx' in ${operand.text}")
             //throw Exception("regx moved beyond 'free regx' fo4 ${operand.text}")
         }
         val indeks =

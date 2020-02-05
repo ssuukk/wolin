@@ -1,7 +1,47 @@
 //============================================
 // Virtual asm pattern mattching. First matching pattern wins!
 //============================================
+/*
 
+byte:
+=====
+value from memory:
+lda src
+
+value on SP(src):
+lda src,x
+
+value pointed by variable on SP(src):
+lda (src,x)
+
+value on other stacks Sx(src):
+lda (pointer_to_Sx_on_ZP),y<-src
+
+
+word:
+=====
+value from memory:
+lda src
+lda src+1
+
+value on SP(src):
+lda src,x
+lda src+1,x
+
+value pointed by variable on SP(src):
+	lda (src,x)
+    inc {src},x
+    bne :+
+    inc {src}+1,x
+:
+    lda (src,x)
+
+value on other stacks Sx(src):
+lda (pointer_to_Sx_on_ZP),y<-src
+iny
+lda (pointer_to_Sx_on_ZP),y
+
+*/
 
 //============================================
 // funkcje startowe
@@ -28,10 +68,14 @@ BasEnd:     .word 0
             ;
 """
 
+
+
 setup SPE = ?zp[ubyte], ?top[uword] -> """
 ; prepare exception stack
 __wolin_spe := {zp} ; exception stack ptr
 __wolin_spe_hi := {zp}+1 ; exception stack ptr
+
+
 
 __wolin_spe_top := {top} ; exception stack top
 __wolin_spe_top_hi := {top}+1 ; exception stack top
@@ -40,15 +84,21 @@ __wolin_spe_top_hi := {top}+1 ; exception stack top
     lda #>__wolin_spe_top
     sta __wolin_spe+1"""
 
+
+
 setup EXPTR = ?zp[ubyte] -> """
 __wolin_exception_ptr := {zp} ; pointer to exception object on throw
 __wolin_exception_ptr_hi := {zp}+1 ; pointer to exception object on throw
 """
 
+
+
 setup CATCH = ?zp[ubyte] -> """
 __wolin_spe_zp_vector := {zp}
 __wolin_spe_zp_vector_hi := {zp}+1
 """
+
+
 
 setup SPF = ?zp[ubyte], ?top[uword] -> """
 ; prepare function stack
@@ -62,11 +112,15 @@ __wolin_spf_top_hi := {top}+1 ; function stack top
     lda #>__wolin_spf_top
     sta __wolin_spf+1"""
 
+
+
 setup SP = ?zp[ubyte] -> """
 ; prepare program stack
 __wolin_sp_top := {zp} ; program stack top
 __wolin_sp_top_hi := {zp}+1 ; program stack top
     ldx #__wolin_sp_top ; set program stack top"""
+
+
 
 setup HEAP = ?zp[ubyte] -> """
 __wolin_this_ptr := {zp}
@@ -83,7 +137,6 @@ alloc ?val[word] -> """    .word {val}"""
 alloc ?val[uword] -> """    .word {val}"""
 alloc ?val[float] -> """    .float {val}"""
 alloc ?val[bool] -> """    .byte {val}"""
-alloc ?val[adr] -> """    .word {val}"""
 alloc ?val[ubyte*] -> """    .byte 1,2,3,4"""
 
 //============================================
@@ -287,7 +340,6 @@ let ?label[uword] = SP(?s)[uword] -> """
     sta {label}+1
 """
 
-// TODO zamienić arg na adres
 let SP(?d)[float] = ?label[float] -> """
     lda {label}
     sta {d},x
@@ -607,7 +659,7 @@ let ?dst[ubyte] = #?val[ubyte] -> """
 //============================================
 
 // jump if catch block exists
-bne SPE = ?value, ?dest[adr] -> """
+bne SPE = ?value, ?dest[uword] -> """
     lda __wolin_spe
     cmp #<{value}
     bne {dest}
@@ -616,7 +668,7 @@ bne SPE = ?value, ?dest[adr] -> """
     bne {dest}"""
 
 // skocz jeśli s == 1 (bne)
-bne SP(?s)[bool] = #1[bool], ?dest[adr] -> """
+bne SP(?s)[bool] = #1[bool], ?dest[uword] -> """
     lda {s},x
     beq {dest}"""
 
@@ -766,8 +818,6 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 // nowe adresy
 //============================================
 
-// let&SP(0)<__wolin_reg14>[ubyte*]=#3[ubyte]
-
 let SP(?dst)[any*] = SPF(?src)[any*] -> """
     ldy #{src}
     lda (__wolin_spf),y
@@ -881,6 +931,14 @@ let &SP(?dst)[ubyte*] = &SP(?src)[ubyte*] -> """
     sta ({dst},x)
 """
 
+let SP(?dst)[ubyte*] = #?val[uword] -> """
+    lda #<{val}
+    sta {dst},x
+    lda #>{val}
+    sta {dst}+1,x"""
+
+
+
 // dla konstruktora
 let SP(?dst)[any*] = #?val[uword] -> """
     lda #<{val}
@@ -896,7 +954,7 @@ let SPF(?d)[any*] = SP(?s)[any*] -> """
     iny
     sta (__wolin_spf),y"""
 
-let SP(?d)[adr] = SPF(?s)[adr] -> """
+let SP(?d)[uword] = SPF(?s)[uword] -> """
     ldy #{s}
     lda (__wolin_spf),y
     sta {d},x
@@ -905,7 +963,7 @@ let SP(?d)[adr] = SPF(?s)[adr] -> """
     sta {d}+1,x"""
 
 /*
-let SP(?d)[adr] = SPF(?s)[adr] -> """
+let SP(?d)[uword] = SPF(?s)[uword] -> """
     ; warning - assuming SP should be set to actual address of src var, this is not simple copy!
     clc
     lda __wolin_spf
@@ -919,14 +977,14 @@ let SP(?d)[adr] = SPF(?s)[adr] -> """
 """
 */
 
-let SP(?d)[adr] = SP(?s)[adr] -> """
+let SP(?d)[uword] = SP(?s)[uword] -> """
     lda {s},x
     sta {d},x
     lda {s}+1,x
     sta {d}+1,x"""
 
 // pointer pod adresem = inny pointer pod adresem
-let ?adr[adr] = ?adr2[adr] -> """
+let ?adr[uword] = ?adr2[uword] -> """
     lda {adr2} ; UWAGA ptr -> ptr
     sta {adr}
     lda {adr+1}
@@ -940,51 +998,6 @@ let SP(?d)[adr] = ?s[adr] -> """
     sta {d}+1,x"""
 
 
-add SP(?d)[ubyte*] = ?adr[ubyte*], ?idx[ubyte] -> """
-    clc
-    lda #<{adr}
-    adc {idx}
-    sta {d},x
-    lda #>{adr}
-    adc #0
-    sta {d}+1,x
-"""
-
-add &SP(?d)[ubyte*] = &SP(?d)[ubyte*], SPF(?s)[ubyte] -> """
-    clc
-    lda ({d},x)
-    ldy #{s}
-    adc (__wolin_spf), y
-    sta ({d},x)
-"""
-
-add &SP(?d)[ubyte*] = &SP(?d)[ubyte*], HEAP(?s)[ubyte] -> """
-    clc
-    lda ({d},x)
-    ldy #{s}
-    adc (__wolin_this_ptr), y
-    sta ({d},x)
-"""
-
-
-// add SP(2)<__wolin_reg15>[adr] = SP(2)<__wolin_reg15>[adr], SP(0)<__wolin_reg16>[uword]
-add SP(?d)[adr] = SP(?s1)[adr], SP(?s2)[uword] -> """
-    clc
-    lda {s1},x
-    adc {s2},x
-    sta {d},x
-    lda {s1}+1,x
-    adc {s2}+1,x
-    sta {d}+1,x"""
-
-add SP(?d)[?dummy *] = SP(?s)[?dummy *], ?adr[uword] -> """
-    clc
-    lda {s},x
-    adc {adr}
-    sta {d},x
-    lda {s}+1,x
-    adc {adr}+1
-    sta {d}+1,x"""
 
 //============================================
 // rozmaite funkcje
@@ -1004,18 +1017,19 @@ ret -> """    rts"""
 
 reti -> """   rti"""
 
-call ?a[adr] -> """    jsr {a}"""
+call ?a[uword] -> """    jsr {a}"""
 
-call ?a[deref] -> """
+call ?a[uword*] -> """
     lda {a}
-    sta __wolin_indirect_jsr+1
+    sta :+1
     lda {a}+1
-    sta __wolin_indirect_jsr+2
-    jsr __wolin_indirect_jsr"""
+    sta :+2
+:
+    jsr 65535"""
 
-goto ?a[adr] -> """    jmp {a}"""
+goto ?a[uword] -> """    jmp {a}"""
 
-goto ?a[deref] -> """    jmp ({a})"""
+goto ?a[uword*] -> """    jmp ({a})"""
 
 crash -> """    brk"""
 
@@ -1216,8 +1230,53 @@ div SP(?d)[ubyte] = SP(?d)[ubyte], #8 -> """
 
 div SP(?d)[word] = SP(?dzielna)[word],SP(?dzielnik)[word] -> """  jsr stack_div"""
 
-//add SP(0)<__wolin_reg3>[ubyte] = __wolin_pl_qus_wolin_print_string[ubyte*], #0[ubyte]
 add SP(?dummya)[?dummyb] = ?dummyc[?dummyd*], #0[?dummye] -> """"""
+
+add SP(?d)[ubyte*] = ?adr[ubyte*], ?idx[ubyte] -> """
+    clc
+    lda #<{adr}
+    adc {idx}
+    sta {d},x
+    lda #>{adr}
+    adc #0
+    sta {d}+1,x
+"""
+
+add &SP(?d)[ubyte*] = &SP(?d)[ubyte*], SPF(?s)[ubyte] -> """
+    clc
+    lda ({d},x)
+    ldy #{s}
+    adc (__wolin_spf), y
+    sta ({d},x)
+"""
+
+add &SP(?d)[ubyte*] = &SP(?d)[ubyte*], HEAP(?s)[ubyte] -> """
+    clc
+    lda ({d},x)
+    ldy #{s}
+    adc (__wolin_this_ptr), y
+    sta ({d},x)
+"""
+
+
+// add SP(2)<__wolin_reg15>[adr] = SP(2)<__wolin_reg15>[adr], SP(0)<__wolin_reg16>[uword]
+add SP(?d)[uword] = SP(?s1)[uword], SP(?s2)[uword] -> """
+    clc
+    lda {s1},x
+    adc {s2},x
+    sta {d},x
+    lda {s1}+1,x
+    adc {s2}+1,x
+    sta {d}+1,x"""
+
+add SP(?d)[?dummy *] = SP(?s)[?dummy *], ?adr[uword] -> """
+    clc
+    lda {s},x
+    adc {adr}
+    sta {d},x
+    lda {s}+1,x
+    adc {adr}+1
+    sta {d}+1,x"""
 
 add SPF(?dest)[ubyte] = SPF(?dest)[ubyte], #1[ubyte] -> """
     ldy #{dest}
@@ -1322,6 +1381,50 @@ add SPE(?spedst)[ubyte] = SPE(?spesrc)[ubyte],#?val[ubyte] -> """
     sta (__wolin_spe),y
 """
 
+add SP(?d)[ubyte*] = ?adr[ubyte*], ?idx[ubyte] -> """
+    clc
+    lda #<{adr}
+    adc {idx}
+    sta {d},x
+    lda #>{adr}
+    adc #0
+    sta {d}+1,x
+"""
+
+add &SP(?d)[ubyte*] = &SP(?d)[ubyte*], SPF(?s)[ubyte] -> """
+    clc
+    lda ({d},x)
+    ldy #{s}
+    adc (__wolin_spf), y
+    sta ({d},x)
+"""
+
+add &SP(?d)[ubyte*] = &SP(?d)[ubyte*], HEAP(?s)[ubyte] -> """
+    clc
+    lda ({d},x)
+    ldy #{s}
+    adc (__wolin_this_ptr), y
+    sta ({d},x)
+"""
+
+// add SP(2)<__wolin_reg15>[adr] = SP(2)<__wolin_reg15>[adr], SP(0)<__wolin_reg16>[uword]
+add SP(?d)[adr] = SP(?s1)[adr], SP(?s2)[uword] -> """
+    clc
+    lda {s1},x
+    adc {s2},x
+    sta {d},x
+    lda {s1}+1,x
+    adc {s2}+1,x
+    sta {d}+1,x"""
+
+add SP(?d)[?dummy *] = SP(?s)[?dummy *], ?adr[uword] -> """
+    clc
+    lda {s},x
+    adc {adr}
+    sta {d},x
+    lda {s}+1,x
+    adc {adr}+1
+    sta {d}+1,x"""
 
 
 //============================================
@@ -1466,28 +1569,12 @@ let ?dstVar[ubyte] = ?arrStart[deref], #?idx -> """
     lda {arrStart},y
     sta {dstVar}"""
 
-//let SP(?dstSP)[deref] = #?val[ubyte]
-
-// let SP(2)<r.temp6>[deref] = SP(0)<r.temp7>[word] // powinno znaczyć: ustaw zmienną pod adresem znajdującym się w SP(2) na wartość
-// czyli powinniśmy:
-// lda #mlodszy
-// ldy #0
-// sta (miejsce na stosie),y
-// lda #starszy
-// iny
-// sta (miejsce na stosie),y
-
-//let ?adr[deref] = #?val[uword] -> """
-//    lda #<{val}
-//    sta {adr}
-//    lda #>{val}
-//    sta {adr}+1"""
 
 // wartosc na opStacku = wartosc pobrana z pointera
 // na 65816 jest tryb
 // lda (0,x)
 // sta 0,x
-let SP(?dst)[ubyte] = SP(?src)[deref] -> """
+let SP(?dst)[ubyte] = SP(?src)[ubyte*] -> """
     lda ({src},x)
     sta {dst},x"""
 
