@@ -260,6 +260,13 @@ class WolinStateObject(val pass: Pass) {
             zmienna.inClass = currentClass
         }
 
+        if (fieldType != FieldType.ARGUMENT && currentFunction?.locals?.none {it.name == zmienna.name} == true) {
+            if(currentFunction?.isInterrupt == true)
+                throw InterruptFunctionWithLocals("Local variables are not allowed in interrupt functions!")
+            else
+                currentFunction?.addField(zmienna)
+        }
+
         return zmienna
     }
 
@@ -611,8 +618,6 @@ class WolinStateObject(val pass: Pass) {
             rem("***** fnDeclFreeStackAndRet usuwanie zwrotki ${funkcja.fullName} ze stosu")
             callStack.pop()
         }
-
-        code("// caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!")
     }
 
     fun findProc(nazwa: String): Funkcja {

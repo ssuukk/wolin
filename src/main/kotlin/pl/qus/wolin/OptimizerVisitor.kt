@@ -41,16 +41,17 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
         registers.forEach {
             checkIfOnlyOneAssignment(ctx, it.value.numer)
         }
-        registers.filter { it.value.argContext == null }.forEach {
-            it.value.singleAssign = false
-        }
-        registers.filter { it.value.singleAssign }.forEach {
-            println("Single assignment:${it}")
+        registers
+            .filter { it.value.argContext == null && it.value.canBeRemoved }
+            .forEach { it.value.canBeRemoved = true }
+
+        registers.filter { it.value.canBeRemoved }.forEach {
+            println("Redundant reg: $it")
         }
     }
 
     fun replaceSingleAssignmentRegWithItsValue(ctx: PseudoAsmParser.PseudoAsmFileContext) {
-        val xxx = registers.filter { it.value.singleAssign }.map { it.value.numer }
+        val xxx = registers.filter { it.value.canBeRemoved }.map { it.value.numer }
         val toDo = Stack<Int>()
         toDo.addAll(xxx)
 
@@ -188,7 +189,6 @@ free SP<__wolin_reg10>, #2 <-----------------
     }
 
 
-
     fun optimizeReturns() {
         /*
 label __wolin_pl_qus_wolin_suma
@@ -276,7 +276,7 @@ ret
     }
 
     fun removeAndShiftArgs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
-        registers.filter { it.value.canBeRemoved && it.value.singleAssign }.map { it.value }.forEach { removedRegistr ->
+        registers.filter { it.value.canBeRemoved }.map { it.value }.forEach { removedRegistr ->
             ctx.children.iterator().let { linieIterator ->
                 while (linieIterator.hasNext()) {
                     val linia = linieIterator.next()
@@ -364,7 +364,7 @@ ret
     }
 
     private fun changeVector(operand: PseudoAsmParser.OperandContext, vector: Int) {
-        if(vector < 0) {
+        if (vector < 0) {
             println("regx moved beyond 'free regx' in ${operand.text}")
             //throw Exception("regx moved beyond 'free regx' fo4 ${operand.text}")
         }
@@ -729,17 +729,29 @@ ret
                 } else if (state.insideOptimizedReg == nr && target?.numer == nr) {
                     // sprawdzić, czy jest to proste podstawienie, jeśli nie - ustawić redundant na false
 
+                    if(nr == 7) {
+                        println("tu")
+                    }
+
                     when {
-                        targetRef == "&" -> {
-                        }
+//                        targetRef == "&" -> {
+//                            // this is a dereference? ignore
+//                        }
                         nonAssignOpcodes.contains(instrukcja) -> {
+                            // this is a non-assignment opcode (bne, beq)? ignore
                         }
                         target.argContext != null -> {
-                            target.singleAssign = false
+                            // already assigned?
+                            target.canBeRemoved = false
                         }
                         instrukcja == "let" -> {
-                            target.singleAssign = true
+                            // first assignment
+                            target.canBeRemoved = true
                             target.argContext = linia.arg(0)
+                        }
+                        else -> {
+                            // other kind of target
+                            target.canBeRemoved = false
                         }
                     }
                 }
@@ -810,13 +822,6 @@ ret
             reg
         } else null
     }
-
-    fun dumpRedundantRegs() {
-        registers.filter { it.value.singleAssign }.forEach {
-            println(it.value)
-        }
-    }
-
 
     fun copy(ctx: ParseTree): ParseTree {
         return when (ctx) {
@@ -968,11 +973,11 @@ class Register {
     var wielkość: Int = -1
     var canBeRemoved: Boolean = true // czy naprawdę można go usunąć
     var argContext: PseudoAsmParser.ArgContext? = null // jaką zawiera wartość
-    var singleAssign: Boolean = true // czy można usunąć
+    //var singleAssign: Boolean = true // czy można usunąć
     var name: String = ""
 
     override fun toString(): String {
-        return "reg $numer, redundant=$singleAssign, content=${argContext?.text}"
+        return "reg $numer, canBeRemoved=$canBeRemoved, content=${argContext?.text}"
     }
 
     fun firstAssignIsPointer(): Boolean {

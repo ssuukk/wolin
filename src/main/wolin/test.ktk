@@ -1,13 +1,35 @@
 package pl.qus.wolin
 
-var screen: ubyte[]^1024
+var border: ubyte^53280
+/*
+fun allocMem(size: uword, count: uword): uword {
+    return 30000
+}
 
-var i: uword = 0
+class SummingClass {
+    var x: ubyte = 1
+    var y: ubyte = 1
 
-var chr: ubyte = 0
+    fun sum(): ubyte {
+        return x+y
+    }
+}
 
 fun main() {
-    while(i<1000) {
-        screen[i++] = chr++
-    }
+    val obj: SummingClass
+
+    obj = SummingClass()
+
+    obj.x = 2
+    obj.y = 4
+
+    border = obj.sum()
+}
+*/
+
+fun main() {
+    val a = 4
+    val b = 8
+
+    border = a+b
 }

@@ -2,23 +2,9 @@ setup HEADER
 setup SPF = 251[ubyte], 40959[uword] // call stack pointer at 251 = 40959
 setup SP = 114[ubyte] // (było 143) register stack top = 142
 setup HEAP = 176[ubyte]
-// inicjalizacja zmiennej pl.qus.wolin.i
-alloc SP<__wolin_reg0>, #1 // for var pl.qus.wolin.i init expression
-// switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg0>[ubyte] = #0[ubyte] // atomic ex
-// top type already set: __wolin_reg0: ubyte = 0 (for var pl.qus.wolin.i init expression) location = null, null
-let __wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword] = SP(0)<__wolin_reg0>[ubyte] // podstawic wynik inicjalizacji expression do zmiennej pl.qus.wolin.i
-free SP<__wolin_reg0>, #1 // for var pl.qus.wolin.i init expression
-// inicjalizacja zmiennej pl.qus.wolin.chr
-alloc SP<__wolin_reg1>, #1 // for var pl.qus.wolin.chr init expression
-// switchType to:ubyte by parse literal constant
-let SP(0)<__wolin_reg1>[ubyte] = #0[ubyte] // atomic ex
-// top type already set: __wolin_reg1: ubyte = 0 (for var pl.qus.wolin.chr init expression) location = null, null
-let __wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte] = SP(0)<__wolin_reg1>[ubyte] // podstawic wynik inicjalizacji expression do zmiennej pl.qus.wolin.chr
-free SP<__wolin_reg1>, #1 // for var pl.qus.wolin.chr init expression
 //  main function entry
 //  otwarcie stosu na wywolanie pl.qus.wolin.main
-alloc SPF, #0
+alloc SPF, #2
 //  tu podajemy argumenty dla pl.qus.wolin.main
 //  po argumentach dla pl.qus.wolin.main
 call __wolin_pl_qus_wolin_main[uword]
@@ -30,66 +16,57 @@ ret
 // funkcja: fun pl.qus.wolin.main():unit
 // ****************************************
 function __wolin_pl_qus_wolin_main
-alloc SP<__wolin_reg4>, #1 // for while condition
-label __wolin_lab_loopStart_1
-alloc SP<__wolin_reg5>, #2 // LEFT for <
-let SP(0)<__wolin_reg5>[uword*] = *__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword] // przez sprawdzacz typow - simple id from var
-// switchType to:uword by type from pl.qus.wolin.i
-// top type already set: __wolin_reg5: uword* = 0 (LEFT for <) location = null, null
-alloc SP<__wolin_reg6>, #2 // RIGHT for <
-// switchType to:uword by parse literal constant
-let SP(0)<__wolin_reg6>[uword] = #1000[uword] // atomic ex
-// top type already set: __wolin_reg6: uword = 0 (RIGHT for <) location = null, null
-evalless &SP(4)<__wolin_reg4>[bool] = &SP(2)<__wolin_reg5>[uword*], &SP(0)<__wolin_reg6>[uword]
-free SP<__wolin_reg6>, #2 // RIGHT for <
-free SP<__wolin_reg5>, #2 // LEFT for <
-// top type already set: __wolin_reg4: bool = 0 (for while condition) location = null, null
-bne SP(0)<__wolin_reg4>[bool] = #1[bool], __wolin_lab_loopEnd_1<label_po_if>[uword]
+alloc SP<__wolin_reg1>, #1 // for declaration vala=4
+alloc SP<__wolin_reg2>, #1 // for var pl.qus.wolin.main..a init expression
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg2>[ubyte] = #4[ubyte] // atomic ex
+// top type already set: __wolin_reg2: ubyte = 0 (for var pl.qus.wolin.main..a init expression) location = null, null
+let SPF(1)<pl.qus.wolin.main..a>[ubyte] = SP(0)<__wolin_reg2>[ubyte] // podstawic wynik inicjalizacji expression do zmiennej pl.qus.wolin.main..a
+free SP<__wolin_reg2>, #1 // for var pl.qus.wolin.main..a init expression
+// top type already set: __wolin_reg1: ubyte = 0 (for declaration vala=4) location = null, null
+free SP<__wolin_reg1>, #1 // for declaration vala=4
+alloc SP<__wolin_reg3>, #1 // for declaration valb=8
+alloc SP<__wolin_reg4>, #1 // for var pl.qus.wolin.main..b init expression
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg4>[ubyte] = #8[ubyte] // atomic ex
+// top type already set: __wolin_reg4: ubyte = 0 (for var pl.qus.wolin.main..b init expression) location = null, null
+let SPF(0)<pl.qus.wolin.main..b>[ubyte] = SP(0)<__wolin_reg4>[ubyte] // podstawic wynik inicjalizacji expression do zmiennej pl.qus.wolin.main..b
+free SP<__wolin_reg4>, #1 // for var pl.qus.wolin.main..b init expression
+// top type already set: __wolin_reg3: ubyte = 0 (for declaration valb=8) location = null, null
+free SP<__wolin_reg3>, #1 // for declaration valb=8
 // 
 // == ASSIGNMENT PUSH =======================================
 // 
 // == ASSIGNMENT LEFT =======================================
-alloc SP<__wolin_reg9>, #2 // ASSIGNMENT target
-// (do assignLeftSideVar przypisano __wolin_reg9: ubyte* = 0 (ASSIGNMENT target) location = null, null)
-alloc SP<__wolin_reg10>, #2 // arr_deref
-//  LEWA strona array access, czyli co to za zmienna
-let SP(0)<__wolin_reg10>[ubyte*] = #1024[uword] // simple id - fixed array var
-// switchType to:ubyte* by type from pl.qus.wolin.screen
-//  PRAWA strona array access, czyli indeks w nawiasach
-alloc SP<__wolin_reg11>, #2 // For calculating index
-let SP(0)<__wolin_reg11>[uword] = *__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword] // przez sprawdzacz typow - operator ++
-add __wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword] = __wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword], #1[uword] // simple id
-// switchType to:uword by ++ operator
-// FORCE TOP: __wolin_reg11: uword = 0 (For calculating index) location = null, null -> uword
-add SP(2)<__wolin_reg10>[ubyte*] = SP(2)<__wolin_reg10>[ubyte*], &SP(0)<__wolin_reg11>[uword] // long index, single byte per element array (tutaj)
-free SP<__wolin_reg11>, #2 // For calculating index
-// **ARRAY Changing current type to prevReg type __wolin_reg10: ubyte* = 0 (arr_deref) location = null, null
-//  after index
-// dereference value at topRegister
-//  kod obsługi tablicy
-//  non-fast array, changing top reg to ptr
-let SP(2)<__wolin_reg9>[ubyte*] = SP(0)<__wolin_reg10>[ubyte*] // przez sprawdzacz typow - non-fast array
-free SP<__wolin_reg10>, #2 // arr_deref
-// top type already set: __wolin_reg9: ubyte* = 0 (ASSIGNMENT target) location = null, null
+alloc SP<__wolin_reg6>, #2 // ASSIGNMENT target
+// (do assignLeftSideVar przypisano __wolin_reg6: ubyte* = 0 (ASSIGNMENT target) location = null, null)
+let SP(0)<__wolin_reg6>[ubyte*] = *53280[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.border
+// top type already set: __wolin_reg6: ubyte* = 0 (ASSIGNMENT target) location = null, null
 // == ASSIGNMENT RIGHT =======================================
-alloc SP<__wolin_reg12>, #2 // ASSIGNMENT value
-// (do assignRightSideFinalVar przypisano __wolin_reg12: ubyte* = 0 (ASSIGNMENT value) location = null, null)
-let SP(0)<__wolin_reg12>[ubyte*] = *__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte] // przez sprawdzacz typow - operator ++
-add __wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte] = __wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte], #1[ubyte] // simple id
-// switchType to:ubyte by ++ operator
-let &SP(2)<__wolin_reg9>[ubyte*] = &SP(0)<__wolin_reg12>[ubyte*] // przez sprawdzacz typow - process assignment
-free SP<__wolin_reg12>, #2 // ASSIGNMENT value, type = ubyte*
-free SP<__wolin_reg9>, #2 // ASSIGNMENT target
+alloc SP<__wolin_reg7>, #2 // ASSIGNMENT value
+// (do assignRightSideFinalVar 1 przypisano __wolin_reg7: ubyte* = 0 (ASSIGNMENT value) location = null, null)
+alloc SP<__wolin_reg8>, #2 // LEFT adding operator
+let SP(0)<__wolin_reg8>[ubyte*] = *SPF(1)<pl.qus.wolin.main..a>[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.main..a
+// top type already set: __wolin_reg8: ubyte* = 0 (LEFT adding operator) location = null, null
+alloc SP<__wolin_reg9>, #2 // RIGHT adding operator
+let SP(0)<__wolin_reg9>[ubyte*] = *SPF(0)<pl.qus.wolin.main..b>[ubyte] // przez sprawdzacz typow - simple id from var
+// switchType to:ubyte by type from pl.qus.wolin.main..b
+// top type already set: __wolin_reg9: ubyte* = 0 (RIGHT adding operator) location = null, null
+add &SP(4)<__wolin_reg7>[ubyte*] = &SP(2)<__wolin_reg8>[ubyte*], &SP(0)<__wolin_reg9>[ubyte*]
+free SP<__wolin_reg9>, #2 // RIGHT adding operator
+free SP<__wolin_reg8>, #2 // LEFT adding operator
+// top type already set: __wolin_reg7: ubyte* = 0 (ASSIGNMENT value) location = null, null
+let &SP(2)<__wolin_reg6>[ubyte*] = &SP(0)<__wolin_reg7>[ubyte*] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg7>, #2 // ASSIGNMENT value, type = ubyte*
+free SP<__wolin_reg6>, #2 // ASSIGNMENT target
 // == ASSIGNMENT END =======================================
 // == ASSIGNMENT POP =======================================
 // 
 // switchType to:unit by assignment
-// top type already set: __wolin_reg8: unit = 65535 (for expression) location = null, null
-goto __wolin_lab_loopStart_1[uword]
-label __wolin_lab_loopEnd_1
-free SP<__wolin_reg4>, #1 // for while condition
-// top type already set: __wolin_reg3: unit = 65535 (for expression) location = null, null
-// caller ma obowiązek zwolnoć wartość zwrotną z SPF!!!
+// top type already set: __wolin_reg5: unit = 65535 (for expression) location = null, null
+free SPF<pl.qus.wolin.main.__fnargs>, #2 // free fn arguments and locals for pl.qus.wolin.main
 // freeing call stack
 // return from function body
 ret
@@ -104,7 +81,3 @@ ret
 // ****************************************
 // STATIC SPACE
 // ****************************************
-label __wolin_pl_qus_wolin_i
-alloc 0[uword]  // pl.qus.wolin.i
-label __wolin_pl_qus_wolin_chr
-alloc 0[ubyte]  // pl.qus.wolin.chr

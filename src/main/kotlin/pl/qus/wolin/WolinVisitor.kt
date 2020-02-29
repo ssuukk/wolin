@@ -266,10 +266,10 @@ class WolinVisitor(
                 visitConjunction(it) // conjunction = and*
             }
         else {
-            processTypePreservingOp(
+            processTypeChangingOp(
                 { visitConjunction(ctx.conjunction(0)) },
                 { visitConjunction(ctx.conjunction(1)) },
-                simpleResultFunction("or", Typ.bool),
+                simpleResultFunction2("or", Typ.bool),
                 "or operation"
             )
         }
@@ -283,10 +283,10 @@ class WolinVisitor(
                 visitEqualityComparison(it)
             }
         else {
-            processTypePreservingOp(
+            processTypeChangingOp(
                 { visitEqualityComparison(ctx.equalityComparison(0)) },
                 { visitEqualityComparison(ctx.equalityComparison(1)) },
-                simpleResultFunction("and", Typ.bool),
+                simpleResultFunction2("and", Typ.bool),
                 "and operation"
             )
         }
@@ -479,12 +479,11 @@ class WolinVisitor(
     override fun visitAdditiveExpression(ctx: KotlinParser.AdditiveExpressionContext): WolinStateObject {
         when {
             ctx.additiveOperator().size > 0 -> {
-
                 try {
-                    processTypePreservingOp(
+                    processTypeChangingOp(
                         { visitMultiplicativeExpression(ctx.multiplicativeExpression(0)) },
                         { visitMultiplicativeExpression(ctx.multiplicativeExpression(1)) },
-                        simpleResultFunction("add"),
+                        simpleResultFunction2("add", null),
                         "adding operator"
                     )
                 } catch (ex: RegTypeMismatchException) {
@@ -510,26 +509,26 @@ class WolinVisitor(
                 val op = ctx.multiplicativeOperation(0)
                 when {
                     op?.MULT() != null -> {
-                        processTypePreservingOp(
+                        processTypeChangingOp(
                             { visitPrefixUnaryExpression(ctx.typeRHS(0).prefixUnaryExpression(0)) },
                             { visitPrefixUnaryExpression(ctx.typeRHS(1).prefixUnaryExpression(0)) },
-                            simpleResultFunction("mul"),
+                            simpleResultFunction2("mul", null),
                             "multiplication"
                         )
                     }
                     op?.DIV() != null -> {
-                        processTypePreservingOp(
+                        processTypeChangingOp(
                             { visitPrefixUnaryExpression(ctx.typeRHS(0).prefixUnaryExpression(0)) },
                             { visitPrefixUnaryExpression(ctx.typeRHS(1).prefixUnaryExpression(0)) },
-                            simpleResultFunction("div"),
+                            simpleResultFunction2("div", null),
                             "division"
                         )
                     }
                     op?.MOD() != null -> {
-                        processTypePreservingOp(
+                        processTypeChangingOp(
                             { visitPrefixUnaryExpression(ctx.typeRHS(0).prefixUnaryExpression(0)) },
                             { visitPrefixUnaryExpression(ctx.typeRHS(1).prefixUnaryExpression(0)) },
-                            simpleResultFunction("mod"),
+                            simpleResultFunction2("mod", null),
                             "modulo"
                         )
                     }
@@ -1862,15 +1861,23 @@ class WolinVisitor(
         }
 
         if (ctx.expression() != null) {
-            val zmienna = if (ctx.variableDeclaration().type() != null) {
-                state.createAndRegisterVar(name, ctx.variableDeclaration().type(), ctx, stack)
-            } else
-                state.createAndRegisterVar(name, AllocType.NORMAL, state.currentWolinType, stack)
+            val zmienna =
+                try {
+                    state.findVarInVariablaryWithDescoping(name)
+                } catch (ex: Exception) {
+                    if (ctx.variableDeclaration().type() != null) {
+                        state.createAndRegisterVar(name, ctx.variableDeclaration().type(), ctx, stack)
+                    } else
+                        state.createAndRegisterVar(name, AllocType.NORMAL, state.currentWolinType, stack)
+                }
 
             zmienna.initExpression = ctx.expression()
 
             if (zmienna.fieldType == FieldType.LOCAL && state.pass != Pass.SYMBOLS) {
                 doInitCode(zmienna)
+                if(zmienna.type == Typ.unit)
+                    zmienna.type = state.currentWolinType.copy()
+                println("tu!")
             }
         } else {
             if (ctx.variableDeclaration().type() == null)
@@ -2129,7 +2136,7 @@ class WolinVisitor(
         state.rem("== ASSIGNMENT RIGHT =======================================")
         state.assignStack.assignRightSideFinalVar = state.allocReg("ASSIGNMENT value")
         try {
-            state.rem("(do assignRightSideFinalVar przypisano ${state.assignStack.assignRightSideFinalVar})")
+            state.rem("(do assignRightSideFinalVar 1 przypisano ${state.assignStack.assignRightSideFinalVar})")
         } catch (ex: UninitializedPropertyAccessException) {
         }
 
@@ -2197,7 +2204,7 @@ class WolinVisitor(
         state.rem("== ASSIGNMENT RIGHT =======================================")
         state.assignStack.assignRightSideFinalVar = state.allocReg("ASSIGNMENT value")
         try {
-            state.rem("(do assignRightSideFinalVar przypisano ${state.assignStack.assignRightSideFinalVar})")
+            state.rem("(do assignRightSideFinalVar 2 przypisano ${state.assignStack.assignRightSideFinalVar})")
         } catch (ex: UninitializedPropertyAccessException) {
         }
 
@@ -2381,6 +2388,22 @@ class WolinVisitor(
         state.inferTopOperType()
     }
 
+
+    fun simpleResultFunction2(op: String, ret: Typ?): (Zmienna, Zmienna, Zmienna) -> Typ {
+        return { akt, left, right ->
+
+            state.code(
+                "$op ${state.varToAsm(akt, RegOper.AMPRESAND)} = ${state.varToAsm(
+                    left,
+                    RegOper.AMPRESAND
+                )}, ${state.varToAsm(
+                    right, RegOper.AMPRESAND
+                )}"
+            )
+
+            ret ?: left.type
+        }
+    }
 
     fun simpleResultFunction(op: String, ret: Typ): (Zmienna, Zmienna) -> Typ {
         return { left, right ->
