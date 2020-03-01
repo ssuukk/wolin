@@ -224,18 +224,40 @@ ret
                 if (current is PseudoAsmParser.LiniaContext) {
 
                     val targetOps = try { current.target()[0].operand().referencer().map { it.text } } catch (ex: IndexOutOfBoundsException) { null }
-                    val arg1 = try { current.arg()[0].operand().referencer().map { it.text } } catch (ex: IndexOutOfBoundsException) { null }
-                    val arg2 = try { current.arg()[1].operand().referencer().map { it.text } } catch (ex: IndexOutOfBoundsException) { null }
+                    val arg0Ops = try { current.arg()[0].operand().referencer().map { it.text } } catch (ex: IndexOutOfBoundsException) { null }
+                    val arg1Ops = try { current.arg()[1].operand().referencer().map { it.text } } catch (ex: IndexOutOfBoundsException) { null }
+
+                    if(targetOps?.contains("&") == true) {
+                        val typeRef=current.target()[0].operand().typeName()[0].referencer()
+                        if(typeRef.size == 0)
+                            current.target()[0].operand().children.removeAll { it.text == "&" }
+                    }
+
+                    if(arg0Ops?.contains("&") == true) {
+                        val typeRef=current.arg()[0].operand().typeName()[0].referencer()
+                        if(typeRef.size == 0)
+                            current.arg()[0].operand().children.removeAll { it.text == "&" }
+                    }
+
+                    if(arg1Ops?.contains("&") == true) {
+                        val typeRef=current.arg()[1].operand().typeName()[0].referencer()
+                        if(typeRef.size == 0)
+                            current.arg()[1].operand().children.removeAll { it.text == "&" }
+                    }
+
+
+
+
 
                     if(targetOps?.contains("*") == true && targetOps?.contains("&")) {
                         current.target()[0].operand().children.removeAll { it.text == "&" || it.text == "*" }
                     }
 
-                    if(arg1?.contains("*") == true && arg1?.contains("&")) {
+                    if(arg0Ops?.contains("*") == true && arg0Ops?.contains("&")) {
                         current.arg()[0].operand().children.removeAll { it.text == "&" || it.text == "*" }
                     }
 
-                    if(arg2?.contains("*") == true && arg2?.contains("&")) {
+                    if(arg1Ops?.contains("*") == true && arg1Ops?.contains("&")) {
                         current.arg()[1].operand().children.removeAll { it.text == "&" || it.text == "*" }
                     }
 

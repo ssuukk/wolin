@@ -91,6 +91,13 @@ __wolin_pl_qus_wolin_main:
 
     dex
 
+; let53280[ubyte]=SP(0)<__wolin_reg7>[ubyte]
+
+
+    lda 0,x
+    sta 53280
+
+
 ; freeSP<__wolin_reg7>,#1
 
     inx
