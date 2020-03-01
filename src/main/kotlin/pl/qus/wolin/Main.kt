@@ -459,6 +459,7 @@ Optumalizacja operatorów:
         //visitor.markReplacablePointerTargets(asmContext)
         //visitor.removeAndShiftTargets(asmContext)
 
+        visitor.sanitizeDerefs(asmContext)
         visitor.consolidateAllocs(asmContext)
 
         outStream.use {

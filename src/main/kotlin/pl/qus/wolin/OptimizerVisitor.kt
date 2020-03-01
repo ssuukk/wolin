@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.antlr.v4.runtime.tree.TerminalNodeImpl
+import java.lang.IndexOutOfBoundsException
 import java.util.*
 import kotlin.math.abs
 
@@ -212,6 +213,35 @@ ret
 
 
          */
+    }
+
+    fun sanitizeDerefs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
+        println("== Consolidating subsequent alloc/free ==")
+
+        ctx.children.iterator().let { linieIterator ->
+            while (linieIterator.hasNext()) {
+                val current = linieIterator.next()
+                if (current is PseudoAsmParser.LiniaContext) {
+
+                    val targetOps = try { current.target()[0].operand().referencer().map { it.text } } catch (ex: IndexOutOfBoundsException) { null }
+                    val arg1 = try { current.arg()[0].operand().referencer().map { it.text } } catch (ex: IndexOutOfBoundsException) { null }
+                    val arg2 = try { current.arg()[1].operand().referencer().map { it.text } } catch (ex: IndexOutOfBoundsException) { null }
+
+                    if(targetOps?.contains("*") == true && targetOps?.contains("&")) {
+                        current.target()[0].operand().children.removeAll { it.text == "&" || it.text == "*" }
+                    }
+
+                    if(arg1?.contains("*") == true && arg1?.contains("&")) {
+                        current.arg()[0].operand().children.removeAll { it.text == "&" || it.text == "*" }
+                    }
+
+                    if(arg2?.contains("*") == true && arg2?.contains("&")) {
+                        current.arg()[1].operand().children.removeAll { it.text == "&" || it.text == "*" }
+                    }
+
+                }
+            }
+        }
     }
 
     fun consolidateAllocs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
@@ -728,10 +758,6 @@ ret
                     }
                 } else if (state.insideOptimizedReg == nr && target?.numer == nr) {
                     // sprawdzić, czy jest to proste podstawienie, jeśli nie - ustawić redundant na false
-
-                    if(nr == 7) {
-                        println("tu")
-                    }
 
                     when {
                         targetRef == "&" && instrukcja == "let" -> {
