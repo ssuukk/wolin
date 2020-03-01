@@ -341,6 +341,66 @@ free SPF<pl.qus.wolin.allocMem.__returnValue>, #2
 
 
 
+
+    /*
+
+
+    fun main() {
+        val a = 4
+        val b = 8
+
+        border = a+b
+    }
+
+function __wolin_pl_qus_wolin_main
+let SPF(1)<pl.qus.wolin.main..a>[ubyte] = #4[ubyte]
+let SPF(0)<pl.qus.wolin.main..b>[ubyte] = #8[ubyte]
+alloc SP<__wolin_reg6>, #2
+let SP(0)<__wolin_reg6>[ubyte*] = *53280[ubyte]
+alloc SP<__wolin_reg7>, #1
+add &SP(0)<__wolin_reg7>[ubyte] = &*SPF(1)<pl.qus.wolin.main..a>[ubyte], &*SPF(0)<pl.qus.wolin.main..b>[ubyte]
+let &SP(1)<__wolin_reg6>[ubyte*] = &SP(0)<__wolin_reg7>[ubyte]
+free SP<__wolin_reg7>, #3
+free SPF<pl.qus.wolin.main.__fnargs>, #2
+ret
+
+reg6 - jedno podstawienie, a potem deref, więc:
+
+function __wolin_pl_qus_wolin_main
+let SPF(1)<pl.qus.wolin.main..a>[ubyte] = #4[ubyte]
+let SPF(0)<pl.qus.wolin.main..b>[ubyte] = #8[ubyte]
+alloc SP<__wolin_reg7>, #1
+add &SP(0)<__wolin_reg7>[ubyte] = &*SPF(1)<pl.qus.wolin.main..a>[ubyte], &*SPF(0)<pl.qus.wolin.main..b>[ubyte]
+let &53270[ubyte*] = &SP(0)<__wolin_reg7>[ubyte]
+free SP<__wolin_reg7>, #3
+free SPF<pl.qus.wolin.main.__fnargs>, #2
+ret
+
+sprawdzamy, czy któryś z podstawianych rejestrów jest targetem innej operacji, tutaj reg7
+
+function __wolin_pl_qus_wolin_main
+let SPF(1)<pl.qus.wolin.main..a>[ubyte] = #4[ubyte]
+let SPF(0)<pl.qus.wolin.main..b>[ubyte] = #8[ubyte]
+add &&53270[ubyte*] = &*SPF(1)<pl.qus.wolin.main..a>[ubyte], &*SPF(0)<pl.qus.wolin.main..b>[ubyte]
+free SPF<pl.qus.wolin.main.__fnargs>, #2
+ret
+
+skoro a i b są val:
+
+function __wolin_pl_qus_wolin_main
+add &&53270[ubyte*] = &*#4, &*#8
+free SPF<pl.qus.wolin.main.__fnargs>, #2
+ret
+
+
+
+Optumalizacja operatorów:
+
+
+
+     */
+
+
     @JvmStatic
     fun main(args: Array<String>) {
 // gradlew generateGrammarSource

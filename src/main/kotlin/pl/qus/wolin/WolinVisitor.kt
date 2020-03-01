@@ -2401,7 +2401,7 @@ class WolinVisitor(
                 )}"
             )
 
-            ret ?: left.type
+            ret ?: left.type.copy().apply { pointer = false }
         }
     }
 

@@ -734,9 +734,9 @@ ret
                     }
 
                     when {
-//                        targetRef == "&" -> {
-//                            // this is a dereference? ignore
-//                        }
+                        targetRef == "&" && instrukcja == "let" -> {
+                            // this is a dereference? ignore
+                        }
                         nonAssignOpcodes.contains(instrukcja) -> {
                             // this is a non-assignment opcode (bne, beq)? ignore
                         }

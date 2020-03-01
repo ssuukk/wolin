@@ -44,8 +44,8 @@ let SP(0)<__wolin_reg6>[ubyte*] = *53280[ubyte] // przez sprawdzacz typow - simp
 // switchType to:ubyte by type from pl.qus.wolin.border
 // top type already set: __wolin_reg6: ubyte* = 0 (ASSIGNMENT target) location = null, null
 // == ASSIGNMENT RIGHT =======================================
-alloc SP<__wolin_reg7>, #2 // ASSIGNMENT value
-// (do assignRightSideFinalVar 1 przypisano __wolin_reg7: ubyte* = 0 (ASSIGNMENT value) location = null, null)
+alloc SP<__wolin_reg7>, #1 // ASSIGNMENT value
+// (do assignRightSideFinalVar 1 przypisano __wolin_reg7: ubyte = 0 (ASSIGNMENT value) location = null, null)
 alloc SP<__wolin_reg8>, #2 // LEFT adding operator
 let SP(0)<__wolin_reg8>[ubyte*] = *SPF(1)<pl.qus.wolin.main..a>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.main..a
@@ -54,12 +54,12 @@ alloc SP<__wolin_reg9>, #2 // RIGHT adding operator
 let SP(0)<__wolin_reg9>[ubyte*] = *SPF(0)<pl.qus.wolin.main..b>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.main..b
 // top type already set: __wolin_reg9: ubyte* = 0 (RIGHT adding operator) location = null, null
-add &SP(4)<__wolin_reg7>[ubyte*] = &SP(2)<__wolin_reg8>[ubyte*], &SP(0)<__wolin_reg9>[ubyte*]
+add &SP(4)<__wolin_reg7>[ubyte] = &SP(2)<__wolin_reg8>[ubyte*], &SP(0)<__wolin_reg9>[ubyte*]
 free SP<__wolin_reg9>, #2 // RIGHT adding operator
 free SP<__wolin_reg8>, #2 // LEFT adding operator
-// top type already set: __wolin_reg7: ubyte* = 0 (ASSIGNMENT value) location = null, null
-let &SP(2)<__wolin_reg6>[ubyte*] = &SP(0)<__wolin_reg7>[ubyte*] // przez sprawdzacz typow - process assignment
-free SP<__wolin_reg7>, #2 // ASSIGNMENT value, type = ubyte*
+// top type already set: __wolin_reg7: ubyte = 0 (ASSIGNMENT value) location = null, null
+let &SP(1)<__wolin_reg6>[ubyte*] = &SP(0)<__wolin_reg7>[ubyte] // przez sprawdzacz typow - process assignment
+free SP<__wolin_reg7>, #1 // ASSIGNMENT value, type = ubyte
 free SP<__wolin_reg6>, #2 // ASSIGNMENT target
 // == ASSIGNMENT END =======================================
 // == ASSIGNMENT POP =======================================

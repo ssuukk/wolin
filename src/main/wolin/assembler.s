@@ -87,39 +87,12 @@ __wolin_pl_qus_wolin_main:
     lda #8
     sta (__wolin_spf),y
 
-; allocSP<__wolin_reg6>,#2
-
-
-    dex
-    dex
-
-; letSP(0)<__wolin_reg6>[ubyte*]=*53280[ubyte]
-
-
-    lda #<53280
-    sta 0,x
-    lda #>53280
-    sta 0+1,x
-
-; allocSP<__wolin_reg7>,#2
-
+; allocSP<__wolin_reg7>,#1
 
     dex
-    dex
 
-; let&SP(2)<__wolin_reg6>[ubyte*]=&SP(0)<__wolin_reg7>[ubyte*]
+; freeSP<__wolin_reg7>,#1
 
-
-    lda (0,x)
-    sta (2,x)
-
-
-; freeSP<__wolin_reg7>,#4
-
-
-    inx
-    inx
-    inx
     inx
 
 ; freeSPF<pl.qus.wolin.main.__fnargs>,#2
