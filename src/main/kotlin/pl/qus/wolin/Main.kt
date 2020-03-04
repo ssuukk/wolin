@@ -456,8 +456,16 @@ Optumalizacja operatorów:
         // usuwa oflagowane rejestry
         visitor.removeAndShiftArgs(asmContext)
 
+        visitor.optimizeReverseAssigns(asmContext)
+        visitor.replaceSingleAssignmentRegWithItsValue(asmContext)
+        visitor.markRegIfStillUsed(asmContext)
+        visitor.removeAndShiftArgs(asmContext)
+
+
+
         //visitor.markReplacablePointerTargets(asmContext)
         //visitor.removeAndShiftTargets(asmContext)
+
 
         visitor.sanitizeDerefs(asmContext)
         visitor.consolidateAllocs(asmContext)

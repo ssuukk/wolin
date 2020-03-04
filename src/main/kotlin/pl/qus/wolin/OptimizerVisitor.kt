@@ -141,10 +141,6 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
         val pointerRegs = registers
             .filter { it.value.firstAssignIsPointer() }
 
-//        val pointerRegs = registers
-//            .filter { !it.value.canBeRemoved && it.value.firstAssignIsPointer() }
-//            .filter { extractStackType(it.value.argContext?.operand()!!) != "SPF" }
-
         registers.forEach { it.value.canBeRemoved = false }
         pointerRegs.forEach {
             it.value.canBeRemoved = true
@@ -190,29 +186,48 @@ free SP<__wolin_reg10>, #2 <-----------------
     }
 
 
-    fun optimizeReturns() {
+    fun optimizeReverseAssigns(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         /*
-label __wolin_pl_qus_wolin_suma
-alloc SP<__wolin_reg3>, #2
-let SP(0)<__wolin_reg3>[ubyte*] = *SPF(1)<pl.qus.wolin.suma.a>[ubyte]
-add &SP(0)<__wolin_reg3>[ubyte*] = &SP(0)<__wolin_reg3>[ubyte*], SPF(0)<pl.qus.wolin.suma.b>[ubyte]
-let SPF(2)<returnValue>[ubyte] = SP(0)<__wolin_reg3>[ubyte*]
-free SP<__wolin_reg3>, #2
-free SPF, #2
-ret
+Czyli
 
-1. sprawdzamy, co jest podstawiane do <returnValue> -- reg3
+op A = *
+let B = A
 
-2. zastępujemy wszystkie wystąpienia reg3 przez returnValue i usuwamy to podstawienie:
+daje
 
-label __wolin_pl_qus_wolin_suma
-let SPF(2)<returnValue>[ubyte] = *SPF(1)<pl.qus.wolin.suma.a>[ubyte]
-add &SP(0)<__wolin_reg3>[ubyte*] = SPF(2)<returnValue>[ubyte], SPF(0)<pl.qus.wolin.suma.b>[ubyte]
-free SPF, #2
-ret
+zastąpić wszystkie wuystąpienia A przez B
+op B = *
 
-
+1. znaleźć targety
+2. zobaczyć, czy po nich jest podstawienie coś = target
          */
+
+        val targetsToBeReplaced = mutableMapOf<Int, Register>()
+        println("== Optimizing reverse values ==")
+        ctx.children.iterator().let { linieIterator ->
+            while (linieIterator.hasNext()) {
+                val current = linieIterator.next()
+                if (current is PseudoAsmParser.LiniaContext) {
+
+                    val target = extractTarget(current)
+                    val source = extractReg(current, 0)
+                    if(target != null)
+                        targetsToBeReplaced[target.numer] = target
+
+                    val instrukcja = current.instrukcja().simpleIdentifier().text
+
+                    if(instrukcja == "let" && source != null && targetsToBeReplaced[source.numer] != null) {
+                        targetsToBeReplaced[source.numer]!!.targetContext = current.target()[0]
+                    }
+                }
+            }
+        }
+
+        targetsToBeReplaced.filter { it.value.targetContext != null }.map{ it.value }.forEach {
+            println("Mamy reverse-parę: zastąpić ${it.name} tym: ${it.targetContext!!.text}")
+            registers[it.numer]!!.canBeRemoved = true
+            registers[it.numer]!!.argContext = null
+        }
     }
 
     fun sanitizeDerefs(ctx: PseudoAsmParser.PseudoAsmFileContext) {
@@ -249,18 +264,17 @@ ret
 
 
 
-                    if(targetOps?.contains("*") == true && targetOps?.contains("&")) {
+                    if(targetOps?.contains("*") == true && targetOps.contains("&")) {
                         current.target()[0].operand().children.removeAll { it.text == "&" || it.text == "*" }
                     }
 
-                    if(arg0Ops?.contains("*") == true && arg0Ops?.contains("&")) {
+                    if(arg0Ops?.contains("*") == true && arg0Ops.contains("&")) {
                         current.arg()[0].operand().children.removeAll { it.text == "&" || it.text == "*" }
                     }
 
-                    if(arg1Ops?.contains("*") == true && arg1Ops?.contains("&")) {
+                    if(arg1Ops?.contains("*") == true && arg1Ops.contains("&")) {
                         current.arg()[1].operand().children.removeAll { it.text == "&" || it.text == "*" }
                     }
-
                 }
             }
         }
@@ -460,7 +474,7 @@ ret
                     if (target?.numer == regNr && (targetReferencer == "&" /*|| (targetReferencer.isNullOrBlank() && targetTypeReferencer == "*")*/)) {
                         println("\nMogę zastąpić tu pointer:${linia.text}")
                         try {
-                            val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!.argContext!!)
+                            val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!)
 
                             val kopia = PseudoAsmParser.ArgContext(
                                 correctedTarget.ruleContext as ParserRuleContext,
@@ -479,7 +493,7 @@ ret
                     if (firstArg?.numer == regNr && a1Referencer == "&") {
                         println("\nMogę zastąpić tu pierwszy arg:${linia.text}")
                         try {
-                            val corrected1arg = replaceInArg(linia.arg(0), registers[regNr]!!.argContext!!)
+                            val corrected1arg = replaceInArg(linia.arg(0), registers[regNr]!!)
 
                             val kopia = PseudoAsmParser.ArgContext(
                                 corrected1arg.ruleContext as ParserRuleContext,
@@ -496,7 +510,7 @@ ret
                     if (secondArg?.numer == regNr && a2Referencer == "&") {
                         println("\nMogę zastąpić tu drugi arg:${linia.text}")
                         try {
-                            val corrected1arg = replaceInArg(linia.arg(1), registers[regNr]!!.argContext!!)
+                            val corrected1arg = replaceInArg(linia.arg(1), registers[regNr]!!)
 
                             val kopia = PseudoAsmParser.ArgContext(
                                 corrected1arg.ruleContext as ParserRuleContext,
@@ -586,7 +600,7 @@ ret
                         println("====================================================================")
                         println("oper *replace* = arg, arg\n${linia.text}")
 
-                        val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!.argContext!!)
+                        val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!)
 
                         val kopia = PseudoAsmParser.TargetContext(
                             correctedTarget.ruleContext as ParserRuleContext,
@@ -604,8 +618,8 @@ ret
                     if (firstArg?.numer == regNr) {
                         println("====================================================================")
                         println("oper target = *replace*, arg\n${linia.text}")
-//                        try {
-                        val correctedFirstArg = replaceInArg(linia.arg(0), registers[regNr]!!.argContext!!)
+
+                        val correctedFirstArg = replaceInArg(linia.arg(0), registers[regNr]!!)
 
                         val kopia = PseudoAsmParser.ArgContext(
                             correctedFirstArg.ruleContext as ParserRuleContext,
@@ -617,22 +631,15 @@ ret
 
                         print("${linia.text}")
                         state.replaced = true
-//                        } catch (ex: ReplaceInArgException) {
-//                            println("************ Błąd optymalizacji!")
-//                        }
                     }
                     if (secondArg?.numer == regNr) {
                         println("====================================================================")
                         println("oper target = arg, *replace*\n${linia.text}")
-//                        try {
-                        val correctedSecondArg = replaceInArg(linia.arg(1), registers[regNr]!!.argContext!!)
+                        val correctedSecondArg = replaceInArg(linia.arg(1), registers[regNr]!!)
                         setSecondArg(linia, correctedSecondArg)
 
                         print("${linia.text}")
                         state.replaced = true
-//                        } catch (ex: java.lang.Exception) {
-//                            println("************ Błąd optymalizacji!")
-//                        }
                     }
                 }
             }
@@ -641,59 +648,22 @@ ret
 
     private fun replaceInArg(
         intoThisField: PseudoAsmParser.ArgContext,
-        thisField: PseudoAsmParser.ArgContext
+        thisarg: Register
     ): PseudoAsmParser.ArgContext {
-
-        //TODO - ponieważ nie upraszczam referencji od razu, potrzebny tu mechanizm, który je będzie kumulował,
-        // bo w tej chwili, jeżeli wstawię *xx to pola &xx, to & zostanie nadpisany *, a potrzebuje zostawić je oba
-
-        val s = thisField.text
-        val d = intoThisField.text
-        val sourceTypeRef = thisField.operand().typeName().firstOrNull()?.referencer()?.firstOrNull()?.text
-
-/*
-        if (intoThisField.operand().referencer(0)?.text == "&" && thisField.operand().referencer(0)?.text == "*") {
-            // &(destination) a source jest *X -> X
-            ((thisField.children[0] as PseudoAsmParser.OperandContext).children[0] as PseudoAsmParser.ReferencerContext).children.clear()
-            println("drop pointer &*")
-        }
-        else if(intoThisField.operand().referencer(0)?.text == "&" &&  sourceTypeRef == "*") {
-            println("dereferencing pointer")
-        }
-        else if (intoThisField.operand().referencer(0)?.text == "&" && thisField.operand().referencer(0)?.text == null) {
-            // &(destination) a source jest X -> błąd
-
-            // dereferencja nie-pointera, ok - po prostu wstawiamy wartość
-
-            val a = thisField.operand().value().immediate().text
-
-//            throw ReplaceInArgException("Can't insert $s into &(.)")
-//            ((source.children[0] as PseudoAsmParser.OperandContext).children[0] as PseudoAsmParser.ReferencerContext).children.clear()
-//            println("drop pointer &*")
-        } else if (intoThisField.operand().referencer(0)?.text == "*" && thisField.operand().referencer(0)?.text == "*") {
-            // *(destination) a source jest *X -> błąd
-            throw ReplaceInArgException("Can't insert $s* into *(.)")
-        } else if (intoThisField.operand().referencer(0)?.text == "*" && thisField.operand().referencer(0)?.text == null) {
-            // *(destination) a source jest X -> *X
-            //source.operand().referencer().add(PseudoAsmParser.ReferencerContext())
-            println("pointer")
-        } else {
-            println("straight replace")
-            // else -> X
-        }
-*/
+        val thisField = thisarg.argContext!!
+        val thisFieldOperand = thisarg.argContext?.operand() ?: thisarg.targetContext?.operand()!!
 
         val intoReference = intoThisField.operand().referencer()
-        val thisReference = thisField.operand().referencer()
+        val thisReference = thisFieldOperand.referencer()
 
         val referenceryRazem = intoReference + thisReference
-        if (thisField.operand().children[0] is PseudoAsmParser.ReferencerContext) {
+        if (thisFieldOperand.children[0] is PseudoAsmParser.ReferencerContext) {
             // usunąć pierwszy kontekst referencera, zastąpić go referenceryRazem, dopisać resztę
-            val stareDzieci = thisField.operand().children.drop(1)
-            thisField.operand().children = referenceryRazem + stareDzieci
+            val stareDzieci = thisFieldOperand.children.drop(1)
+            thisFieldOperand.children = referenceryRazem + stareDzieci
         } else {
-            val stareDzieci = thisField.operand().children
-            thisField.operand().children = referenceryRazem + stareDzieci
+            val stareDzieci = thisFieldOperand.children
+            thisFieldOperand.children = referenceryRazem + stareDzieci
         }
 
         return thisField
@@ -702,54 +672,26 @@ ret
 
     private fun replaceInTarget(
         intoThisField: PseudoAsmParser.TargetContext,
-        thisField: PseudoAsmParser.ArgContext
+        thisarg: Register
     ): PseudoAsmParser.TargetContext {
-
-        //TODO - ponieważ nie upraszczam referencji od razu, potrzebny tu mechanizm, który je będzie kumulował,
-        // bo w tej chwili, jeżeli wstawię *xx to pola &xx, to & zostanie nadpisany *, a potrzebuje zostawić je oba
-
-/*
-        val s = thisField.text
-        val d = intoThisField.text
-
-
-        if (intoThisField.operand().referencer(0)?.text == "&" && thisField.operand().referencer(0)?.text == "*") {
-            // &(destination) a source jest *X -> X
-            ((thisField.children[0] as PseudoAsmParser.OperandContext).children[0] as PseudoAsmParser.ReferencerContext).children.clear()
-            println("&*")
-        } else if (intoThisField.operand().referencer(0)?.text == "&" && thisField.operand().referencer(0)?.text == null && thisField.operand().typeName().firstOrNull()?.referencer()?.firstOrNull()?.text == null) {
-            //val a = source.operand().typeName().firstOrNull()?.referencer()?.firstOrNull()?.text
-            throw Exception("Can't put plain (${thisField.text}) value into &")
-        } else if (intoThisField.operand().referencer(0)?.text == "*" && thisField.operand().referencer(0)?.text == "*") {
-            // *(destination) a source jest *X -> błąd
-            throw Exception("Can't put pointer value (${thisField.text}) into *")
-        } else if (intoThisField.operand().referencer(0)?.text == "*" && thisField.operand().referencer(0)?.text == null) {
-            // *(destination) a source jest X -> *X
-            //source.operand().referencer().add(PseudoAsmParser.ReferencerContext())
-            println("wskaźnik")
-        } else {
-            println("1:1")
-            // else -> X
-        }
-*/
+        val thisFieldOperand = thisarg.argContext?.operand() ?: thisarg.targetContext?.operand()!!
 
         val intoReference = intoThisField.operand().referencer()
-        val thisReference = thisField.operand().referencer()
+        val thisReference = thisFieldOperand.referencer()
         val zwrotka =
             PseudoAsmParser.TargetContext(intoThisField.ruleContext as ParserRuleContext, intoThisField.invokingState)
 
         val referenceryRazem = intoReference + thisReference
-        if (thisField.operand().children[0] is PseudoAsmParser.ReferencerContext) {
+        if (thisFieldOperand.children[0] is PseudoAsmParser.ReferencerContext) {
             // usunąć pierwszy kontekst referencera, zastąpić go referenceryRazem, dopisać resztę
-            val stareDzieci = thisField.operand().children.drop(1)
-            thisField.operand().children = referenceryRazem + stareDzieci
+            val stareDzieci = thisFieldOperand.children.drop(1)
+            thisFieldOperand.children = referenceryRazem + stareDzieci
         } else {
-            val stareDzieci = thisField.operand().children
-            thisField.operand().children = referenceryRazem + stareDzieci
+            val stareDzieci = thisFieldOperand.children
+            thisFieldOperand.children = referenceryRazem + stareDzieci
         }
 
-
-        zwrotka.children = thisField.children
+        zwrotka.children = thisarg.argContext?.children ?: thisarg.targetContext?.children!!
 
         return zwrotka
     }
@@ -1021,7 +963,7 @@ class Register {
     var wielkość: Int = -1
     var canBeRemoved: Boolean = true // czy naprawdę można go usunąć
     var argContext: PseudoAsmParser.ArgContext? = null // jaką zawiera wartość
-    //var singleAssign: Boolean = true // czy można usunąć
+    var targetContext: PseudoAsmParser.TargetContext? = null // jaką zawiera wartość
     var name: String = ""
 
     override fun toString(): String {
