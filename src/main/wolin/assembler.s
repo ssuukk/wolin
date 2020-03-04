@@ -50,16 +50,9 @@ __wolin_this_ptr := 176
 __wolin_this_ptr_hi := 176+1
 
 
-; allocSPF,#2
+; allocSPF,#0
 
-
-    clc
-    lda __wolin_spf
-    sbc #2
-    sta __wolin_spf
-    bcs :+
-    dec __wolin_spf+1
-:
+ 
 
 ; call__wolin_pl_qus_wolin_main[uword]
 
@@ -69,40 +62,11 @@ __wolin_this_ptr_hi := 176+1
 
     rts
 
-; function__wolin_pl_qus_wolin_main
+; function__wolin_pl_qus_wolin_suma
 
-__wolin_pl_qus_wolin_main:
+__wolin_pl_qus_wolin_suma:
 
-; letSPF(1)<pl.qus.wolin.main..a>[ubyte]=#4[ubyte]
-
-
-    ldy #1
-    lda #4
-    sta (__wolin_spf),y
-
-; letSPF(0)<pl.qus.wolin.main..b>[ubyte]=#8[ubyte]
-
-
-    ldy #0
-    lda #8
-    sta (__wolin_spf),y
-
-; allocSP<__wolin_reg7>,#1
-
-    dex
-
-; let53280[ubyte]=SP(0)<__wolin_reg7>[ubyte]
-
-
-    lda 0,x
-    sta 53280
-
-
-; freeSP<__wolin_reg7>,#1
-
-    inx
-
-; freeSPF<pl.qus.wolin.main.__fnargs>,#2
+; freeSPF<pl.qus.wolin.suma.__fnargs>,#2
 
 
     clc
@@ -112,6 +76,62 @@ __wolin_pl_qus_wolin_main:
     bcc :+
     inc __wolin_spf+1
 :
+
+; ret
+
+    rts
+
+; function__wolin_pl_qus_wolin_main
+
+__wolin_pl_qus_wolin_main:
+
+; allocSPF,#3
+
+
+    clc
+    lda __wolin_spf
+    sbc #3
+    sta __wolin_spf
+    bcs :+
+    dec __wolin_spf+1
+:
+
+; letSPF(1)[ubyte]=#4[ubyte]
+
+
+    ldy #1
+    lda #4
+    sta (__wolin_spf),y
+
+; letSPF(0)[ubyte]=#6[ubyte]
+
+
+    ldy #0
+    lda #6
+    sta (__wolin_spf),y
+
+; call__wolin_pl_qus_wolin_suma[uword]
+
+    jsr __wolin_pl_qus_wolin_suma
+
+; freeSPF<pl.qus.wolin.suma.__returnValue>,#1
+
+
+    clc
+    lda __wolin_spf
+    adc #1
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
+
+; let53280[ubyte]=SPF(0)<pl.qus.wolin.suma.__returnValue>[ubyte]
+
+
+    ldy #0
+    lda (__wolin_spf),y
+    sta 53280
+
 
 ; ret
 

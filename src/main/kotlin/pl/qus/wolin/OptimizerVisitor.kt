@@ -218,6 +218,7 @@ op B = *
 
                     if(instrukcja == "let" && source != null && targetsToBeReplaced[source.numer] != null) {
                         targetsToBeReplaced[source.numer]!!.targetContext = current.target()[0]
+                        linieIterator.remove()
                     }
                 }
             }
@@ -493,7 +494,9 @@ op B = *
                     if (firstArg?.numer == regNr && a1Referencer == "&") {
                         println("\nMogę zastąpić tu pierwszy arg:${linia.text}")
                         try {
-                            val corrected1arg = replaceInArg(linia.arg(0), registers[regNr]!!)
+                            val corrected1argX = replaceInArg(linia.arg(0), registers[regNr]!!)
+
+                            val corrected1arg = corrected1argX.argContext ?: corrected1argX.targetContext!!
 
                             val kopia = PseudoAsmParser.ArgContext(
                                 corrected1arg.ruleContext as ParserRuleContext,
@@ -510,7 +513,8 @@ op B = *
                     if (secondArg?.numer == regNr && a2Referencer == "&") {
                         println("\nMogę zastąpić tu drugi arg:${linia.text}")
                         try {
-                            val corrected1arg = replaceInArg(linia.arg(1), registers[regNr]!!)
+                            val corrected1argX = replaceInArg(linia.arg(1), registers[regNr]!!)
+                            val corrected1arg = corrected1argX.argContext ?: corrected1argX.targetContext!!
 
                             val kopia = PseudoAsmParser.ArgContext(
                                 corrected1arg.ruleContext as ParserRuleContext,
@@ -619,7 +623,8 @@ op B = *
                         println("====================================================================")
                         println("oper target = *replace*, arg\n${linia.text}")
 
-                        val correctedFirstArg = replaceInArg(linia.arg(0), registers[regNr]!!)
+                        val correctedFirstArgX = replaceInArg(linia.arg(0), registers[regNr]!!)
+                        val correctedFirstArg = correctedFirstArgX.argContext ?: correctedFirstArgX.targetContext!!
 
                         val kopia = PseudoAsmParser.ArgContext(
                             correctedFirstArg.ruleContext as ParserRuleContext,
@@ -635,7 +640,9 @@ op B = *
                     if (secondArg?.numer == regNr) {
                         println("====================================================================")
                         println("oper target = arg, *replace*\n${linia.text}")
-                        val correctedSecondArg = replaceInArg(linia.arg(1), registers[regNr]!!)
+                        val correctedSecondArgX = replaceInArg(linia.arg(1), registers[regNr]!!)
+                        val correctedSecondArg = correctedSecondArgX.argContext ?: correctedSecondArgX.targetContext!!
+
                         setSecondArg(linia, correctedSecondArg)
 
                         print("${linia.text}")
@@ -649,8 +656,8 @@ op B = *
     private fun replaceInArg(
         intoThisField: PseudoAsmParser.ArgContext,
         thisarg: Register
-    ): PseudoAsmParser.ArgContext {
-        val thisField = thisarg.argContext!!
+    ): Register {
+        //val thisField = thisarg.argContext!!
         val thisFieldOperand = thisarg.argContext?.operand() ?: thisarg.targetContext?.operand()!!
 
         val intoReference = intoThisField.operand().referencer()
@@ -666,7 +673,7 @@ op B = *
             thisFieldOperand.children = referenceryRazem + stareDzieci
         }
 
-        return thisField
+        return thisarg
     }
 
 
@@ -940,14 +947,14 @@ op B = *
             linia.children[3]
     }
 
-    fun setFirstArg(linia: PseudoAsmParser.LiniaContext, child: PseudoAsmParser.ArgContext) {
+    fun setFirstArg(linia: PseudoAsmParser.LiniaContext, child: ParserRuleContext) {
         if (linia.target().isNotEmpty())
             linia.children[3] = child
         else
             linia.children[1] = child
     }
 
-    fun setSecondArg(linia: PseudoAsmParser.LiniaContext, child: PseudoAsmParser.ArgContext) {
+    fun setSecondArg(linia: PseudoAsmParser.LiniaContext, child: ParserRuleContext) {
         if (linia.target().isNotEmpty())
             linia.children[5] = child
         else

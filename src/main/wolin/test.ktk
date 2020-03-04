@@ -27,9 +27,10 @@ fun main() {
 }
 */
 
-fun main() {
-    val a = 4
-    val b = 8
+fun suma(a: ubyte, b: ubyte): ubyte {
+    return a+b
+}
 
-    border = a+b
+fun main() {
+    border = suma(4,6)
 }
