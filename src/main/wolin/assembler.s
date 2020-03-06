@@ -66,6 +66,23 @@ __wolin_this_ptr_hi := 176+1
 
 __wolin_pl_qus_wolin_suma:
 
+; addSPF(2)<pl.qus.wolin.suma.__returnValue>[ubyte]=SPF(1)<pl.qus.wolin.suma.a>[ubyte],SPF(0)<pl.qus.wolin.suma.b>[ubyte]
+
+	sec
+	lda #10
+	sta 1024
+	lda #20
+	adc 1024
+
+    clc
+    ldy #1
+    lda (__wolin_spf), y
+    ldy #0
+    adc (__wolin_spf), y
+    ldy #2
+    sta (__wolin_spf), y
+
+
 ; freeSPF<pl.qus.wolin.suma.__fnargs>,#2
 
 

@@ -1501,16 +1501,20 @@ class WolinVisitor(
                     visitExpression(ctx.expression())
                 }
 
-                val zwrotka = state.findStackVector(state.callStack, state.currentFunction!!.returnName).second
+                try {
+                    val zwrotka = state.findStackVector(state.callStack, state.currentFunction!!.returnName).second
 
-                val refType = if (zwrotka.type.isPointer)
-                    RegOper.VALUE
-                else
-                    RegOper.AMPRESAND
+                    val refType = if (zwrotka.type.isPointer)
+                        RegOper.VALUE
+                    else
+                        RegOper.AMPRESAND
 
-                checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "jump expression", RegOper.VALUE, refType)
+                    checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "jump expression", RegOper.VALUE, refType)
 
-                state.switchType(state.currentFunction!!.type, "return expression")
+                    state.switchType(state.currentFunction!!.type, "return expression")
+                } catch (ex: VariableNotFound) {
+                    błędzik(ctx, "Unit function ${state.currentFunction?.fullName} has no return type")
+                }
             }
             ctx.THROW() != null -> {
                 if (ctx.expression() != null) {

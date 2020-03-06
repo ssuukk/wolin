@@ -385,7 +385,7 @@ let ?dest[uword] = SP(?src)[ubyte] -> """
 alloc SPF, #0 -> """ """
 
 alloc SPF, #?count -> """
-    clc
+    sec
     lda __wolin_spf
     sbc #{count}
     sta __wolin_spf
@@ -519,7 +519,7 @@ let SPF(?dst)[uword]=?adr[uword] -> """
 alloc SPE, #0 -> """ """
 
 alloc SPE, #?count -> """
-    clc
+    sec
     lda __wolin_spe
     sbc #{count}
     sta __wolin_spe
@@ -1231,6 +1231,16 @@ div SP(?d)[ubyte] = SP(?d)[ubyte], #8 -> """
 div SP(?d)[word] = SP(?dzielna)[word],SP(?dzielnik)[word] -> """  jsr stack_div"""
 
 add SP(?dummya)[?dummyb] = ?dummyc[?dummyd*], #0[?dummye] -> """"""
+
+add SPF(?d)[ubyte] = SPF(?c1)[ubyte],SPF(?c2)[ubyte] -> """
+    clc
+    ldy #{c1}
+    lda (__wolin_spf), y
+    ldy #{c2}
+    adc (__wolin_spf), y
+    ldy #{d}
+    sta (__wolin_spf), y
+"""
 
 add SP(?d)[ubyte*] = ?adr[ubyte*], ?idx[ubyte] -> """
     clc
