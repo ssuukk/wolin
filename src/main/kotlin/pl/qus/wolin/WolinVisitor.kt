@@ -36,8 +36,8 @@ class WolinVisitor(
         state.rem("return from function body")
         when {
             state.currentFunction?.returnAddress != -1 -> state.code("goto ${state.currentFunction?.returnAddress}[uword]")
-            state.currentFunction?.isInterrupt == true -> state.code("reti")
-            else -> state.code("ret")
+            state.currentFunction?.isInterrupt == true -> state.code("endinterrupt")
+            else -> state.code("endfunction")
         }
 
         return state
@@ -1268,6 +1268,7 @@ class WolinVisitor(
     override fun visitWhenExpression(ctx: KotlinParser.WhenExpressionContext): WolinStateObject {
         state.rem("When expression start")
 
+        state.labelCounter++
 
         if (ctx.expression() != null) {
             val resultReg = state.allocReg("for evaluating when top expression")
@@ -1407,6 +1408,8 @@ class WolinVisitor(
 
         val condBoolRes = state.allocReg("condition expression bool result", Typ.bool)
 
+        state.labelCounter++
+
         visitExpression(warunek)
 
         val valueForAssign = state.allocReg("for value when if assigned")
@@ -1424,7 +1427,7 @@ class WolinVisitor(
                 state.rem(" body dla true")
                 visitControlStructureBody(body[0])
                 state.rem(" label po if")
-                state.code("label $elseLabel")
+                state.code("label $elseLabel // miejsce B")
 
             }
             body.size == 2 -> {
@@ -1434,7 +1437,7 @@ class WolinVisitor(
                 state.rem(" body dla true")
                 visitControlStructureBody(body[0])
                 state.code("goto $endIfLabel[uword]")
-                state.code("label $elseLabel")
+                state.code("label $elseLabel // miejsce C")
                 state.rem(" body dla false/else")
                 visitControlStructureBody(body[1])
             }
@@ -1443,7 +1446,8 @@ class WolinVisitor(
             }
         }
 
-        state.code("label $endIfLabel")
+        state.code("label $endIfLabel // miejsce A")
+
 
         if (state.assignStack.isNotEmpty())
             checkTypeAndAddAssignment(
@@ -1509,7 +1513,13 @@ class WolinVisitor(
                     else
                         RegOper.AMPRESAND
 
+                    if(state.currentReg.type.isUnit) {
+                        state.rem("Register ${state.currentReg} wass Unit, forcing in to return type!")
+                        state.currentReg.type = zwrotka.type.copy()
+                    }
                     checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "jump expression", RegOper.VALUE, refType)
+
+                    state.rem("TODO!!! Jump to END of function, before dealloc")
 
                     state.switchType(state.currentFunction!!.type, "return expression")
                 } catch (ex: VariableNotFound) {
@@ -1788,7 +1798,7 @@ class WolinVisitor(
         state.currentFunction = null
 
         state.rem("return from constructor")
-        state.code("ret")
+        state.code("endfunction")
 
         ////////////////////////////////////////
 
@@ -1924,7 +1934,7 @@ class WolinVisitor(
             //state.code("goto ${state.mainFunction!!.labelName}[adr]")
 
             easeyCall(ctx, state.mainFunction!!, null)
-            state.code("ret")
+            state.code("endfunction")
         }
 
         //state.fileScopeSuffix = nazwaPliku
@@ -1956,7 +1966,7 @@ class WolinVisitor(
             state.code("let SPE(2)[ubyte] = SPC[ubyte] // aktualny stos CPU, dwa odejmiemy od niego, jeśli będzie exception")
             state.code("let SPE(3)[ubyte] = SP[ubyte] // aktualny stos wolina")
             state.rem(" TODO - sprawdzić czy jego też trzeba zmniejszyć, bo catch jest wewnątrz allokacji dla statementu!")
-            state.code("ret")
+            state.code("endfunction")
 
             state.code("")
             state.code("label __wolin_throw_exception")
@@ -2108,7 +2118,7 @@ class WolinVisitor(
             state.fnDeclFreeStackAndRet(state.currentFunction!!)
 
             state.rem("return from lambda function")
-            state.code("ret")
+            state.code("endfunction")
 
             state.code("")
 

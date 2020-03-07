@@ -423,6 +423,15 @@ let SPF(?d)[uword] = #?val[uword] -> """
     lda #>{val}
     sta (__wolin_spf),y"""
 
+let SPF(?d)[uword] = #?val[ubyte] -> """
+    ldy #{d}
+    lda #<{val}
+    sta (__wolin_spf),y
+    iny
+    lda #0
+    sta (__wolin_spf),y"""
+
+
 // for function call
 let SPF(?d)[byte] = SP(?s)[byte] -> """
     lda {s},x
@@ -1013,9 +1022,9 @@ float ?label[uword] = ?val[?dummy] -> """
     .fvp {val}
 """
 
-ret -> """    rts"""
+endfunction -> """    rts"""
 
-reti -> """   rti"""
+endinterrupt -> """   rti"""
 
 call ?a[uword] -> """    jsr {a}"""
 
