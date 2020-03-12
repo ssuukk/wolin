@@ -321,7 +321,7 @@ op B = *
                         else
                             "alloc"
 
-                        println("$currentSize + $prevSize = $consolidatedSum")
+                        println("$prevOp $prevSize and $currentOp $currentSize gives $consolidatedOp $consolidatedSum")
 
                         // linia.instrukcja.simpleIdentifier
                         val operandContext =

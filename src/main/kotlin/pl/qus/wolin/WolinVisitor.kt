@@ -61,7 +61,7 @@ class WolinVisitor(
             // ========================================================
             it.blockLevelExpression() != null -> it.blockLevelExpression()?.let {
 
-                state.allocReg("for expression")
+                state.allocReg("for blockLevel expression")
 
                 when {
                     it.expression()?.assignmentOperator()?.size != 0 -> {
@@ -134,7 +134,7 @@ class WolinVisitor(
 
                 state.inferTopOperType()
 
-                state.freeReg("for expression")
+                state.freeReg("for blockLevel expression")
 
                 if (retVal != null) {
                     state.code("let ${state.varToAsm(retVal)} = ${state.currentRegToAsm()} // assign block 'return value' to target variable")
@@ -1209,9 +1209,9 @@ class WolinVisitor(
 
         state.loopCounter++
 
-        val condLabel = labelMaker("loopStart", state.loopCounter)
+        val condLabel = labelMaker("loop_start", state.loopCounter)
 
-        val afterBodyLabel = labelMaker("loopEnd", state.loopCounter)
+        val afterBodyLabel = labelMaker("loop_end", state.loopCounter)
 
         state.allocReg("for while condition", Typ.bool)
 
@@ -1236,9 +1236,9 @@ class WolinVisitor(
 
         state.loopCounter++
 
-        val bodyLabel = labelMaker("loopStart", state.loopCounter)
+        val bodyLabel = labelMaker("loop_start", state.loopCounter)
 
-        val afterBodyLabel = labelMaker("loopEnd", state.loopCounter)
+        val afterBodyLabel = labelMaker("loop_end", state.loopCounter)
 
         state.code("label $bodyLabel")
 
@@ -1518,10 +1518,9 @@ class WolinVisitor(
                         state.currentReg.type = zwrotka.type.copy()
                     }
                     checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "jump expression", RegOper.VALUE, refType)
-
-                    state.rem("TODO!!! Jump to END of function, before dealloc")
-
                     state.switchType(state.currentFunction!!.type, "return expression")
+                    state.freeRegsOnReturn(state.currentFunction!!)
+
                 } catch (ex: VariableNotFound) {
                     błędzik(ctx, "Unit function ${state.currentFunction?.fullName} has no return type")
                 }
@@ -1536,11 +1535,11 @@ class WolinVisitor(
                 state.code("throw SP(0)[uword] // nie martwimy sie o sotsy, bo te odtworzy obsluga wyjatku")
             }
             ctx.BREAK() != null -> {
-                state.code("goto ${labelMaker("loopEnd", state.loopCounter)}[uword]")
+                state.code("goto ${labelMaker("loop_end", state.loopCounter)}[uword]")
                 state.switchType(Typ.unit, "break expression")
             }
             ctx.CONTINUE() != null -> {
-                state.code("goto ${labelMaker("loopStart", state.loopCounter)}[uword]")
+                state.code("goto ${labelMaker("loop_start", state.loopCounter)}[uword]")
                 state.switchType(Typ.unit, "continue expression")
             }
             else -> {
@@ -1652,7 +1651,7 @@ class WolinVisitor(
         }
 
         state.currentFunction = nowaFunkcja
-
+        nowaFunkcja.startReg = state.stackVarCounter
 
         if (state.currentClass != null && state.pass == Pass.SYMBOLS) {
             val thisArg = state.createAndRegisterVar(

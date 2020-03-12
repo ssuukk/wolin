@@ -6,17 +6,14 @@ var i: uword = 0
 
 var chr: ubyte = 0
 
-fun test(wart: ubyte): bool {
-    if(wart > 10)
-        return true
-    else if(wart > 5)
-        return false
-
-    i++
-    return true
+fun test(wart: ubyte) {
+    do {
+        screen[i] = chr
+        i++
+        chr++
+    } while (i<1000)
 }
 
 fun main() {
     test(5)
-    test(10)
 }

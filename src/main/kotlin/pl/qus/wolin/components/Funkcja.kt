@@ -13,6 +13,8 @@ class Funkcja(
 )
 {
 
+    var startReg: Int = -1
+
     var fullReturnType: Zmienna? = null
 
     var returnAddress: Int = -1
