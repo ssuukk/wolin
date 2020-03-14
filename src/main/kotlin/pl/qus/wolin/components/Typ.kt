@@ -44,7 +44,10 @@ data class Typ(
             }
 
             val qualifiedName = state.findQualifiedType(clearName)
-            return Typ(qualifiedName, name.endsWith("?"))
+            return if(qualifiedName == "string")
+                Typ("ubyte", name.endsWith("?"), pointer = false, array = true, shortIndex = true)
+            else
+                Typ(qualifiedName, name.endsWith("?"))
         }
     }
 

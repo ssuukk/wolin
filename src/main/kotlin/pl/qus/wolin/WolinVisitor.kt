@@ -19,6 +19,14 @@ class WolinVisitor(
 ) : KotlinParserBaseVisitor<WolinStateObject>() {
     val state = WolinStateObject(pass)
 
+    val loopStartLabel = "loop_start"
+    val loopEndLabel = "loop_end"
+    val ifStartLabel = "if_start"
+    val ifEndLabel = "if_end"
+    val elseLabel = "else_branch"
+    val whenBranchLabel = "when_branch"
+    val whenEndLabel = "when_end"
+
     override fun visitFunctionBody(ctx: KotlinParser.FunctionBodyContext): WolinStateObject {
         if (ctx.block() != null)
             ctx.block()?.let {
@@ -1209,9 +1217,8 @@ class WolinVisitor(
 
         state.loopCounter++
 
-        val condLabel = labelMaker("loop_start", state.loopCounter)
-
-        val afterBodyLabel = labelMaker("loop_end", state.loopCounter)
+        val condLabel = labelMaker(loopStartLabel, state.loopCounter)
+        val afterBodyLabel = labelMaker(loopEndLabel, state.loopCounter)
 
         state.allocReg("for while condition", Typ.bool)
 
@@ -1236,9 +1243,8 @@ class WolinVisitor(
 
         state.loopCounter++
 
-        val bodyLabel = labelMaker("loop_start", state.loopCounter)
-
-        val afterBodyLabel = labelMaker("loop_end", state.loopCounter)
+        val bodyLabel = labelMaker(loopStartLabel, state.loopCounter)
+        val afterBodyLabel = labelMaker(loopEndLabel, state.loopCounter)
 
         state.code("label $bodyLabel")
 
@@ -1307,7 +1313,9 @@ class WolinVisitor(
         }
         state.rem("When expression end")
 
-        state.code("label ${labelMaker("whenEndLabel", state.whenCounter++)}")
+        state.code("label ${labelMaker(whenEndLabel, state.labelCounter)}")
+
+        //state.whenCounter++
 
         if (state.assignStack.isNotEmpty())
             checkTypeAndAddAssignment(
@@ -1327,6 +1335,7 @@ class WolinVisitor(
         if (!state.simpleWhen)
             state.freeReg("for evaluating when top expression")
 
+        state.labelCounter++
 
         return state
     }
@@ -1341,10 +1350,12 @@ class WolinVisitor(
 
 
         state.rem("warunek")
-        val whenLabel = labelMaker("whenLabel", state.labelCounter++)
-        val nextLabel = labelMaker("whenLabel", state.labelCounter)
+        //state.labelCounter++
+        val currentBranchLabel = labelMaker(whenBranchLabel, state.whenCounter++)
+        val nextBranchLabel = labelMaker(whenBranchLabel, state.whenCounter)
+        val whenEnd = labelMaker(whenEndLabel, state.labelCounter)
 
-        state.code("label $whenLabel")
+        state.code("label $currentBranchLabel")
 
         kondycje?.firstOrNull()?.let {
             visitWhenCondition(it)
@@ -1355,29 +1366,24 @@ class WolinVisitor(
 //        else
 //            state.forceTopOregType(resultReg.type)
 
+
         if (ctx.ELSE() != null) {
             state.rem("when else branch")
         } else if (state.simpleWhen)
             if (state.lastWhenEntry)
                 state.code(
-                    "bne ${state.varToAsm(resultReg)} = #1[bool], ${labelMaker(
-                        "whenEndLabel",
-                        state.whenCounter
-                    )}[uword]"
+                    "bne ${state.varToAsm(resultReg)} = #1[bool], ${whenEnd}[uword]"
                 )
             else
-                state.code("bne ${state.varToAsm(resultReg)} = #1[bool], $nextLabel[uword]")
+                state.code("bne ${state.varToAsm(resultReg)} = #1[bool], $nextBranchLabel[uword]")
         else {
             state.code("evaleq ${state.varToAsm(boolReg)} = ${state.varToAsm(resultReg)}, ${state.varToAsm(condReg)}")
             if (state.lastWhenEntry)
                 state.code(
-                    "bne ${state.varToAsm(boolReg)} = #1[bool], ${labelMaker(
-                        "whenEndLabel",
-                        state.whenCounter
-                    )}[uword]"
+                    "bne ${state.varToAsm(boolReg)} = #1[bool], ${whenEnd}[uword]"
                 )
             else
-                state.code("bne ${state.varToAsm(boolReg)} = #1[bool], $nextLabel[uword]")
+                state.code("bne ${state.varToAsm(boolReg)} = #1[bool], $nextBranchLabel[uword]")
         }
 
         state.rem("when operacja")
@@ -1387,7 +1393,7 @@ class WolinVisitor(
         else if (whenTrue.expression() != null) visitExpression(whenTrue.expression())
 
         if (!state.lastWhenEntry)
-            state.code("goto ${labelMaker("whenEndLabel", state.whenCounter)}[uword]")
+            state.code("goto ${whenEnd}[uword]")
 
         return state
     }
@@ -1408,7 +1414,6 @@ class WolinVisitor(
 
         val condBoolRes = state.allocReg("condition expression bool result", Typ.bool)
 
-        state.labelCounter++
 
         visitExpression(warunek)
 
@@ -1417,13 +1422,15 @@ class WolinVisitor(
         if (state.assignStack.isNotEmpty())
             valueForAssign.type = state.assignStack.assignLeftSideVar.type.copy()
 
-
-        val elseLabel = labelMaker("afterIfExpression", state.labelCounter)
-        val endIfLabel = labelMaker("afterWholeIf", state.labelCounter)
+        state.labelCounter++
+        val startIfLabel = labelMaker(ifStartLabel, state.labelCounter)
+        val elseLabel = labelMaker(elseLabel, state.labelCounter)
+        val endIfLabel = labelMaker(ifEndLabel, state.labelCounter)
 
         when {
             body.size == 1 -> {
                 state.code("bne ${state.varToAsm(condBoolRes)} = #1[bool], $elseLabel<label_po_if>[uword]")
+                state.code("label $startIfLabel // miejsce B")
                 state.rem(" body dla true")
                 visitControlStructureBody(body[0])
                 state.rem(" label po if")
@@ -1431,8 +1438,6 @@ class WolinVisitor(
 
             }
             body.size == 2 -> {
-                //val elseLabel = labelMaker("elseExpression",state.labelCounter)
-
                 state.code("bne ${state.varToAsm(condBoolRes)} = #1[bool], $elseLabel<label_DO_else>[uword]")
                 state.rem(" body dla true")
                 visitControlStructureBody(body[0])
@@ -1535,11 +1540,11 @@ class WolinVisitor(
                 state.code("throw SP(0)[uword] // nie martwimy sie o sotsy, bo te odtworzy obsluga wyjatku")
             }
             ctx.BREAK() != null -> {
-                state.code("goto ${labelMaker("loop_end", state.loopCounter)}[uword]")
+                state.code("goto ${labelMaker(loopEndLabel, state.loopCounter)}[uword]")
                 state.switchType(Typ.unit, "break expression")
             }
             ctx.CONTINUE() != null -> {
-                state.code("goto ${labelMaker("loop_start", state.loopCounter)}[uword]")
+                state.code("goto ${labelMaker(loopStartLabel, state.loopCounter)}[uword]")
                 state.switchType(Typ.unit, "continue expression")
             }
             else -> {

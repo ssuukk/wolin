@@ -76,99 +76,162 @@ __wolin_this_ptr_hi := 176+1
 
     rts
 
+; function__wolin_pl_qus_wolin_openCommandChannel
+
+__wolin_pl_qus_wolin_openCommandChannel:
+
+; allocSPF,#0
+
+ 
+
+; saveSP
+
+
+    txa
+    pha
+
+; saveSPF(3)<pl.qus.wolin.openCommandChannel.lfn>[ubyte]
+
+
+    ldy #3
+    lda (__wolin_spf),y
+    pha
+
+
+; saveSPF(2)<pl.qus.wolin.openCommandChannel.device>[ubyte]
+
+
+    ldy #2
+    lda (__wolin_spf),y
+    pha
+
+
+; save#15[ubyte]
+
+
+    lda #15
+    pha
+
+
+; restoreCPU.X[ubyte]
+
+
+    pla
+    tax
+
+; restoreCPU.A[ubyte]
+
+
+    pla
+
+; call65466[uword]
+
+    jsr 65466
+
+; restoreSP
+
+
+    pla
+    tax
+
+; allocSPF,#0
+
+ 
+
+; saveSP
+
+
+    txa
+    pha
+
+; save#10[ubyte]
+
+
+    lda #10
+    pha
+
+
+; restoreCPU.A[ubyte]
+
+
+    pla
+
+; call65469[uword]
+
+    jsr 65469
+
+; restoreSP
+
+
+    pla
+    tax
+
+; freeSPF<pl.qus.wolin.openCommandChannel.__fnargs>,#4
+
+
+    clc
+    lda __wolin_spf
+    adc #4
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
+
+; endfunction
+
+    rts
+
 ; function__wolin_pl_qus_wolin_test
 
 __wolin_pl_qus_wolin_test:
 
-; allocSP<__wolin_reg3>,#1
+; allocSP<__wolin_reg13>,#1
 
     dex
 
-; label__wolin_lab_loop_start_1
+; label__wolin_lab_when_branch_0
 
-__wolin_lab_loop_start_1:
+__wolin_lab_when_branch_0:
 
-; allocSP<__wolin_reg7>,#2
-
-
-    dex
-    dex
-
-; letSP(0)<__wolin_reg7>[ubyte*]=#1024[uword]
-
-
-    lda #<1024
-    sta 0,x
-    lda #>1024
-    sta 0+1,x
-
-; addSP(0)<__wolin_reg7>[ubyte*]=SP(0)<__wolin_reg7>[ubyte*],__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]
-
-
-    clc
-    lda 0,x
-    adc __wolin_pl_qus_wolin_i
-    sta 0,x
-    lda 0+1,x
-    adc __wolin_pl_qus_wolin_i+1
-    sta 0+1,x
-
-; freeSP<__wolin_reg7>,#2
-
-
-    inx
-    inx
-
-; let&SP(-2)<__wolin_reg7>[ubyte*]=__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte]
-
-
-    lda __wolin_pl_qus_wolin_chr
-    sta (-2,x)
-
-; add__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword],#1[uword]
-
-
-    clc
-    lda __wolin_pl_qus_wolin_i
-    adc #<1
-    sta __wolin_pl_qus_wolin_i
-    lda __wolin_pl_qus_wolin_i+1
-    adc #>1
-    sta __wolin_pl_qus_wolin_i+1
-
-
-; add__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte]=__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte],#1[ubyte]
-
-
-    inc __wolin_pl_qus_wolin_chr
-
-; evallessSP(0)<__wolin_reg3>[bool]=__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword],#1000[uword]
-
-
-    lda #1 ; mniejsze
-    sta 0,x
-    lda __wolin_pl_qus_wolin_i+1
-    cmp #>1000
-    bcc :+ ; mniejsze
-    lda __wolin_pl_qus_wolin_i
-    cmp #<1000
-    bcc :+ ; mniejsze
-    lda #0 ; jednak wieksze
-    sta 0,x
-:
-
-
-; beqSP(0)<__wolin_reg3>[bool]=#1[bool],__wolin_lab_loop_start_1<label_po_if>[uword]
+; bneSP(0)<__wolin_reg13>[bool]=#1[bool],__wolin_lab_when_branch_1[uword]
 
 
     lda 0,x
-    bne __wolin_lab_loop_start_1
+    beq __wolin_lab_when_branch_1
 
-; label__wolin_lab_loop_end_1
+; goto__wolin_lab_when_end_1[uword]
 
-__wolin_lab_loop_end_1:
+    jmp __wolin_lab_when_end_1
 
-; freeSP<__wolin_reg3>,#1
+; label__wolin_lab_when_branch_1
+
+__wolin_lab_when_branch_1:
+
+; bneSP(0)<__wolin_reg13>[bool]=#1[bool],__wolin_lab_when_branch_2[uword]
+
+
+    lda 0,x
+    beq __wolin_lab_when_branch_2
+
+; goto__wolin_lab_when_end_1[uword]
+
+    jmp __wolin_lab_when_end_1
+
+; label__wolin_lab_when_branch_2
+
+__wolin_lab_when_branch_2:
+
+; bneSP(0)<__wolin_reg13>[bool]=#1[bool],__wolin_lab_when_end_1[uword]
+
+
+    lda 0,x
+    beq __wolin_lab_when_end_1
+
+; label__wolin_lab_when_end_1
+
+__wolin_lab_when_end_1:
+
+; freeSP<__wolin_reg13>,#1
 
     inx
 
@@ -191,31 +254,46 @@ __wolin_lab_loop_end_1:
 
 __wolin_pl_qus_wolin_main:
 
-; allocSPF,#1
+; allocSPF,#4
 
 
     sec
     lda __wolin_spf
-    sbc #1
+    sbc #4
     sta __wolin_spf
     bcs :+
     dec __wolin_spf+1
 :
 
-; letSPF(0)[ubyte]=#5[ubyte]
+; letSPF(3)[ubyte]=#15[ubyte]
 
 
-    ldy #0
-    lda #5
+    ldy #3
+    lda #15
     sta (__wolin_spf),y
 
-; call__wolin_pl_qus_wolin_test[uword]
+; letSPF(2)[ubyte]=#8[ubyte]
 
-    jsr __wolin_pl_qus_wolin_test
+
+    ldy #2
+    lda #8
+    sta (__wolin_spf),y
+
+; call__wolin_pl_qus_wolin_openCommandChannel[uword]
+
+    jsr __wolin_pl_qus_wolin_openCommandChannel
 
 ; endfunction
 
     rts
+
+; label__wolin_pl_qus_wolin_nazwa
+
+__wolin_pl_qus_wolin_nazwa:
+
+; alloc0[ubyte*]
+
+    .byte 1,2,3,4
 
 ; label__wolin_pl_qus_wolin_i
 

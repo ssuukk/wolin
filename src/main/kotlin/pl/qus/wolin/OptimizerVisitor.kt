@@ -653,6 +653,18 @@ op B = *
         }
     }
 
+    fun optimizeLoops() {
+        /*
+        label __wolin_lab_loop_start_1
+
+        alloc XXX, #n
+
+        free XXX, #n
+
+        label __wolin_lab_loop_end_1
+         */
+    }
+
     private fun replaceInArg(
         intoThisField: PseudoAsmParser.ArgContext,
         thisarg: Register

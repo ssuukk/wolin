@@ -134,7 +134,8 @@ class WolinStateObject(val pass: Pass) {
             else -> throw Exception("Typ not specified for $name")
         }
 
-        type.array = array != null
+        if(array != null)
+            type.array = true
 
         type.shortIndex = shortIndex
 
@@ -843,6 +844,7 @@ class WolinStateObject(val pass: Pass) {
 
         return when {
             primitives.contains(typeName) -> typeName
+            typeName == "string" -> "string"
             typeName.contains("->") -> typeName
             fromClasses != null -> fromClasses.name
             else -> throw Exception("Can't find type $typeName")
