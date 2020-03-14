@@ -1075,7 +1075,7 @@ class WolinVisitor(
             ctx.literalConstant() != null -> {
                 val wartość = Zmienna(allocation = AllocType.LITERAL, fieldType = FieldType.DUMMY)
                 state.parseLiteralConstant(wartość, ctx.literalConstant())
-                state.code("let ${state.currentRegToAsm()} = ${state.varToAsm(wartość)} // atomic ex")
+                state.code("let ${state.currentRegToAsm()} = ${state.literalToAsm(wartość)} // atomic ex")
             }
             ctx.conditionalExpression() != null -> visitConditionalExpression(ctx.conditionalExpression())
             ctx.jumpExpression() != null -> {
@@ -2575,7 +2575,7 @@ class WolinVisitor(
         state.switchType(prototyp.type, "function return type 2")
 
         orderedArgs.map { it.first }.reversed().forEach { i ->
-            state.code("restore ${prototyp.arguments[i].location}[${prototyp.arguments[i].type.name}]")
+            state.code("restore ${prototyp.arguments[i].location}[${prototyp.arguments[i].type.typeForAsm}]")
         }
 
         // tutaj: pull w odwróconej kolejności argumentów

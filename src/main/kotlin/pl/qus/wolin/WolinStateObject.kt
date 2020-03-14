@@ -134,7 +134,7 @@ class WolinStateObject(val pass: Pass) {
             else -> throw Exception("Typ not specified for $name")
         }
 
-        if(array != null)
+        if (array != null)
             type.array = true
 
         type.shortIndex = shortIndex
@@ -174,7 +174,7 @@ class WolinStateObject(val pass: Pass) {
         val location = locRef?.literalConstant() ?: nullableTypeLocRef?.literalConstant()
         val otherLocation = locRef?.userType()?.text
 
-        if(location != null) {
+        if (location != null) {
             val locationVal = Zmienna(allocation = AllocType.FIXED, fieldType = FieldType.DUMMY)
             parseLiteralConstant(locationVal, location)
             zmienna.locationVal = locationVal.intValue.toInt()
@@ -221,8 +221,8 @@ class WolinStateObject(val pass: Pass) {
             zmienna.inClass = currentClass
         }
 
-        if (fieldType != FieldType.ARGUMENT && currentFunction?.locals?.none {it.name == zmienna.name} == true) {
-            if(currentFunction?.isInterrupt == true)
+        if (fieldType != FieldType.ARGUMENT && currentFunction?.locals?.none { it.name == zmienna.name } == true) {
+            if (currentFunction?.isInterrupt == true)
                 throw InterruptFunctionWithLocals("Local variables are not allowed in interrupt functions!")
             else
                 currentFunction?.addField(zmienna)
@@ -261,8 +261,8 @@ class WolinStateObject(val pass: Pass) {
             zmienna.inClass = currentClass
         }
 
-        if (fieldType != FieldType.ARGUMENT && currentFunction?.locals?.none {it.name == zmienna.name} == true) {
-            if(currentFunction?.isInterrupt == true)
+        if (fieldType != FieldType.ARGUMENT && currentFunction?.locals?.none { it.name == zmienna.name } == true) {
+            if (currentFunction?.isInterrupt == true)
                 throw InterruptFunctionWithLocals("Local variables are not allowed in interrupt functions!")
             else
                 currentFunction?.addField(zmienna)
@@ -312,10 +312,10 @@ class WolinStateObject(val pass: Pass) {
     }
 
     fun initializedStatics(): List<Zmienna> =
-        variablary.filter { it.value.fieldType == FieldType.STATIC && it.value.initExpression != null }.map{ it.value }
+        variablary.filter { it.value.fieldType == FieldType.STATIC && it.value.initExpression != null }.map { it.value }
 
     fun initializedClassFields(): List<Zmienna> =
-        variablary.filter { it.value.fieldType == FieldType.CLASS && it.value.initExpression != null }.map{ it.value }
+        variablary.filter { it.value.fieldType == FieldType.CLASS && it.value.initExpression != null }.map { it.value }
 
     fun lambdas(): List<Funkcja> =
         functiary.values.filter { it.lambdaBody != null }
@@ -379,18 +379,7 @@ class WolinStateObject(val pass: Pass) {
         }
     }
 
-//    fun varToAsmAutoDeref(register: Zmienna): String =
-//        ""+(if(register.type.isPointer) "&" else "") + varToAsmNoType(register) + "[${register.type.typeForAsm}]"
-
     fun varToAsm(register: Zmienna, finalDeref: RegOper = RegOper.VALUE): String {
-//        val finalDeref =
-//            if (derefType == RegOper.STAR && register.type.isPointer)
-//                RegOper.VALUE
-//            else if (derefType == RegOper.AMPRESAND && !register.type.isPointer)
-//                RegOper.VALUE
-//            else
-//                derefType
-
         return when (finalDeref) {
             RegOper.AMPRESAND -> "&"
             RegOper.VALUE -> ""
@@ -398,9 +387,25 @@ class WolinStateObject(val pass: Pass) {
         } + varToAsmNoType(register) + "[${register.type.typeForAsm}]"
     }
 
+    fun literalToAsm(register: Zmienna, finalDeref: RegOper = RegOper.VALUE): String {
+        return when (finalDeref) {
+            RegOper.AMPRESAND -> "&"
+            RegOper.VALUE -> ""
+            RegOper.STAR -> "*"
+        } +
+                if (register.stringValue != "")
+                    "#"+varToAsmNoType(register)+"[uword]"
+                else
+                    varToAsmNoType(register) + "[${register.type.typeForAsm}]"
+    }
+
+
     fun varToAsmNoType(zmienna: Zmienna): String {
 
         return when {
+            zmienna.stringValue != "" -> labelMaker("stringConst", strings.indexOf(zmienna.stringValue))
+            zmienna.type.name == "float" -> labelMaker("floatConst", floats.indexOf(zmienna.floatValue))
+
             zmienna.fieldType != FieldType.DUMMY && zmienna.fieldType != FieldType.STATIC -> {
                 val stos = when (zmienna.fieldType) {
                     FieldType.OP_STACK -> operStack
@@ -410,12 +415,6 @@ class WolinStateObject(val pass: Pass) {
                     else -> throw Exception("Unknown field type: ${zmienna.fieldType}!")
                 }
                 "${stos.stackName}(${findStackVector(stos, zmienna.name).first})<${zmienna.name}>"
-            }
-            zmienna.type.name == "string" -> labelMaker("stringConst", strings.indexOf(zmienna.stringValue))
-            zmienna.type.name == "float" -> {
-                val znal = floats.indexOf(zmienna.floatValue)
-                println("sd")
-                labelMaker("floatConst", floats.indexOf(zmienna.floatValue))
             }
 
             zmienna.allocation == AllocType.FIXED -> "${zmienna.locationVal ?: zmienna.locationTxt}"
@@ -510,7 +509,7 @@ class WolinStateObject(val pass: Pass) {
 
         funkcja.type = retZmienna.type.copy()
 
-            args.forEachIndexed { index, argType ->
+        args.forEachIndexed { index, argType ->
             val lambdaArg =
                 Zmienna(
                     "lambdaArg$index",
@@ -624,13 +623,13 @@ class WolinStateObject(val pass: Pass) {
     fun findProc(nazwa: String): Funkcja {
         var funkcja: Funkcja? = functiary[nazwa]
 
-        if(funkcja != null)
+        if (funkcja != null)
             return funkcja
 
-        if(classDerefStack.isNotEmpty())
+        if (classDerefStack.isNotEmpty())
             funkcja = functiary["${classDerefStack.peek()!!.type.name}.$nazwa"]
 
-        if(funkcja != null)
+        if (funkcja != null)
             return funkcja
 
         var gdzieJesteśmy = nameStitcher("")
@@ -653,7 +652,8 @@ class WolinStateObject(val pass: Pass) {
     }
 
     fun functionLocals(function: Funkcja): List<Zmienna> =
-        variablary.filter { it.key.startsWith(function.fullName) && it.value.fieldType != FieldType.CLASS }.map { it.value }
+        variablary.filter { it.key.startsWith(function.fullName) && it.value.fieldType != FieldType.CLASS }
+            .map { it.value }
 
     /*****************************************************************
     Związane z REJESTRAMI
@@ -673,8 +673,7 @@ class WolinStateObject(val pass: Pass) {
 
         if (variablary[name] != null) {
             //rem("Using already known ${variablary[name]}")
-        }
-        else
+        } else
             rem("$name not yet in variablary")
 
         val rejestr = variablary[name] ?: Zmienna(
@@ -809,7 +808,7 @@ class WolinStateObject(val pass: Pass) {
 //    }
 
     fun inferTopOperType() {
-        if(pass == Pass.SYMBOLS)
+        if (pass == Pass.SYMBOLS)
             return
 
         val top = operStack.peek()
@@ -939,7 +938,7 @@ class WolinStateObject(val pass: Pass) {
         }
 
         strings.forEachIndexed { i, str ->
-            code("string ${labelMaker("stringConst", i)}[uword] = /$$str")
+            code("string ${labelMaker("stringConst", i)}[uword] = \$$str")
         }
 
         floats.forEachIndexed { i, float ->

@@ -946,6 +946,14 @@ let SP(?dst)[ubyte*] = #?val[uword] -> """
     lda #>{val}
     sta {dst}+1,x"""
 
+let SPF(?dst)[ubyte*] = #?val[uword] -> """
+    lda #<{val}
+    ldy #{dst}
+    sta (__wolin_spf),y
+    lda #>{val}
+    iny
+    sta (__wolin_spf),y"""
+
 
 
 // dla konstruktora
@@ -1126,11 +1134,11 @@ restore CPU.X[ubyte] -> """
     pla
     tax"""
 
-save CPU.Y -> """
+save CPU.Y[ubyte] -> """
     tya
     pha"""
 
-restore CPU.Y -> """
+restore CPU.Y[ubyte] -> """
     pla
     tay"""
 
@@ -1147,6 +1155,14 @@ restore CPU.XY[uword] -> """
     tax
 """
 
+restore CPU.XY[ubyte*] -> """
+    pla
+    tay
+    pla
+    tax
+"""
+
+
 restore CPU.YX[uword] -> """
     pla
     tax
@@ -1156,6 +1172,15 @@ restore CPU.YX[uword] -> """
 
 save SPF(?src)[ubyte] -> """
     ldy #{src}
+    lda (__wolin_spf),y
+    pha
+"""
+
+save SPF(?src)[ubyte*] -> """
+    ldy #{src}
+    lda (__wolin_spf),y
+    pha
+    iny
     lda (__wolin_spf),y
     pha
 """

@@ -508,7 +508,7 @@ Optumalizacja operatorów:
             } catch (ex: NoRuleException) {
                 println("No rule for parsing:${ex.message}")
             } catch (ex: Exception) {
-                println("Syntax error in rule file")
+                println("Syntax error in rule file translateAsm")
                 throw ex
             }
         }

@@ -113,6 +113,12 @@ __wolin_pl_qus_wolin_openCommandChannel:
     pha
 
 
+; restoreCPU.Y[ubyte]
+
+
+    pla
+    tay
+
 ; restoreCPU.X[ubyte]
 
 
@@ -151,6 +157,26 @@ __wolin_pl_qus_wolin_openCommandChannel:
     pha
 
 
+; saveSPF(0)<pl.qus.wolin.openCommandChannel.command>[ubyte*]
+
+
+    ldy #0
+    lda (__wolin_spf),y
+    pha
+    ldy #0+1
+    lda (__wolin_spf),y
+    pha
+
+
+; restoreCPU.XY[ubyte*]
+
+
+    pla
+    tay
+    pla
+    tax
+
+
 ; restoreCPU.A[ubyte]
 
 
@@ -172,75 +198,6 @@ __wolin_pl_qus_wolin_openCommandChannel:
     clc
     lda __wolin_spf
     adc #4
-    sta __wolin_spf
-    bcc :+
-    inc __wolin_spf+1
-:
-
-; endfunction
-
-    rts
-
-; function__wolin_pl_qus_wolin_test
-
-__wolin_pl_qus_wolin_test:
-
-; allocSP<__wolin_reg13>,#1
-
-    dex
-
-; label__wolin_lab_when_branch_0
-
-__wolin_lab_when_branch_0:
-
-; bneSP(0)<__wolin_reg13>[bool]=#1[bool],__wolin_lab_when_branch_1[uword]
-
-
-    lda 0,x
-    beq __wolin_lab_when_branch_1
-
-; goto__wolin_lab_when_end_1[uword]
-
-    jmp __wolin_lab_when_end_1
-
-; label__wolin_lab_when_branch_1
-
-__wolin_lab_when_branch_1:
-
-; bneSP(0)<__wolin_reg13>[bool]=#1[bool],__wolin_lab_when_branch_2[uword]
-
-
-    lda 0,x
-    beq __wolin_lab_when_branch_2
-
-; goto__wolin_lab_when_end_1[uword]
-
-    jmp __wolin_lab_when_end_1
-
-; label__wolin_lab_when_branch_2
-
-__wolin_lab_when_branch_2:
-
-; bneSP(0)<__wolin_reg13>[bool]=#1[bool],__wolin_lab_when_end_1[uword]
-
-
-    lda 0,x
-    beq __wolin_lab_when_end_1
-
-; label__wolin_lab_when_end_1
-
-__wolin_lab_when_end_1:
-
-; freeSP<__wolin_reg13>,#1
-
-    inx
-
-; freeSPF<pl.qus.wolin.test.__fnargs>,#1
-
-
-    clc
-    lda __wolin_spf
-    adc #1
     sta __wolin_spf
     bcc :+
     inc __wolin_spf+1
@@ -279,6 +236,16 @@ __wolin_pl_qus_wolin_main:
     lda #8
     sta (__wolin_spf),y
 
+; letSPF(0)[ubyte*]=#__wolin_lab_stringConst_0[uword]
+
+
+    lda #<__wolin_lab_stringConst_0
+    ldy #0
+    sta (__wolin_spf),y
+    lda #>__wolin_lab_stringConst_0
+    iny
+    sta (__wolin_spf),y
+
 ; call__wolin_pl_qus_wolin_openCommandChannel[uword]
 
     jsr __wolin_pl_qus_wolin_openCommandChannel
@@ -286,14 +253,6 @@ __wolin_pl_qus_wolin_main:
 ; endfunction
 
     rts
-
-; label__wolin_pl_qus_wolin_nazwa
-
-__wolin_pl_qus_wolin_nazwa:
-
-; alloc0[ubyte*]
-
-    .byte 1,2,3,4
 
 ; label__wolin_pl_qus_wolin_i
 
@@ -310,4 +269,11 @@ __wolin_pl_qus_wolin_chr:
 ; alloc0[ubyte]
 
     .byte 0
+
+; string__wolin_lab_stringConst_0[uword]=$"DUPA"
+
+
+__wolin_lab_stringConst_0:
+    .str {val}
+
 

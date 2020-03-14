@@ -21,16 +21,6 @@ fun openCommandChannel(lfn: ubyte, device: ubyte, command: string) {
 
 }
 
-fun test(wart: ubyte) {
-    when (wart) {
-        1 -> screen = 1
-        2 -> screen = 2
-        3 -> screen = 3
-    }
-}
-
-val nazwa: string
-
 fun main() {
-    openCommandChannel(15,8,nazwa)
+    openCommandChannel(15,8,"DUPA")
 }

@@ -151,6 +151,10 @@ let SP(?a)[uword] = SP(?b)[uword]
                     match && templateOp.value()?.addressed()?.identifier()?.text == dataOp.value()?.addressed()?.identifier()?.text
 
             } else {
+                if(dataOp.text == "\"dupe\"") {
+                    println("tu!")
+                }
+                //println("debug: ${dataOp?.text}")
                 val value =
                     dataOp.value().addressed()?.absAddress()?.IntegerLiteral()?.text
                         ?: dataOp.value()?.addressed()?.identifier()?.text
