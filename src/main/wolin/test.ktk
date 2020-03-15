@@ -1,26 +1,13 @@
 package pl.qus.wolin
 
-var screen: ubyte[]^1024
-var border: ubyte^53280
 
-var i: uword = 0
+fun print(what: string) {
+    val fromArray: ubyte
 
-var chr: ubyte = 0
-
-fun chkin^0xFFC6(lfn: ubyte^CPU.X): bool^CPU.C
-fun getin^0xFFE4(): bool^CPU.A
-fun readst^0xFFB7(): ubyte^CPU.A
-fun clrchn^0xFFCC()
-fun setlfs^0xFFBA(lfn: ubyte^CPU.A, device: ubyte^CPU.X, sa: ubyte^CPU.Y)
-fun setnam^0xFFBD(fnameLen: ubyte^CPU.A, name: string^CPU.XY)
-
-fun openCommandChannel(lfn: ubyte, device: ubyte, command: string) {
-    setlfs(lfn, device, 15)
-    setnam(10, command)
-
+    fromArray = what[3]
 
 }
 
 fun main() {
-    openCommandChannel(15,8,"DUPA")
+    print("dupa")
 }

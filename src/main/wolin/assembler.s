@@ -50,20 +50,6 @@ __wolin_this_ptr := 176
 __wolin_this_ptr_hi := 176+1
 
 
-; let__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]=#0[ubyte]
-
-
-    lda #<0
-    sta __wolin_pl_qus_wolin_i
-    lda #0
-    sta __wolin_pl_qus_wolin_i+1
-
-; let__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte]=#0[ubyte]
-
-
-    lda #0
-    sta __wolin_pl_qus_wolin_chr
-
 ; allocSPF,#0
 
  
@@ -76,128 +62,16 @@ __wolin_this_ptr_hi := 176+1
 
     rts
 
-; function__wolin_pl_qus_wolin_openCommandChannel
+; function__wolin_pl_qus_wolin_print
 
-__wolin_pl_qus_wolin_openCommandChannel:
+__wolin_pl_qus_wolin_print:
 
-; allocSPF,#0
-
- 
-
-; saveSP
-
-
-    txa
-    pha
-
-; saveSPF(3)<pl.qus.wolin.openCommandChannel.lfn>[ubyte]
-
-
-    ldy #3
-    lda (__wolin_spf),y
-    pha
-
-
-; saveSPF(2)<pl.qus.wolin.openCommandChannel.device>[ubyte]
-
-
-    ldy #2
-    lda (__wolin_spf),y
-    pha
-
-
-; save#15[ubyte]
-
-
-    lda #15
-    pha
-
-
-; restoreCPU.Y[ubyte]
-
-
-    pla
-    tay
-
-; restoreCPU.X[ubyte]
-
-
-    pla
-    tax
-
-; restoreCPU.A[ubyte]
-
-
-    pla
-
-; call65466[uword]
-
-    jsr 65466
-
-; restoreSP
-
-
-    pla
-    tax
-
-; allocSPF,#0
-
- 
-
-; saveSP
-
-
-    txa
-    pha
-
-; save#10[ubyte]
-
-
-    lda #10
-    pha
-
-
-; saveSPF(0)<pl.qus.wolin.openCommandChannel.command>[ubyte*]
-
-
-    ldy #0
-    lda (__wolin_spf),y
-    pha
-    ldy #0+1
-    lda (__wolin_spf),y
-    pha
-
-
-; restoreCPU.XY[ubyte*]
-
-
-    pla
-    tay
-    pla
-    tax
-
-
-; restoreCPU.A[ubyte]
-
-
-    pla
-
-; call65469[uword]
-
-    jsr 65469
-
-; restoreSP
-
-
-    pla
-    tax
-
-; freeSPF<pl.qus.wolin.openCommandChannel.__fnargs>,#4
+; freeSPF<pl.qus.wolin.print.__fnargs>,#3
 
 
     clc
     lda __wolin_spf
-    adc #4
+    adc #3
     sta __wolin_spf
     bcc :+
     inc __wolin_spf+1
@@ -211,69 +85,40 @@ __wolin_pl_qus_wolin_openCommandChannel:
 
 __wolin_pl_qus_wolin_main:
 
-; allocSPF,#4
+; allocSPF,#3
 
 
     sec
     lda __wolin_spf
-    sbc #4
+    sbc #3
     sta __wolin_spf
     bcs :+
     dec __wolin_spf+1
 :
 
-; letSPF(3)[ubyte]=#15[ubyte]
-
-
-    ldy #3
-    lda #15
-    sta (__wolin_spf),y
-
-; letSPF(2)[ubyte]=#8[ubyte]
-
-
-    ldy #2
-    lda #8
-    sta (__wolin_spf),y
-
-; letSPF(0)[ubyte*]=#__wolin_lab_stringConst_0[uword]
+; letSPF(1)[ubyte*]=#__wolin_lab_stringConst_0[uword]
 
 
     lda #<__wolin_lab_stringConst_0
-    ldy #0
+    ldy #1
     sta (__wolin_spf),y
     lda #>__wolin_lab_stringConst_0
     iny
     sta (__wolin_spf),y
 
-; call__wolin_pl_qus_wolin_openCommandChannel[uword]
+; call__wolin_pl_qus_wolin_print[uword]
 
-    jsr __wolin_pl_qus_wolin_openCommandChannel
+    jsr __wolin_pl_qus_wolin_print
 
 ; endfunction
 
     rts
 
-; label__wolin_pl_qus_wolin_i
-
-__wolin_pl_qus_wolin_i:
-
-; alloc0[uword]
-
-    .word 0
-
-; label__wolin_pl_qus_wolin_chr
-
-__wolin_pl_qus_wolin_chr:
-
-; alloc0[ubyte]
-
-    .byte 0
-
-; string__wolin_lab_stringConst_0[uword]=$"DUPA"
+; string__wolin_lab_stringConst_0[uword]=$"dupa"
 
 
 __wolin_lab_stringConst_0:
     .str {val}
+    .byt 0
 
 

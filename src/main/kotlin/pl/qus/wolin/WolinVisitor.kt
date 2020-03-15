@@ -709,8 +709,9 @@ class WolinVisitor(
                 when {
                     // =================================================================================================
                     prawo.callSuffix() != null -> {
+                        val a = atomEx.simpleIdentifier()
                         val procName =
-                            atomEx.simpleIdentifier()?.Identifier()?.text ?: throw Exception("Pusta nazwa procedury")
+                            atomEx.simpleIdentifier()?.Identifier()?.text ?: throw Exception("Pusta lub niedozwolona nazwa procedury")
 
                         val callSuffix = prawo.callSuffix()
 
@@ -945,7 +946,7 @@ class WolinVisitor(
                             state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.NORMAL -> {
                                 state.rem(" allocated fast array, changing top reg to ptr")
                                 state.code(
-                                    "add ${state.varToAsm(currEntReg)} = ${state.varToAsm(state.currentShortArray!!)}, &${state.currentRegToAsm()}"
+                                    "let ${state.varToAsm(currEntReg)} = ${state.varToAsm(state.currentShortArray!!)}, &${state.currentRegToAsm()}"
                                 )
                                 state.currentShortArray = null
                             }
@@ -1580,6 +1581,7 @@ class WolinVisitor(
                                 RegOper.STAR
                             )
                         } else {
+                            state.currentReg.type = zmienna.type.copy()
                             state.currentReg.type.pointer = true
                             checkTypeAndAddAssignment(
                                 ctx,

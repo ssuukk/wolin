@@ -1023,6 +1023,7 @@ let SP(?d)[adr] = ?s[adr] -> """
 string ?label[uword] = ?val[?dummy] -> """
 {label}:
     .str {val}
+    .byt 0
 """
 
 float ?label[uword] = ?val[?dummy] -> """

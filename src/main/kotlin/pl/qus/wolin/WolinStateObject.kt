@@ -134,10 +134,12 @@ class WolinStateObject(val pass: Pass) {
             else -> throw Exception("Typ not specified for $name")
         }
 
+        // array and shortIndex might have been set by string declaration, so we can't overwrite it!
         if (array != null)
             type.array = true
 
-        type.shortIndex = shortIndex
+        if(shortIndex)
+            type.shortIndex = shortIndex
 
         // TODO - musimy znaleźć dany typ w skołpie!!!
 
