@@ -410,6 +410,54 @@ let ?dst[bool] = SPF(?src)[bool] -> """
     sta {dst}
 """
 
+// "fast" array
+// letSPF(0)<pl.qus.wolin.print..fromArray>[ubyte]=&SPF(1)<pl.qus.wolin.print.what>[ubyte*],#3[ubyte]
+let SPF(?d)[ubyte] = &SPF(?s)[ubyte*] , #?val[ubyte] -> """
+    ; dereferencing fast array passed as fn argument ain't fast, sorry...
+    ; allocate pointer reg
+    dex
+    dex
+    ; put (pointer + index) from function stack to regular stack
+    clc
+    ldy #{s}
+    lda (__wolin_spf),y
+    adc #{val}
+    sta 0,x
+    iny
+    lda (__wolin_spf),y
+    adc #0
+    sta 1,x
+    ; dereference/index the pointer
+    lda (0,x)
+    ldy #{d}
+    sta (__wolin_spf),y
+    inx
+    inx
+"""
+
+// let &SP(-1)<__wolin_reg3>[ubyte*] = &SPF(0)<pl.qus.wolin.print.what>[ubyte*], #3[ubyte]
+let &SP(?d)[ubyte*] = &SPF(?s)[ubyte*], #?val[ubyte] -> """
+    ; dereferencing fast array passed as fn argument ain't fast, sorry...
+    ; allocate pointer reg
+    dex
+    dex
+    ; put (pointer + index) from function stack to regular stack
+    clc
+    ldy #{s}
+    lda (__wolin_spf),y
+    adc #{val}
+    sta 0,x
+    iny
+    lda (__wolin_spf),y
+    adc #0
+    sta 1,x
+    ; dereference/index the pointer
+    lda (0,x)
+    sta (2+{d},x)
+    inx
+    inx
+"""
+
 let SPF(?d)[ubyte] = #?val[ubyte] -> """
     ldy #{d}
     lda #{val}
@@ -1022,8 +1070,8 @@ let SP(?d)[adr] = ?s[adr] -> """
 
 string ?label[uword] = ?val[?dummy] -> """
 {label}:
-    .str {val}
-    .byt 0
+    .asciiz {val}
+    ;.byt 0
 """
 
 float ?label[uword] = ?val[?dummy] -> """
@@ -1266,6 +1314,8 @@ div SP(?d)[ubyte] = SP(?d)[ubyte], #8 -> """
 div SP(?d)[word] = SP(?dzielna)[word],SP(?dzielnik)[word] -> """  jsr stack_div"""
 
 add SP(?dummya)[?dummyb] = ?dummyc[?dummyd*], #0[?dummye] -> """"""
+add SP(?dummya)[?dummyb*] = ?dummyc[?dummyd*], #0[?dummye] -> """"""
+add SP(?dummya)[?dummyb*] = SP(?dommyf)[?dummyd*], #0[?dummye] -> """"""
 
 add SPF(?d)[ubyte] = SPF(?c1)[ubyte],SPF(?c2)[ubyte] -> """
     clc

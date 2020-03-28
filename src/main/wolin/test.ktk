@@ -1,11 +1,14 @@
 package pl.qus.wolin
 
+var screen: ubyte[]^1024
 
 fun print(what: string) {
-    val fromArray: ubyte
-
-    fromArray = what[3]
-
+    val i = 0
+    val znak = what[i]
+    while (znak != 0) {
+        screen[i] = what[i]
+        i++
+    }
 }
 
 fun main() {
