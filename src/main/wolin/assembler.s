@@ -50,10 +50,6 @@ __wolin_this_ptr := 176
 __wolin_this_ptr_hi := 176+1
 
 
-; allocSPF,#0
-
- 
-
 ; call__wolin_pl_qus_wolin_main[uword]
 
     jsr __wolin_pl_qus_wolin_main
@@ -73,6 +69,32 @@ __wolin_pl_qus_wolin_print:
     lda #0
     sta (__wolin_spf),y
 
+; letSPF(0)<pl.qus.wolin.print..znak>[ubyte]=&SPF(2)<pl.qus.wolin.print.what>[ubyte*],SPF(1)<pl.qus.wolin.print..i>[ubyte]
+
+
+    ; dereferencing fast array passed as fn argument ain't fast, sorry...
+    ; allocate pointer reg
+    dex
+    dex
+    ; put (pointer + index) from function stack to regular stack
+    clc
+    ldy #2
+    lda (__wolin_spf),y
+    ldy #1
+    adc (__wolin_spf),y
+    sta 0,x
+    ldy #2+1
+    lda (__wolin_spf),y
+    adc #0
+    sta 1,x
+    ; dereference/index the pointer
+    lda (0,x)
+    ldy #0
+    sta (__wolin_spf),y
+    inx
+    inx
+
+
 ; allocSP<__wolin_reg7>,#1
 
     dex
@@ -91,7 +113,7 @@ __wolin_lab_loop_start_1:
     bne :+
     lda #0 ; jednak rowne
     sta 0,x
-
+:
 
 ; bneSP(0)<__wolin_reg7>[bool]=#1[bool],__wolin_lab_loop_end_1<label_po_if>[uword]
 
@@ -99,31 +121,69 @@ __wolin_lab_loop_start_1:
     lda 0,x
     beq __wolin_lab_loop_end_1
 
-; allocSP<__wolin_reg13>,#2
+; saveSP
 
 
-    dex
-    dex
+    txa
+    pha
 
-; letSP(0)<__wolin_reg13>[ubyte*]=#1024[uword]
-
-
-    lda #<1024
-    sta 0,x
-    lda #>1024
-    sta 0+1,x
-
-; freeSP<__wolin_reg13>,#2
+; saveSPF(0)<pl.qus.wolin.print..znak>[ubyte]
 
 
-    inx
-    inx
+    ldy #0
+    lda (__wolin_spf),y
+    pha
+
+
+; restoreCPU.A[ubyte]
+
+
+    pla
+
+; call65490[uword]
+
+    jsr 65490
+
+; restoreSP
+
+
+    pla
+    tax
 
 ; addSPF(1)<pl.qus.wolin.print..i>[ubyte]=SPF(1)<pl.qus.wolin.print..i>[ubyte],#1[ubyte]
 
 
+    clc
     ldy #1
-    inc (__wolin_spf),y
+    lda #1
+    adc (__wolin_spf),y
+    sta (__wolin_spf),y
+
+
+; letSPF(0)<pl.qus.wolin.print..znak>[ubyte]=&SPF(2)<pl.qus.wolin.print.what>[ubyte*],SPF(1)<pl.qus.wolin.print..i>[ubyte]
+
+
+    ; dereferencing fast array passed as fn argument ain't fast, sorry...
+    ; allocate pointer reg
+    dex
+    dex
+    ; put (pointer + index) from function stack to regular stack
+    clc
+    ldy #2
+    lda (__wolin_spf),y
+    ldy #1
+    adc (__wolin_spf),y
+    sta 0,x
+    ldy #2+1
+    lda (__wolin_spf),y
+    adc #0
+    sta 1,x
+    ; dereference/index the pointer
+    lda (0,x)
+    ldy #0
+    sta (__wolin_spf),y
+    inx
+    inx
 
 
 ; goto__wolin_lab_loop_start_1[uword]
@@ -190,7 +250,7 @@ __wolin_pl_qus_wolin_main:
 
 
 __wolin_lab_stringConst_0:
-    .asciiz {val}
+    .asciiz "kupa z gilem"
     ;.byt 0
 
 

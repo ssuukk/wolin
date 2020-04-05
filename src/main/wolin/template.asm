@@ -412,7 +412,7 @@ let ?dst[bool] = SPF(?src)[bool] -> """
 
 // "fast" array
 // letSPF(0)<pl.qus.wolin.print..fromArray>[ubyte]=&SPF(1)<pl.qus.wolin.print.what>[ubyte*],#3[ubyte]
-let SPF(?d)[ubyte] = &SPF(?s)[ubyte*] , #?val[ubyte] -> """
+let SPF(?d)[ubyte] = &SPF(?s)[ubyte*] , #?i[ubyte] -> """
     ; dereferencing fast array passed as fn argument ain't fast, sorry...
     ; allocate pointer reg
     dex
@@ -421,7 +421,7 @@ let SPF(?d)[ubyte] = &SPF(?s)[ubyte*] , #?val[ubyte] -> """
     clc
     ldy #{s}
     lda (__wolin_spf),y
-    adc #{val}
+    adc #{i}
     sta 0,x
     iny
     lda (__wolin_spf),y
@@ -434,6 +434,31 @@ let SPF(?d)[ubyte] = &SPF(?s)[ubyte*] , #?val[ubyte] -> """
     inx
     inx
 """
+
+let SPF(?d)[ubyte] = &SPF(?s)[ubyte*] , SPF(?i)[ubyte] -> """
+    ; dereferencing fast array passed as fn argument ain't fast, sorry...
+    ; allocate pointer reg
+    dex
+    dex
+    ; put (pointer + index) from function stack to regular stack
+    clc
+    ldy #{s}
+    lda (__wolin_spf),y
+    ldy #{i}
+    adc (__wolin_spf),y
+    sta 0,x
+    ldy #{s}+1
+    lda (__wolin_spf),y
+    adc #0
+    sta 1,x
+    ; dereference/index the pointer
+    lda (0,x)
+    ldy #{d}
+    sta (__wolin_spf),y
+    inx
+    inx
+"""
+
 
 // let &SP(-1)<__wolin_reg3>[ubyte*] = &SPF(0)<pl.qus.wolin.print.what>[ubyte*], #3[ubyte]
 let &SP(?d)[ubyte*] = &SPF(?s)[ubyte*], #?val[ubyte] -> """
@@ -752,7 +777,7 @@ evalneq SP(?dest)[bool] = SPF(?left)[ubyte], #0[ubyte] -> """
     bne :+
     lda #0 ; jednak rowne
     sta {dest},x
-"""
+:"""
 
 evalneq SP(?dest)[bool] = ?left[ubyte], #?right[ubyte] -> """
     lda #1 ; rozne
@@ -1373,9 +1398,12 @@ add SP(?d)[?dummy *] = SP(?s)[?dummy *], ?adr[uword] -> """
     adc {adr}+1
     sta {d}+1,x"""
 
-add SPF(?dest)[ubyte] = SPF(?dest)[ubyte], #1[ubyte] -> """
+add SPF(?dest)[ubyte] = SPF(?dest)[ubyte], #?val[ubyte] -> """
+    clc
     ldy #{dest}
-    inc (__wolin_spf),y
+    lda #{val}
+    adc (__wolin_spf),y
+    sta (__wolin_spf),y
 """
 
 add ?dest[ubyte] = ?dest[ubyte], #1[ubyte] -> """

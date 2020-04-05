@@ -2,6 +2,7 @@ package pl.qus.wolin
 
 import org.antlr.v4.runtime.ANTLRInputStream
 import org.antlr.v4.runtime.CommonTokenStream
+import pl.qus.wolin.exception.Debugger
 import pl.qus.wolin.exception.NoRuleException
 import java.io.*
 
@@ -600,6 +601,7 @@ Optumalizacja operatorów:
             it.write(wynik.dumpCode().toByteArray())
         }
 
+        //Debugger.start()
         //println(wynik.dumpCode())
 //        } catch (ex: Exception) {
 //            println(ex.message)

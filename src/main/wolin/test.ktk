@@ -1,13 +1,15 @@
 package pl.qus.wolin
 
 var screen: ubyte[]^1024
+fun chrout^0xFFD2(char: ubyte^CPU.A)
 
 fun print(what: string) {
     val i = 0
     val znak = what[i]
     while (znak != 0) {
-        screen[i] = what[i]
+        chrout(znak)
         i++
+        val znak = what[i]
     }
 }
 

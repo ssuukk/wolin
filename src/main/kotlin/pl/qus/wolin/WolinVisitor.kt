@@ -946,7 +946,7 @@ class WolinVisitor(
                             state.currentShortArray != null && state.currentShortArray!!.allocation == AllocType.NORMAL -> {
                                 state.rem(" allocated fast array, changing top reg to ptr")
                                 state.code(
-                                    "let ${state.varToAsm(currEntReg)} = ${state.varToAsm(state.currentShortArray!!)}, &${state.currentRegToAsm()}"
+                                    "let ${state.varToAsm(currEntReg)} = &${state.varToAsm(state.currentShortArray!!)}, &${state.currentRegToAsm()}"
                                 )
                                 state.currentShortArray = null
                             }

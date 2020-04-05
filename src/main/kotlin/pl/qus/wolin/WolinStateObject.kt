@@ -556,7 +556,8 @@ class WolinStateObject(val pass: Pass) {
             }
         }
 
-        code("alloc SPF, #$zliczacz")
+        if(zliczacz > 0)
+            code("alloc SPF, #$zliczacz")
 
     }
 
