@@ -424,7 +424,6 @@ op B = *
                         println("oper *replace* = arg, arg\n${linia.text}")
 
                         val ta = linia.target(0)
-                        val tx = ta.text
                         val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!.argContext?.get(0)?.operand() ?: registers[regNr]!!.targetContext!!.operand()!!)
 
                         val kopia = PseudoAsmParser.TargetContext(

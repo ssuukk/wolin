@@ -195,9 +195,6 @@ free SP, #?count -> """
 
 // SP -> SP
 
-let CPU.A[ubyte] = #?val[ubyte] -> """
-    lda #{val}
-"""
 
 let ?d(?dummy)[unit] = ?s(?dummy2)[unit] -> """ """
 
@@ -1178,6 +1175,10 @@ let CPU.I[bool] = #0[bool] -> """
     cli
 """
 
+let CPU.A[ubyte] = #?val[ubyte] -> """
+    lda #{val}
+"""
+
 let CPU.A[ubyte] = SP(?s)[ubyte] -> """
     lda {s},x
 """
@@ -1191,6 +1192,15 @@ let CPU.Y[ubyte] = SP(?s)[ubyte] -> """
     lda {s},x
     tay
 """
+
+let CPU.C[bool] = #1[bool] -> """
+    sec
+"""
+
+let CPU.C[bool] = #0[bool] -> """
+    clc
+"""
+
 
 save SP -> """
     txa

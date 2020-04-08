@@ -58,64 +58,116 @@ __wolin_this_ptr_hi := 176+1
 
     rts
 
+; function__wolin_pl_qus_wolin_printAt
+
+__wolin_pl_qus_wolin_printAt:
+
+; letCPU.C[bool]=#1[bool]
+
+
+    sec
+
+
+; saveSP
+
+
+    txa
+    pha
+
+; saveSPF(3)<pl.qus.wolin.printAt.x>[ubyte]
+
+
+    ldy #3
+    lda (__wolin_spf),y
+    pha
+
+
+; saveSPF(2)<pl.qus.wolin.printAt.y>[ubyte]
+
+
+    ldy #2
+    lda (__wolin_spf),y
+    pha
+
+
+; restoreCPU.Y[ubyte]
+
+
+    pla
+    tay
+
+; restoreCPU.X[ubyte]
+
+
+    pla
+    tax
+
+; call65520[uword]
+
+    jsr 65520
+
+; restoreSP
+
+
+    pla
+    tax
+
+; allocSPF,#5
+
+
+    sec
+    lda __wolin_spf
+    sbc #5
+    sta __wolin_spf
+    bcs :+
+    dec __wolin_spf+1
+:
+
+; call__wolin_pl_qus_wolin_print[uword]
+
+    jsr __wolin_pl_qus_wolin_print
+
+; freeSPF<pl.qus.wolin.printAt.__fnargs>,#4
+
+
+    clc
+    lda __wolin_spf
+    adc #4
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
+
+; endfunction
+
+    rts
+
 ; function__wolin_pl_qus_wolin_print
 
 __wolin_pl_qus_wolin_print:
 
-; letSPF(1)<pl.qus.wolin.print..i>[ubyte]=#0[ubyte]
+; letSPF(2)<pl.qus.wolin.print..i>[ubyte]=#0[ubyte]
 
 
-    ldy #1
+    ldy #2
     lda #0
     sta (__wolin_spf),y
 
-; letSPF(0)<pl.qus.wolin.print..znak>[ubyte]=&SPF(2)<pl.qus.wolin.print.what>[ubyte*],SPF(1)<pl.qus.wolin.print..i>[ubyte]
+; allocSP<__wolin_reg14>,#2
 
 
-    ; dereferencing fast array passed as fn argument ain't fast, sorry...
-    ; allocate pointer reg
     dex
     dex
-    ; put (pointer + index) from function stack to regular stack
-    clc
-    ldy #2
-    lda (__wolin_spf),y
-    ldy #1
-    adc (__wolin_spf),y
-    sta 0,x
-    ldy #2+1
-    lda (__wolin_spf),y
-    adc #0
-    sta 1,x
-    ; dereference/index the pointer
-    lda (0,x)
-    ldy #0
-    sta (__wolin_spf),y
+
+; freeSP<__wolin_reg14>,#1
+
     inx
-    inx
-
-
-; allocSP<__wolin_reg7>,#1
-
-    dex
 
 ; label__wolin_lab_loop_start_1
 
 __wolin_lab_loop_start_1:
 
-; evalneqSP(0)<__wolin_reg7>[bool]=SPF(0)<pl.qus.wolin.print..znak>[ubyte],#0[ubyte]
-
-
-    lda #1 ; rozne
-    sta 0,x
-    ldy #0
-    lda (__wolin_spf), y
-    bne :+
-    lda #0 ; jednak rowne
-    sta 0,x
-:
-
-; bneSP(0)<__wolin_reg7>[bool]=#1[bool],__wolin_lab_loop_end_1<label_po_if>[uword]
+; bneSP(0)<__wolin_reg18>[bool]=#1[bool],__wolin_lab_loop_end_1<label_po_if>[uword]
 
 
     lda 0,x
@@ -127,10 +179,13 @@ __wolin_lab_loop_start_1:
     txa
     pha
 
-; saveSPF(0)<pl.qus.wolin.print..znak>[ubyte]
+; saveSPF(0)<pl.qus.wolin.print..char>[ubyte*]
 
 
     ldy #0
+    lda (__wolin_spf),y
+    pha
+    iny
     lda (__wolin_spf),y
     pha
 
@@ -150,41 +205,27 @@ __wolin_lab_loop_start_1:
     pla
     tax
 
-; addSPF(1)<pl.qus.wolin.print..i>[ubyte]=SPF(1)<pl.qus.wolin.print..i>[ubyte],#1[ubyte]
+; addSPF(2)<pl.qus.wolin.print..i>[ubyte]=SPF(2)<pl.qus.wolin.print..i>[ubyte],#1[ubyte]
 
 
     clc
-    ldy #1
+    ldy #2
     lda #1
     adc (__wolin_spf),y
     sta (__wolin_spf),y
 
 
-; letSPF(0)<pl.qus.wolin.print..znak>[ubyte]=&SPF(2)<pl.qus.wolin.print.what>[ubyte*],SPF(1)<pl.qus.wolin.print..i>[ubyte]
+; allocSP<__wolin_reg27>,#2
 
 
-    ; dereferencing fast array passed as fn argument ain't fast, sorry...
-    ; allocate pointer reg
     dex
     dex
-    ; put (pointer + index) from function stack to regular stack
-    clc
-    ldy #2
-    lda (__wolin_spf),y
-    ldy #1
-    adc (__wolin_spf),y
-    sta 0,x
-    ldy #2+1
-    lda (__wolin_spf),y
-    adc #0
-    sta 1,x
-    ; dereference/index the pointer
-    lda (0,x)
-    ldy #0
-    sta (__wolin_spf),y
-    inx
-    inx
 
+; freeSP<__wolin_reg27>,#2
+
+
+    inx
+    inx
 
 ; goto__wolin_lab_loop_start_1[uword]
 
@@ -194,16 +235,16 @@ __wolin_lab_loop_start_1:
 
 __wolin_lab_loop_end_1:
 
-; freeSP<__wolin_reg7>,#1
+; freeSP<__wolin_reg18>,#1
 
     inx
 
-; freeSPF<pl.qus.wolin.print.__fnargs>,#4
+; freeSPF<pl.qus.wolin.print.__fnargs>,#5
 
 
     clc
     lda __wolin_spf
-    adc #4
+    adc #5
     sta __wolin_spf
     bcc :+
     inc __wolin_spf+1
@@ -217,22 +258,22 @@ __wolin_lab_loop_end_1:
 
 __wolin_pl_qus_wolin_main:
 
-; allocSPF,#4
+; allocSPF,#5
 
 
     sec
     lda __wolin_spf
-    sbc #4
+    sbc #5
     sta __wolin_spf
     bcs :+
     dec __wolin_spf+1
 :
 
-; letSPF(2)[ubyte*]=#__wolin_lab_stringConst_0[uword]
+; letSPF(3)[ubyte*]=#__wolin_lab_stringConst_0[uword]
 
 
     lda #<__wolin_lab_stringConst_0
-    ldy #2
+    ldy #3
     sta (__wolin_spf),y
     lda #>__wolin_lab_stringConst_0
     iny
@@ -250,7 +291,7 @@ __wolin_pl_qus_wolin_main:
 
 
 __wolin_lab_stringConst_0:
-    .asciiz "kupa z gilem"
+    .asciiz {val}
     ;.byt 0
 
 

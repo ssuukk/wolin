@@ -923,12 +923,29 @@ class WolinVisitor(
                             type.pointer = true
                         }
                         state.rem(" LEWA strona array access, czyli co to za zmienna")
+
+                        state.allocReg("array variable")
+
                         visitAtomicExpression(atomEx)
                         state.rem(" PRAWA strona array access, czyli indeks w nawiasach")
                         visitArrayAccess(prawo.arrayAccess())
 
+                        state.freeReg("array variable")
+
                         state.rem(" kod obsługi tablicy")
 
+                        state.rem(" non-fast array, changing top reg to ptr")
+                        currEntReg.type.pointer = true
+
+                        checkTypeAndAddAssignment(
+                            ctx,
+                            currEntReg,
+                            state.currentReg,
+                            "non-fast array",
+                            RegOper.VALUE,
+                            RegOper.VALUE
+                        )
+/*
                         when {
                             state.currentShortArray == null -> {
                                 state.rem(" non-fast array, changing top reg to ptr")
@@ -963,7 +980,7 @@ class WolinVisitor(
 
                             else -> throw Exception("Dereference of unknown array!")
                         }
-
+*/
                         // jeśli indeks 8-bitowy i element nie robic tej allokacji
                         state.freeReg("arr_deref")
                     }
@@ -986,45 +1003,66 @@ class WolinVisitor(
                 state.assignStack.firstOrNull()?.isArray = true
 
                 val prevReg = state.currentReg!!
+                val prevPrevReg = state.regFromTop(1)
 
                 // ARRAYCODE
 
-                if (state.currentShortArray == null) {
-                    state.allocReg("For calculating index", state.currentWolinType)
-                } else {
-                    state.rem("Short array")
-                }
+                state.allocReg("For calculating index", state.currentWolinType)
+
+//                if (state.currentShortArray == null) {
+//                    state.allocReg("For calculating index", state.currentWolinType)
+//                } else {
+//                    state.rem("Short array")
+//                }
 
                 visitExpression(ctx.expression(0))
 
-                if (state.currentShortArray == null)
-                    state.forceTopOregType(Typ.uword.apply { this.pointer = false }) // typ indeksu
-                else
-                    state.forceTopOregType(Typ.ubyte.apply { this.pointer = false }) // typ indeksu
+                state.forceTopOregType(Typ.uword.apply { this.pointer = false }) // typ indeksu
+
+//                if (state.currentShortArray == null)
+//                    state.forceTopOregType(Typ.uword.apply { this.pointer = false }) // typ indeksu
+//                else
+//                    state.forceTopOregType(Typ.ubyte.apply { this.pointer = false }) // typ indeksu
 
 
                 // ARRAYCODE
-                if (state.currentShortArray == null) {
-                    when {
-                        state.arrayElementSize > 1 -> {
-                            state.code("mul ${state.currentRegToAsm()} = ${state.currentRegToAsm()}, #${state.arrayElementSize} // long index, multi-byte per element array")
-                            state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()} // long index, contd.")
-                        }
-                        else -> {
-                            state.code(
-                                "add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.varToAsm(
-                                    state.currentReg, RegOper.AMPRESAND
-                                )} // long index, single byte per element array (tutaj)"
-                            )
-                        }
+//                if (state.currentShortArray == null) {
+//                    when {
+//                        state.arrayElementSize > 1 -> {
+//                            state.code("mul ${state.currentRegToAsm()} = ${state.currentRegToAsm()}, #${state.arrayElementSize} // long index, multi-byte per element array")
+//                            state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()} // long index, contd.")
+//                        }
+//                        else -> {
+//                            state.code(
+//                                "add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.varToAsm(
+//                                    state.currentReg, RegOper.AMPRESAND
+//                                )} // long index, single byte per element array (tutaj)"
+//                            )
+//                        }
+//                    }
+//
+//                    state.freeReg("For calculating index")
+//
+//                } else {
+//                    state.rem(" fast array - no additional op")
+//                    //state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()}")
+//                }
+
+                when {
+                    state.arrayElementSize > 1 -> {
+                        state.code("mul ${state.currentRegToAsm()} = ${state.currentRegToAsm()}, #${state.arrayElementSize} // long index, multi-byte per element array")
+                        state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()} // long index, contd.")
                     }
-
-                    state.freeReg("For calculating index")
-
-                } else {
-                    state.rem(" fast array - no additional op")
-                    //state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()}")
+                    else -> {
+                        state.code(
+                            "add ${state.varToAsm(prevPrevReg)} = ${state.varToAsm(prevReg)}, ${state.varToAsm(
+                                state.currentReg, RegOper.AMPRESAND
+                            )} // long index, single byte per element array (tutaj)"
+                        )
+                    }
                 }
+
+                state.freeReg("For calculating index")
 
                 state.rem("**ARRAY Changing current type to prevReg type $prevReg")
                 state.currentWolinType = prevReg.type.copy()
@@ -1564,9 +1602,9 @@ class WolinVisitor(
 //                        println("tu!")
                     val zmienna = state.findVarInVariablaryWithDescoping(ctx.Identifier().text)
 
-                    if (zmienna.type.shortIndex && zmienna.type.elementOccupiesOneByte) {
-                        state.currentShortArray = zmienna
-                    } else {
+//                    if (zmienna.type.shortIndex && zmienna.type.elementOccupiesOneByte) {
+//                        state.currentShortArray = zmienna
+//                    } else {
                         if (zmienna.allocation == AllocType.FIXED && zmienna.type.array) {
                             state.code(
                                 "let ${state.currentRegToAsm()} = #${zmienna.locationVal}[uword] // simple id - fixed array var"
@@ -1592,7 +1630,7 @@ class WolinVisitor(
                                 RegOper.STAR
                             )
                         }
-                    }
+           //         }
 
                     state.switchType(zmienna.type, "type from ${zmienna.name}", true)
                 } catch (ex: VariableNotFound) {
@@ -1621,7 +1659,7 @@ class WolinVisitor(
     }
 
     override fun visitFunctionDeclaration(ctx: KotlinParser.FunctionDeclarationContext): WolinStateObject {
-        val name = ctx.identifier()?.text ?: throw Exception("Brak nazwy funkcji")
+        val name = ctx.identifier()?.text ?: throw błędzik(ctx, "Brak nazwy funkcji")
 
         val isInterrupt = ctx.modifierList()?.modifier()?.firstOrNull()?.functionModifier()?.INTERRUPT() != null
 

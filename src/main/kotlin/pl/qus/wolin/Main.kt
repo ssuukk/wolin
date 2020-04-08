@@ -406,13 +406,6 @@ Optumalizacja operatorów:
     fun main(args: Array<String>) {
 // gradlew generateGrammarSource
 
-//        val fi = File("//storage2/pron/obrazy/todo2/_rary")
-//        val list = fi.list()
-//        val katalogi = list.filter { !it.endsWith(".rar") }
-//        val rary = list.filter { it.endsWith(".rar") }.map { it.dropLast(4) }
-//        val rozpakowane = rary.filter { katalogi.contains(it) }
-//        rozpakowane.forEach { File("//storage2/pron/obrazy/todo2/_rary/$it.rar").delete() }
-
         parseWolinek(FileInputStream(File("src/main/wolin/test.ktk")))
 
         optimize(
@@ -436,6 +429,8 @@ Optumalizacja operatorów:
             FileInputStream(File("src/main/wolin/assembler_opt1.asm")),
             FileInputStream(File("src/main/wolin/template.asm"))
         )
+
+        Debugger.start()
 
     }
 
@@ -474,18 +469,8 @@ Optumalizacja operatorów:
         outStream.use {
 
             asmContext.linia().iterator().forEach {
-                var linia = it.instrukcja().text + " "
-                if (it.target(0) != null)
-                    linia += "${it.target(0).text} = "
-
-                if (it.arg(0) != null)
-                    linia += it.arg(0).text
-
-                if (it.arg(1) != null)
-                    linia += ", ${it.arg(1).text}"
-
+                val linia = it.children.map{ it.text }.joinToString(" ")
                 outStream.write(linia.toByteArray())
-                outStream.write(10)
             }
         }
     }
@@ -601,7 +586,6 @@ Optumalizacja operatorów:
             it.write(wynik.dumpCode().toByteArray())
         }
 
-        //Debugger.start()
         //println(wynik.dumpCode())
 //        } catch (ex: Exception) {
 //            println(ex.message)

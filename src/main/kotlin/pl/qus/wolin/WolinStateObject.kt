@@ -40,7 +40,7 @@ class WolinStateObject(val pass: Pass) {
     var currentScopeSuffix = ""
     var currentClass: Klasa? = null
     var currentFunction: Funkcja? = null
-    var currentShortArray: Zmienna? = null
+    //var currentShortArray: Zmienna? = null
 
     //var stringCount = 0L
     var exceptionsUsed = false
