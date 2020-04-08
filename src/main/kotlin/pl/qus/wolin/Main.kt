@@ -496,6 +496,8 @@ Optumalizacja operatorów:
             } catch (ex: Exception) {
                 println("Syntax error in rule file translateAsm")
                 throw ex
+            } finally {
+                asmFileLine++
             }
         }
 
@@ -593,3 +595,5 @@ Optumalizacja operatorów:
 
     }
 }
+
+var asmFileLine = 1

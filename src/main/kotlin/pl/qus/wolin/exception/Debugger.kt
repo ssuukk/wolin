@@ -4,7 +4,7 @@ import org.apache.commons.net.telnet.TelnetClient
 import java.io.*
 
 object Debugger {
-
+    val comments = HashMap<Int, String>()
     var interactive = false
     val state = State()
     val spTop = 0x72 - 1
@@ -12,6 +12,12 @@ object Debugger {
 
     fun start() {
         val telnet = TelnetClient()
+
+        File("D:\\Projekty\\kotlinek\\src\\main\\wolin\\listing.txt").forEachLine {
+            parseListingLine(it)
+        }
+
+        val test = comments.keys
 
         try {
             telnet.connect("127.0.0.1", 6510)
@@ -33,7 +39,24 @@ object Debugger {
                 var command = ""
                 if (interactive) {
                     do {
-                        print(awaitReply(telnetIstream))
+                        val prompt = awaitReply(telnetIstream)
+                        if(prompt.contains(".C:")) {
+                            val pos = prompt.lastIndexOf(".C:")
+                            var adr = Integer.parseInt(prompt.substring(pos+3, pos+7), 16)
+                            if(comments[adr]!=null)
+                                println(comments[adr])
+                            else {
+                                adr --
+                                do {
+                                    if(comments[adr] != null) {
+                                        println("${comments[adr]} (contd.)")
+                                        break
+                                    }
+                                    adr --
+                                } while (adr > 0)
+                            }
+                        }
+                        print(prompt)
 
                         extractRegisters(telnetIstream, telnetOstream)
 
@@ -154,6 +177,18 @@ object Debugger {
         if(spfTop - bottom > 0)
             sendCommand("m ${bottom.hex()} ${spfTop.hex()}", telnetOstream)
 
+    }
+
+    fun parseListingLine(linia: String) {
+        // 000810  1               ; prepare function stack
+        try {
+            if (linia[24] == ';') {
+                val adr = Integer.parseInt(linia.substring(0, 6), 16)
+                comments[adr] = linia.substring(25)
+            }
+        } catch (ex: Exception) {
+
+        }
     }
 
     class State {

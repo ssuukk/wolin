@@ -1,4 +1,4 @@
-; setupHEADER
+; 1: setup HEADER 
 
 
 ;**********************************************
@@ -21,7 +21,7 @@ BasEnd:     .word 0
             ;
 
 
-; setupSPF=251[ubyte],40959[uword]
+; 2: setup SPF = 251[ubyte] , 40959[uword] 
 
 
 ; prepare function stack
@@ -35,7 +35,7 @@ __wolin_spf_top_hi := 40959+1 ; function stack top
     lda #>__wolin_spf_top
     sta __wolin_spf+1
 
-; setupSP=114[ubyte]
+; 3: setup SP = 114[ubyte] 
 
 
 ; prepare program stack
@@ -43,38 +43,38 @@ __wolin_sp_top := 114 ; program stack top
 __wolin_sp_top_hi := 114+1 ; program stack top
     ldx #__wolin_sp_top ; set program stack top
 
-; setupHEAP=176[ubyte]
+; 4: setup HEAP = 176[ubyte] 
 
 
 __wolin_this_ptr := 176
 __wolin_this_ptr_hi := 176+1
 
 
-; call__wolin_pl_qus_wolin_main[uword]
+; 5: call __wolin_pl_qus_wolin_main[uword] 
 
     jsr __wolin_pl_qus_wolin_main
 
-; endfunction
+; 6: endfunction 
 
     rts
 
-; function__wolin_pl_qus_wolin_printAt
+; 7: function __wolin_pl_qus_wolin_printAt 
 
 __wolin_pl_qus_wolin_printAt:
 
-; letCPU.C[bool]=#1[bool]
+; 8: let CPU.C[bool] = #1[bool] 
 
 
     sec
 
 
-; saveSP
+; 9: save SP 
 
 
     txa
     pha
 
-; saveSPF(3)<pl.qus.wolin.printAt.x>[ubyte]
+; 10: save SPF(3)<pl.qus.wolin.printAt.x>[ubyte] 
 
 
     ldy #3
@@ -82,7 +82,7 @@ __wolin_pl_qus_wolin_printAt:
     pha
 
 
-; saveSPF(2)<pl.qus.wolin.printAt.y>[ubyte]
+; 11: save SPF(2)<pl.qus.wolin.printAt.y>[ubyte] 
 
 
     ldy #2
@@ -90,29 +90,29 @@ __wolin_pl_qus_wolin_printAt:
     pha
 
 
-; restoreCPU.Y[ubyte]
+; 12: restore CPU.Y[ubyte] 
 
 
     pla
     tay
 
-; restoreCPU.X[ubyte]
+; 13: restore CPU.X[ubyte] 
 
 
     pla
     tax
 
-; call65520[uword]
+; 14: call 65520[uword] 
 
     jsr 65520
 
-; restoreSP
+; 15: restore SP 
 
 
     pla
     tax
 
-; allocSPF,#5
+; 16: alloc SPF , #5 
 
 
     sec
@@ -123,11 +123,11 @@ __wolin_pl_qus_wolin_printAt:
     dec __wolin_spf+1
 :
 
-; call__wolin_pl_qus_wolin_print[uword]
+; 18: call __wolin_pl_qus_wolin_print[uword] 
 
     jsr __wolin_pl_qus_wolin_print
 
-; freeSPF<pl.qus.wolin.printAt.__fnargs>,#4
+; 19: free SPF<pl.qus.wolin.printAt.__fnargs> , #4 
 
 
     clc
@@ -138,48 +138,48 @@ __wolin_pl_qus_wolin_printAt:
     inc __wolin_spf+1
 :
 
-; endfunction
+; 20: endfunction 
 
     rts
 
-; function__wolin_pl_qus_wolin_print
+; 21: function __wolin_pl_qus_wolin_print 
 
 __wolin_pl_qus_wolin_print:
 
-; letSPF(2)<pl.qus.wolin.print..i>[ubyte]=#0[ubyte]
+; 22: let SPF(2)<pl.qus.wolin.print..i>[ubyte] = #0[ubyte] 
 
 
     ldy #2
     lda #0
     sta (__wolin_spf),y
 
-; allocSP<__wolin_reg14>,#2
+; 23: alloc SP<__wolin_reg14> , #2 
 
 
     dex
     dex
 
-; freeSP<__wolin_reg14>,#1
+; 25: free SP<__wolin_reg14> , #1 
 
     inx
 
-; label__wolin_lab_loop_start_1
+; 26: label __wolin_lab_loop_start_1 
 
 __wolin_lab_loop_start_1:
 
-; bneSP(0)<__wolin_reg18>[bool]=#1[bool],__wolin_lab_loop_end_1<label_po_if>[uword]
+; 28: bne SP(0)<__wolin_reg18>[bool] = #1[bool] , __wolin_lab_loop_end_1<label_po_if>[uword] 
 
 
     lda 0,x
     beq __wolin_lab_loop_end_1
 
-; saveSP
+; 29: save SP 
 
 
     txa
     pha
 
-; saveSPF(0)<pl.qus.wolin.print..char>[ubyte*]
+; 30: save SPF(0)<pl.qus.wolin.print..char>[ubyte*] 
 
 
     ldy #0
@@ -190,22 +190,22 @@ __wolin_lab_loop_start_1:
     pha
 
 
-; restoreCPU.A[ubyte]
+; 31: restore CPU.A[ubyte] 
 
 
     pla
 
-; call65490[uword]
+; 32: call 65490[uword] 
 
     jsr 65490
 
-; restoreSP
+; 33: restore SP 
 
 
     pla
     tax
 
-; addSPF(2)<pl.qus.wolin.print..i>[ubyte]=SPF(2)<pl.qus.wolin.print..i>[ubyte],#1[ubyte]
+; 34: add SPF(2)<pl.qus.wolin.print..i>[ubyte] = SPF(2)<pl.qus.wolin.print..i>[ubyte] , #1[ubyte] 
 
 
     clc
@@ -215,31 +215,31 @@ __wolin_lab_loop_start_1:
     sta (__wolin_spf),y
 
 
-; allocSP<__wolin_reg27>,#2
+; 35: alloc SP<__wolin_reg27> , #2 
 
 
     dex
     dex
 
-; freeSP<__wolin_reg27>,#2
+; 37: free SP<__wolin_reg27> , #2 
 
 
     inx
     inx
 
-; goto__wolin_lab_loop_start_1[uword]
+; 38: goto __wolin_lab_loop_start_1[uword] 
 
     jmp __wolin_lab_loop_start_1
 
-; label__wolin_lab_loop_end_1
+; 39: label __wolin_lab_loop_end_1 
 
 __wolin_lab_loop_end_1:
 
-; freeSP<__wolin_reg18>,#1
+; 40: free SP<__wolin_reg18> , #1 
 
     inx
 
-; freeSPF<pl.qus.wolin.print.__fnargs>,#5
+; 41: free SPF<pl.qus.wolin.print.__fnargs> , #5 
 
 
     clc
@@ -250,15 +250,15 @@ __wolin_lab_loop_end_1:
     inc __wolin_spf+1
 :
 
-; endfunction
+; 42: endfunction 
 
     rts
 
-; function__wolin_pl_qus_wolin_main
+; 43: function __wolin_pl_qus_wolin_main 
 
 __wolin_pl_qus_wolin_main:
 
-; allocSPF,#5
+; 44: alloc SPF , #5 
 
 
     sec
@@ -269,7 +269,7 @@ __wolin_pl_qus_wolin_main:
     dec __wolin_spf+1
 :
 
-; letSPF(3)[ubyte*]=#__wolin_lab_stringConst_0[uword]
+; 45: let SPF(3)[ubyte*] = #__wolin_lab_stringConst_0[uword] 
 
 
     lda #<__wolin_lab_stringConst_0
@@ -279,15 +279,15 @@ __wolin_pl_qus_wolin_main:
     iny
     sta (__wolin_spf),y
 
-; call__wolin_pl_qus_wolin_print[uword]
+; 46: call __wolin_pl_qus_wolin_print[uword] 
 
     jsr __wolin_pl_qus_wolin_print
 
-; endfunction
+; 47: endfunction 
 
     rts
 
-; string__wolin_lab_stringConst_0[uword]=$"dupa"
+; 48: string __wolin_lab_stringConst_0[uword] = $"dupa" 
 
 
 __wolin_lab_stringConst_0:

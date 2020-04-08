@@ -19,7 +19,7 @@ class RuleMatcherVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
                 matched(template, state.assemblerLine!!)
 
                 if (state.matched != null) {
-                    processParams(state.matched!!, state.assemblerLine!!)
+                    processParams(state.matched!!, state.assemblerLine!!, asmFileLine)
                     break
                 }
             }
@@ -183,7 +183,7 @@ let SP(?a)[uword] = SP(?b)[uword]
             Pair(false, pary)
     }
 
-    fun processParams(template: PseudoAsmParser.LiniaContext, data: PseudoAsmParser.LiniaContext): Boolean {
+    fun processParams(template: PseudoAsmParser.LiniaContext, data: PseudoAsmParser.LiniaContext, lineNo: Int): Boolean {
         //var mosAsm = template.assemblerBody(0)?.multiLineStringLiteral()?.multiLineStringContent(0)?.text!!
         var mosAsm =
             template.assemblerBody(0)?.multiLineStringLiteral()?.children?.drop(1)?.dropLast(1)?.map { it.text }?.joinToString(
@@ -201,7 +201,7 @@ let SP(?a)[uword] = SP(?b)[uword]
             counter++
         }
 
-        state.code("; ${data.text}")
+        state.code("; $lineNo: ${data.children.map { it.text }.joinToString(" ")}")
         state.code(mosAsm)
         state.code("")
 
