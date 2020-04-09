@@ -5,62 +5,52 @@ import java.io.*
 
 object Debugger {
     val comments = HashMap<Int, String>()
-    var interactive = false
-    val state = State()
+    var interactive = true
+    val state = CPUState()
     val spTop = 0x72 - 1
     val spfTop = 0x9fff - 1
+    val buildPath = "D:\\Projekty\\kotlinek\\src\\main\\wolin\\"
+    val objectName = "assembler"
+
+    lateinit var telnetOstream: PrintStream
+    lateinit var telnetIstream: InputStream
+
 
     fun start() {
-        val telnet = TelnetClient()
-
-        File("D:\\Projekty\\kotlinek\\src\\main\\wolin\\listing.txt").forEachLine {
-            parseListingLine(it)
+        try {
+            File(buildPath, "$objectName.lst").forEachLine {
+                parseListingLine(it)
+            }
+            println("Source comments read succesfully")
+        } catch (ex: IOException) {
+            println("Couldn't read source code, no comments will be available")
         }
 
-        val test = comments.keys
+        val telnet = TelnetClient()
 
         try {
             telnet.connect("127.0.0.1", 6510)
+            telnetOstream = PrintStream(telnet.outputStream)
+            telnetIstream = telnet.inputStream
 
-            println("Telnet otwartyy")
+            println("Connected to VICE remote monitor")
 
-            val telnetOstream = PrintStream(telnet.outputStream)
-            val telnetIstream = telnet.inputStream
+            loadLabels()
+            syncState()
+            sendCommand("x")
+
+            println("Session initialized")
+
             val userInputReader = BufferedReader(InputStreamReader(System.`in`))
-
-            loadLabels(telnetIstream, telnetOstream)
-            extractRegisters(telnetIstream, telnetOstream)
-            sendCommand("break 0810", telnetOstream)
-            flush(telnetIstream)
-
-            sendCommand("x", telnetOstream)
 
             do {
                 var command = ""
                 if (interactive) {
                     do {
-                        val prompt = awaitReply(telnetIstream)
-                        if(prompt.contains(".C:")) {
-                            val pos = prompt.lastIndexOf(".C:")
-                            var adr = Integer.parseInt(prompt.substring(pos+3, pos+7), 16)
-                            if(comments[adr]!=null)
-                                println(comments[adr])
-                            else {
-                                adr --
-                                do {
-                                    if(comments[adr] != null) {
-                                        println("${comments[adr]} (contd.)")
-                                        break
-                                    }
-                                    adr --
-                                } while (adr > 0)
-                            }
-                        }
-                        print(prompt)
+                        syncState()
 
-                        extractRegisters(telnetIstream, telnetOstream)
-
-                        command = userInputReader.readLine().trim()
+                        val tokens = userInputReader.readLine().split(" ").map { it.trim() }
+                        command = tokens[0]
 
                         when (command) {
                             "quit" -> {
@@ -68,53 +58,86 @@ object Debugger {
                             }
                             "x" -> {
                                 interactive = false
+                                println("Giving baack control to VICE")
+                                sendCommand(command)
                             }
                             "sp" -> {
-                                dumpSP(telnetIstream, telnetOstream)
+                                dumpSP()
                             }
                             "spf" -> {
-                                dumpSPF(telnetIstream, telnetOstream)
+                                dumpSPF()
+                            }
+                            "stacks" -> {
+                                dumpSP()
+                                dumpSPF()
+                            }
+                            "lbreak" -> {
+                                setLineBreakpoint(tokens)
                             }
                             else -> {
-                                sendCommand(command, telnetOstream)
+                                sendCommand(command)
+                                processIncoming()
                             }
                         }
                     } while (command != "quit" && command != "x")
                 }
                 else {
-                    interactive = dataAvailable(telnetIstream)
-                    if(interactive)
+                    interactive = isOutputAvailable(telnetIstream)
+                    if(interactive) {
                         println("entering interactive mode")
+                        processIncoming()
+                    }
                 }
             } while (command != "quit")
-
-
-        } catch (ex: Exception) {
+        } catch (ex: ExceptionInInitializerError) {
             println("Problem z debuggerem")
         } finally {
             if (telnet.isConnected)
                 telnet.disconnect()
 
-            println("Zamykam soket")
-        }
-
-    }
-
-    fun sendCommand(command: String, out: PrintStream) {
-        out.print("$command                                                                           \n")
-        out.flush()
-    }
-
-    fun flush(istream: InputStream) {
-        while (dataAvailable(istream)) {
-            istream.read()
+            println("Debugger detached")
         }
     }
 
-    fun awaitReply(istream: InputStream): String {
+    fun processIncoming(showComment: Boolean = true) {
+        val prompt = getOutput(telnetIstream)
+        state.fromPrompt(prompt)
+        if(showComment) state.showComment()
+        print(prompt)
+    }
+
+    private fun setLineBreakpoint(tokens: List<String>) {
+        if(tokens.size > 1) {
+            val lineNo = tokens[1].toInt()
+            val debugLine = comments.entries.firstOrNull {
+                it.value.split(":").getOrNull(0)?.trim()?.toIntOrNull() == lineNo
+            }
+            println("Szukam linii $lineNo = $debugLine")
+
+            debugLine?.let {
+                println("Setting breakpoint to: ${it.key}")
+                sendCommand("break ${it.key.hex()}")
+                flushIncoming()
+
+            }
+        }
+    }
+
+    fun sendCommand(command: String) {
+        telnetOstream.print("$command                                                                           \n")
+        telnetOstream.flush()
+    }
+
+    fun flushIncoming() {
+        while (isOutputAvailable(telnetIstream)) {
+            telnetIstream.read()
+        }
+    }
+
+    fun getOutput(istream: InputStream): String {
         val sb = StringBuffer()
 
-        while (dataAvailable(istream)) {
+        while (isOutputAvailable(istream)) {
             val ch = istream.read().toChar()
             sb.append(ch)
         }
@@ -122,7 +145,7 @@ object Debugger {
         return sb.toString()
     }
 
-    fun dataAvailable(istream: InputStream): Boolean {
+    fun isOutputAvailable(istream: InputStream): Boolean {
         return if (istream.available() == 0) {
             Thread.sleep(250)
             istream.available() != 0
@@ -130,15 +153,15 @@ object Debugger {
             true
     }
 
-    fun loadLabels(telnetIstream: InputStream, telnetOstream: PrintStream) {
-        sendCommand("""ll "D:\Projekty\kotlinek\src\main\wolin\labels.txt"  """, telnetOstream)
-        flush(telnetIstream)
+    fun loadLabels() {
+        sendCommand("""ll $buildPath$objectName.lbl"  """)
+        flushIncoming()
     }
 
-    fun extractRegisters(telnetIstream: InputStream, telnetOstream: PrintStream) {
-        flush(telnetIstream)
-        sendCommand("r", telnetOstream)
-        val reply = awaitReply(telnetIstream)
+    fun syncState() {
+        flushIncoming()
+        sendCommand("r")
+        val reply = getOutput(telnetIstream)
         val lines = reply.split("\n")
 
         //            ADDR A  X  Y  SP 00 01 NV-BDIZC LIN CYC  STOPWATCH
@@ -147,19 +170,21 @@ object Debugger {
         state.fromPattern(text)
     }
 
-    fun dumpSP(telnetIstream: InputStream, telnetOstream: PrintStream) {
-        flush(telnetIstream)
-        extractRegisters(telnetIstream, telnetOstream)
-        println("SP: ${state.x} - $spTop size: ${spTop - state.x+1}")
-        if(spTop - state.x > 0)
-            sendCommand("m ${state.x.hex()} ${spTop.hex()}", telnetOstream)
+    fun dumpSP() {
+        flushIncoming()
+        syncState()
+        println("ZP stack: ${state.x} - $spTop size: ${spTop - state.x+1}")
+        if(spTop - state.x > 0) {
+            sendCommand("m ${state.x.hex()} ${spTop.hex()}")
+            processIncoming(false)
+        }
     }
 
-    fun dumpSPF(telnetIstream: InputStream, telnetOstream: PrintStream) {
-        flush(telnetIstream)
-        sendCommand("m fb fc", telnetOstream)
+    fun dumpSPF() {
+        flushIncoming()
+        sendCommand("m fb fc")
 
-        val reply = awaitReply(telnetIstream)
+        val reply = getOutput(telnetIstream)
         val lines = reply.split("\n")
 
         val text = lines.firstOrNull { it.startsWith(">") } ?: ">C:0070  00 00  "
@@ -172,11 +197,12 @@ object Debugger {
         val hi = Integer.parseInt(match?.groupValues?.get(2) ?: "0", 16)
         val bottom = hi * 256 + lo
 
-        println("SPF: $bottom - $spfTop size: ${spfTop - bottom+1}")
+        println("Function stack: $bottom - $spfTop size: ${spfTop - bottom+1}")
 
-        if(spfTop - bottom > 0)
-            sendCommand("m ${bottom.hex()} ${spfTop.hex()}", telnetOstream)
-
+        if(spfTop - bottom > 0) {
+            sendCommand("m ${bottom.hex()} ${spfTop.hex()}")
+            processIncoming(false)
+        }
     }
 
     fun parseListingLine(linia: String) {
@@ -191,7 +217,7 @@ object Debugger {
         }
     }
 
-    class State {
+    class CPUState {
         var a: Int = 0
         var x: Int = 0
         var y: Int = 0
@@ -203,6 +229,34 @@ object Debugger {
         var ints: Boolean = false
         var zero: Boolean = false
         var carru: Boolean = false
+        var pc: Int = 0
+
+        fun showComment() {
+            var currentPc = pc
+            if(comments[currentPc]!=null)
+                println(comments[currentPc])
+            else {
+                currentPc --
+                do {
+                    if(comments[currentPc] != null) {
+                        println("${comments[currentPc]} (contd.)")
+                        break
+                    }
+                    currentPc --
+                } while (currentPc > 0)
+            }
+        }
+
+        fun fromPrompt(prompt: String) {
+            if(prompt.contains(".C:")) {
+                val pcPosition = prompt.lastIndexOf(".C:")
+                pc = try {
+                    Integer.parseInt(prompt.substring(pcPosition + 3, pcPosition + 7), 16)
+                } catch (ex: java.lang.Exception) {
+                    pc
+                }
+            }
+        }
 
         fun fromPattern(text: String) {
             val pattern = ".;.... (..) (..) (..) (..) (..) (..) (........) +".toRegex()

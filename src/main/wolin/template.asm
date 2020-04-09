@@ -53,7 +53,7 @@ setup HEADER -> """
 ;* BASIC header
 ;*
 ;* compile with:
-;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg -g -Ln labels.txt assembler.s
+;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg -g -Ln assembler.lbl -l assembler.txt assembler.s
 ;*
 ;**********************************************
             .org 2049

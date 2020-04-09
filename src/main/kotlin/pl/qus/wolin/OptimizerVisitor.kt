@@ -96,15 +96,12 @@ class OptimizerVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
                         registers[secondArg.numer]?.canBeRemoved = false
                     }
 
-                    if (instrukcja != "let" && target != null) {
-                        println("Nie można usunąć ${target.numer} bo nie let i ma target w ${linia.text}")
-                        registers[target.numer]?.canBeRemoved = false
-                    }
-
-//                    if (targetDeref == "&") {
-//                        println("Nie można usunąć ${target!!.numer} bo target deref jest & (arc cont:${exTar?.argContext?.text})")
+                    // włączenie tego uniemożliwa reverse-pair
+//                    if (instrukcja != "let" && target != null) {
+//                        println("Nie można usunąć ${target.numer} bo nie let i ma target w ${linia.text}")
 //                        registers[target.numer]?.canBeRemoved = false
 //                    }
+
                 }
             }
         }
@@ -156,6 +153,9 @@ op B = *
 
         val targetsToBeReplaced = mutableMapOf<Int, Register>()
         println("== Optimizing reverse values ==")
+
+        state.reversePhase = true
+
         ctx.children.iterator().let { linieIterator ->
             while (linieIterator.hasNext()) {
                 val current = linieIterator.next()
@@ -323,7 +323,7 @@ op B = *
                                 linieIterator.remove()
                             }
                         } else if (target?.numer == removedRegistr.numer && (instrukcja == "let" || linia.arg().size == 1) && refType != "&") {
-                            println("usuwam pierwsze podstawienie do ${removedRegistr.numer}")
+                            println("usuwam pierwsze podstawienie do ${removedRegistr.numer}: ${linia.text}")
                             linieIterator.remove()
                         } else if (state.insideOptimizedReg == removedRegistr.numer) {
                             /*
@@ -419,6 +419,9 @@ op B = *
                 val targetDeref = linia.target(0)?.operand()?.referencer(0)?.text
 
                 if (instrukcja != "free" && instrukcja != "alloc") {
+//                    if(regNr == 14 || regNr == 27) {
+//                        println("Debug: obrabiam $regNr, sprawdzam target: $target")
+//                    }
                     if (target?.numer == regNr && targetDeref == "&") {
                         println("====================================================================")
                         println("oper *replace* = arg, arg\n${linia.text}")
@@ -438,9 +441,27 @@ op B = *
                         print("${linia.text}")
                         state.replaced = true
 
+                    } else if (target?.numer == regNr && state.reversePhase) {
+                        println("====================================================================")
+                        println("reverse oper *replace* = arg, arg\n${linia.text}")
+
+                        val ta = linia.target(0)
+                        val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!.argContext?.get(0)?.operand() ?: registers[regNr]!!.targetContext!!.operand()!!)
+
+                        val kopia = PseudoAsmParser.TargetContext(
+                            correctedTarget.ruleContext as ParserRuleContext,
+                            correctedTarget.invokingState
+                        )
+
+                        kopia.copyFrom(correctedTarget)
+
+                        linia.children[1] = correctedTarget
+
+                        print("${linia.text}")
+                        state.replaced = true
                     }
 
-                    if(firstArg?.numer == regNr && secondArg == null && registers[regNr]?.argContext?.size == 2){
+                        if(firstArg?.numer == regNr && secondArg == null && registers[regNr]?.argContext?.size == 2){
                         println("====================================================================")
                         println("oper target = *replace* INDEXED\n${linia.text}")
 
