@@ -430,7 +430,7 @@ Optumalizacja operatorów:
             FileInputStream(File("src/main/wolin/template.asm"))
         )
 
-        Debugger.start()
+        //Debugger.start()
 
     }
 

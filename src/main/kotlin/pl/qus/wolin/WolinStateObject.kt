@@ -381,7 +381,9 @@ class WolinStateObject(val pass: Pass) {
         }
     }
 
-    fun varToAsm(register: Zmienna, finalDeref: RegOper = RegOper.VALUE): String {
+    fun varToAsm(register: Zmienna, deref: RegOper = RegOper.VALUE): String {
+        val finalDeref = if(deref == RegOper.STAR && register.type.isPointer) RegOper.VALUE else deref
+
         return when (finalDeref) {
             RegOper.AMPRESAND -> "&"
             RegOper.VALUE -> ""

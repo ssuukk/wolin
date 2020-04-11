@@ -1640,7 +1640,7 @@ class WolinVisitor(
                             ctx,
                             state.currentReg,
                             proc,
-                            "simple id from var",
+                            "simple id from var - new var",
                             RegOper.VALUE,
                             RegOper.VALUE
                         )
@@ -2368,10 +2368,7 @@ class WolinVisitor(
 
             if (można) {
                 state.code(
-                    "let ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(
-                        co,
-                        derefCo
-                    )} // przez sprawdzacz typow - $comment"
+                    "let ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(co, derefCo)} // przez sprawdzacz typow - $comment"
                 )
             } else {
                 błędzik(ctx, "Nie można przypisać $co do zmiennej $doJakiej")

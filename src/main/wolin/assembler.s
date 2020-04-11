@@ -123,6 +123,19 @@ __wolin_pl_qus_wolin_printAt:
     dec __wolin_spf+1
 :
 
+; 17: let SPF(3)[ubyte*] = SPF(5)<pl.qus.wolin.printAt.what>[ubyte*] 
+
+
+    ldy #5
+    lda (__wolin_spf),y
+    ldy #3
+    sta (__wolin_spf),y
+    ldy #5+1
+    lda (__wolin_spf),y
+    ldy #3+2
+    sta (__wolin_spf),y
+
+
 ; 18: call __wolin_pl_qus_wolin_print[uword] 
 
     jsr __wolin_pl_qus_wolin_print
@@ -153,6 +166,23 @@ __wolin_pl_qus_wolin_print:
     lda #0
     sta (__wolin_spf),y
 
+; 23: add SPF(0)<pl.qus.wolin.print..char>[ubyte*] = SPF(3)<pl.qus.wolin.print.what>[ubyte*] , SPF(2)<pl.qus.wolin.print..i>[ubyte] 
+
+
+    clc
+    ldy #3
+    lda (__wolin_spf), y
+    ldy #2
+    adc (__wolin_spf), y
+    ldy #0
+    sta (__wolin_spf), y
+    ldy #3+1
+    lda (__wolin_spf), y
+    adc #0
+    ldy #0+1
+    sta (__wolin_spf), y
+
+
 ; 24: alloc SP<__wolin_reg18> , #1 
 
     dex
@@ -160,6 +190,28 @@ __wolin_pl_qus_wolin_print:
 ; 25: label __wolin_lab_loop_start_1 
 
 __wolin_lab_loop_start_1:
+
+; 26: evalneq SP(0)<__wolin_reg18>[bool] = &SPF(0)<pl.qus.wolin.print..char>[ubyte*] , #0[ubyte] 
+
+
+    lda #1 ; rozne
+    sta 0,x
+    dex
+    dex
+    ldy #0
+    lda (__wolin_spf),y
+    sta 0,x
+    iny
+    lda (__wolin_spf),y
+    sta 1,x
+    lda (0,x)
+    bne :+
+    lda #0
+    sta 0+2,x
+:
+    inx
+    inx
+
 
 ; 27: bne SP(0)<__wolin_reg18>[bool] = #1[bool] , __wolin_lab_loop_end_1<label_po_if>[uword] 
 
@@ -173,15 +225,21 @@ __wolin_lab_loop_start_1:
     txa
     pha
 
-; 29: save SPF(0)<pl.qus.wolin.print..char>[ubyte*] 
+; 29: save &SPF(0)<pl.qus.wolin.print..char>[ubyte*] 
 
 
+    dex
+    dex
     ldy #0
     lda (__wolin_spf),y
-    pha
+    sta 0,x
     iny
     lda (__wolin_spf),y
+    sta 1,x
+    lda (0,x)
     pha
+    inx
+    inx
 
 
 ; 30: restore CPU.A[ubyte] 
@@ -207,6 +265,23 @@ __wolin_lab_loop_start_1:
     lda #1
     adc (__wolin_spf),y
     sta (__wolin_spf),y
+
+
+; 34: add SPF(0)<pl.qus.wolin.print..char>[ubyte*] = SPF(3)<pl.qus.wolin.print.what>[ubyte*] , SPF(2)<pl.qus.wolin.print..i>[ubyte] 
+
+
+    clc
+    ldy #3
+    lda (__wolin_spf), y
+    ldy #2
+    adc (__wolin_spf), y
+    ldy #0
+    sta (__wolin_spf), y
+    ldy #3+1
+    lda (__wolin_spf), y
+    adc #0
+    ldy #0+1
+    sta (__wolin_spf), y
 
 
 ; 35: goto __wolin_lab_loop_start_1[uword] 
@@ -273,7 +348,7 @@ __wolin_pl_qus_wolin_main:
 
 
 __wolin_lab_stringConst_0:
-    .asciiz {val}
+    .asciiz "dupa"
     ;.byt 0
 
 

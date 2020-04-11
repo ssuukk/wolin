@@ -85,7 +85,7 @@ alloc SPF, #5
 alloc SP<__wolin_reg8>, #2 // for call argument 0
 // Prze visit vALUE
 //  obliczenia dla parametru what
-let SP(0)<__wolin_reg8>[ubyte*] = *SPF(5)<pl.qus.wolin.printAt.what>[ubyte*] // przez sprawdzacz typow - simple id from var
+let SP(0)<__wolin_reg8>[ubyte*] = SPF(5)<pl.qus.wolin.printAt.what>[ubyte*] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte* by type from pl.qus.wolin.printAt.what
 // po visit value
 let SPF(3)[ubyte*] = SP(0)<__wolin_reg8>[ubyte*]
@@ -122,7 +122,7 @@ alloc SP<__wolin_reg13>, #2 // for var pl.qus.wolin.print..char init expression
 alloc SP<__wolin_reg14>, #2 // arr_deref
 //  LEWA strona array access, czyli co to za zmienna
 alloc SP<__wolin_reg15>, #2 // array variable
-let SP(0)<__wolin_reg15>[ubyte*] = *SPF(3)<pl.qus.wolin.print.what>[ubyte*] // przez sprawdzacz typow - simple id from var
+let SP(0)<__wolin_reg15>[ubyte*] = SPF(3)<pl.qus.wolin.print.what>[ubyte*] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte* by type from pl.qus.wolin.print.what
 //  PRAWA strona array access, czyli indeks w nawiasach
 alloc SP<__wolin_reg16>, #2 // For calculating index
@@ -148,7 +148,7 @@ alloc SP<__wolin_reg17>, #2 // for blockLevel expression
 alloc SP<__wolin_reg18>, #1 // for while condition
 label __wolin_lab_loop_start_1
 alloc SP<__wolin_reg19>, #2 // LEFT equality check: evalneq
-let SP(0)<__wolin_reg19>[ubyte*] = *SPF(0)<pl.qus.wolin.print..char>[ubyte*] // przez sprawdzacz typow - simple id from var
+let SP(0)<__wolin_reg19>[ubyte*] = SPF(0)<pl.qus.wolin.print..char>[ubyte*] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte* by type from pl.qus.wolin.print..char
 // top type already set: __wolin_reg19: ubyte* = 0 /* LEFT equality check: evalneq */
 alloc SP<__wolin_reg20>, #1 // RIGHT equality check: evalneq
@@ -169,7 +169,7 @@ save SP
 alloc SP<__wolin_reg23>, #2 // for call argument 0
 // Prze visit vALUE
 //  obliczenia dla parametru char
-let SP(0)<__wolin_reg23>[ubyte*] = *SPF(0)<pl.qus.wolin.print..char>[ubyte*] // przez sprawdzacz typow - simple id from var
+let SP(0)<__wolin_reg23>[ubyte*] = SPF(0)<pl.qus.wolin.print..char>[ubyte*] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte* by type from pl.qus.wolin.print..char
 // po visit value
 save &SP(0)<__wolin_reg23>[ubyte*] // CPU.A
@@ -195,7 +195,7 @@ alloc SP<__wolin_reg26>, #2 // for var pl.qus.wolin.print..char init expression
 alloc SP<__wolin_reg27>, #2 // arr_deref
 //  LEWA strona array access, czyli co to za zmienna
 alloc SP<__wolin_reg28>, #2 // array variable
-let SP(0)<__wolin_reg28>[ubyte*] = *SPF(3)<pl.qus.wolin.print.what>[ubyte*] // przez sprawdzacz typow - simple id from var
+let SP(0)<__wolin_reg28>[ubyte*] = SPF(3)<pl.qus.wolin.print.what>[ubyte*] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte* by type from pl.qus.wolin.print.what
 //  PRAWA strona array access, czyli indeks w nawiasach
 alloc SP<__wolin_reg29>, #2 // For calculating index

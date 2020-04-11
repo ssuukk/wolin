@@ -786,6 +786,26 @@ evalneq SP(?dest)[bool] = ?left[ubyte], #?right[ubyte] -> """
     sta {dest},x
 :"""
 
+evalneq SP(?dest)[bool] = &SPF(?src)[ubyte*], #0[ubyte] -> """
+    lda #1 ; rozne
+    sta {dest},x
+    dex
+    dex
+    ldy #{src}
+    lda (__wolin_spf),y
+    sta 0,x
+    iny
+    lda (__wolin_spf),y
+    sta 1,x
+    lda (0,x)
+    bne :+
+    lda #0
+    sta {dest}+2,x
+:
+    inx
+    inx
+"""
+
 evaleq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     lda #1 ; rowne
     sta {dest},x
@@ -896,8 +916,18 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
 //============================================
 // nowe adresy
 //============================================
+let SPF(?d)[?any*] = SPF(?s)[?any*] -> """
+    ldy #{s}
+    lda (__wolin_spf),y
+    ldy #{d}
+    sta (__wolin_spf),y
+    ldy #{s}+1
+    lda (__wolin_spf),y
+    ldy #{d}+2
+    sta (__wolin_spf),y
+"""
 
-let SP(?dst)[any*] = SPF(?src)[any*] -> """
+let SP(?dst)[?any*] = SPF(?src)[?any*] -> """
     ldy #{src}
     lda (__wolin_spf),y
     sta {dst},x
@@ -1254,6 +1284,21 @@ restore CPU.YX[uword] -> """
     tay
 """
 
+save &SPF(?src)[ubyte*] -> """
+    dex
+    dex
+    ldy #{src}
+    lda (__wolin_spf),y
+    sta 0,x
+    iny
+    lda (__wolin_spf),y
+    sta 1,x
+    lda (0,x)
+    pha
+    inx
+    inx
+"""
+
 save SPF(?src)[ubyte] -> """
     ldy #{src}
     lda (__wolin_spf),y
@@ -1351,6 +1396,21 @@ div SP(?d)[word] = SP(?dzielna)[word],SP(?dzielnik)[word] -> """  jsr stack_div"
 add SP(?dummya)[?dummyb] = ?dummyc[?dummyd*], #0[?dummye] -> """"""
 add SP(?dummya)[?dummyb*] = ?dummyc[?dummyd*], #0[?dummye] -> """"""
 add SP(?dummya)[?dummyb*] = SP(?dommyf)[?dummyd*], #0[?dummye] -> """"""
+
+add SPF(?d)[ubyte*] = SPF(?c1)[ubyte*], SPF(?c2)[ubyte] -> """
+    clc
+    ldy #{c1}
+    lda (__wolin_spf), y
+    ldy #{c2}
+    adc (__wolin_spf), y
+    ldy #{d}
+    sta (__wolin_spf), y
+    ldy #{c1}+1
+    lda (__wolin_spf), y
+    adc #0
+    ldy #{d}+1
+    sta (__wolin_spf), y
+"""
 
 add SPF(?d)[ubyte] = SPF(?c1)[ubyte],SPF(?c2)[ubyte] -> """
     clc
