@@ -923,7 +923,7 @@ let SPF(?d)[?any*] = SPF(?s)[?any*] -> """
     sta (__wolin_spf),y
     ldy #{s}+1
     lda (__wolin_spf),y
-    ldy #{d}+2
+    ldy #{d}+1
     sta (__wolin_spf),y
 """
 

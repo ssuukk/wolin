@@ -10,8 +10,7 @@ class Funkcja(
 
     var location: Int = 0,
     var lambdaBody: KotlinParser.StatementsContext? = null // dla lambd
-)
-{
+) {
 
     var startReg: Int = -1
 
@@ -29,27 +28,27 @@ class Funkcja(
     val locals: List<Zmienna>
         get() = fields.filter { it.fieldType != FieldType.ARGUMENT }
 
-    val labelName: String get() = "__wolin_${fullName.replace(".","_")}"
+    val labelName: String get() = "__wolin_${fullName.replace(".", "_")}"
     var fields: MutableList<Zmienna> = mutableListOf()
 
     //val calledFunctions = mutableListOf<Funkcja>()
 
     fun addField(nowa: Zmienna) {
-        if(fields.none { it.name == nowa.name})
+        if (fields.none { it.name == nowa.name })
             fields.add(nowa)
     }
 
     override fun toString(): String = "fun $fullName(${arguments.joinToString()}):${type.name}"
 
-        fun releaseCalledFunction(state: WolinStateObject) {
-            try {
-                state.fnCallReleaseRet(this)
-                if(this.type != Typ.unit)
-                    state.code("free SPF <${this.returnName}>, #${this.type.sizeOnStack} // free return value of ${this.fullName} from call stack")
-            } catch (ex: Exception) {
-                val a = state.currentFunction?.fullName
-                println("tu")
-            }
+    fun releaseCalledFunction(state: WolinStateObject) {
+        try {
+            state.fnCallReleaseRet(this)
+            if (this.type != Typ.unit)
+                state.code("free SPF <${this.returnName}>, #${this.type.sizeOnStack} // free return value of ${this.fullName} from call stack")
+        } catch (ex: Exception) {
+            val a = state.currentFunction?.fullName
+            println("tu")
+        }
 
     }
 

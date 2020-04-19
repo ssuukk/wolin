@@ -1,4 +1,4 @@
-package pl.qus.wolin.exception
+package pl.qus.wolin
 
 import org.apache.commons.net.telnet.TelnetClient
 import java.io.*
@@ -37,6 +37,7 @@ object Debugger {
 
             loadLabels()
             syncState()
+            //zsendCommand("break 081e")
             sendCommand("x")
 
             println("Session initialized")
@@ -48,8 +49,8 @@ object Debugger {
                 if (interactive) {
                     do {
                         syncState()
-
-                        val tokens = userInputReader.readLine().split(" ").map { it.trim() }
+                        val line = userInputReader.readLine()
+                        val tokens = line.split(" ").map { it.trim() }
                         command = tokens[0]
 
                         when (command) {
@@ -75,14 +76,15 @@ object Debugger {
                                 setLineBreakpoint(tokens)
                             }
                             else -> {
-                                sendCommand(command)
+                                sendCommand(line)
                                 processIncoming()
                             }
                         }
                     } while (command != "quit" && command != "x")
                 }
                 else {
-                    interactive = isOutputAvailable(telnetIstream)
+                    interactive =
+                        isOutputAvailable(telnetIstream)
                     if(interactive) {
                         println("entering interactive mode")
                         processIncoming()
@@ -100,7 +102,8 @@ object Debugger {
     }
 
     fun processIncoming(showComment: Boolean = true) {
-        val prompt = getOutput(telnetIstream)
+        val prompt =
+            getOutput(telnetIstream)
         state.fromPrompt(prompt)
         if(showComment) state.showComment()
         print(prompt)
@@ -161,7 +164,8 @@ object Debugger {
     fun syncState() {
         flushIncoming()
         sendCommand("r")
-        val reply = getOutput(telnetIstream)
+        val reply =
+            getOutput(telnetIstream)
         val lines = reply.split("\n")
 
         //            ADDR A  X  Y  SP 00 01 NV-BDIZC LIN CYC  STOPWATCH
@@ -184,7 +188,8 @@ object Debugger {
         flushIncoming()
         sendCommand("m fb fc")
 
-        val reply = getOutput(telnetIstream)
+        val reply =
+            getOutput(telnetIstream)
         val lines = reply.split("\n")
 
         val text = lines.firstOrNull { it.startsWith(">") } ?: ">C:0070  00 00  "

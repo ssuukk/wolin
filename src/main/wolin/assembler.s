@@ -65,7 +65,7 @@ __wolin_pl_qus_wolin_printAt:
 ; 8: let CPU.C[bool] = #1[bool] 
 
 
-    sec
+    clc
 
 
 ; 9: save SP 
@@ -132,7 +132,7 @@ __wolin_pl_qus_wolin_printAt:
     sta (__wolin_spf),y
     ldy #5+1
     lda (__wolin_spf),y
-    ldy #3+2
+    ldy #3+1
     sta (__wolin_spf),y
 
 
@@ -315,36 +315,50 @@ __wolin_lab_loop_end_1:
 
 __wolin_pl_qus_wolin_main:
 
-; 41: alloc SPF , #5 
+; 41: alloc SPF , #4 
 
 
     sec
     lda __wolin_spf
-    sbc #5
+    sbc #4
     sta __wolin_spf
     bcs :+
     dec __wolin_spf+1
 :
 
-; 42: let SPF(3)[ubyte*] = #__wolin_lab_stringConst_0[uword] 
+; 42: let SPF(3)[ubyte] = #20[ubyte] 
+
+
+    ldy #3
+    lda #20
+    sta (__wolin_spf),y
+
+; 43: let SPF(2)[ubyte] = #20[ubyte] 
+
+
+    ldy #2
+    lda #20
+    sta (__wolin_spf),y
+
+; 44: let SPF(0)[ubyte*] = #__wolin_lab_stringConst_0[uword] 
 
 
     lda #<__wolin_lab_stringConst_0
-    ldy #3
+    ldy #0
     sta (__wolin_spf),y
     lda #>__wolin_lab_stringConst_0
     iny
     sta (__wolin_spf),y
 
-; 43: call __wolin_pl_qus_wolin_print[uword] 
+; 45: call __wolin_pl_qus_wolin_printAt[uword] 
 
-    jsr __wolin_pl_qus_wolin_print
+    jsr __wolin_pl_qus_wolin_printAt
 
-; 44: endfunction 
+; 46: endfunction 
 
     rts
 
-; 45: string __wolin_lab_stringConst_0[uword] = $"dupa" 
+; 47: string __wolin_lab_stringConst_0[uword] = $"dupa" 
 
 
 __wolin_lab_stringConst_0:

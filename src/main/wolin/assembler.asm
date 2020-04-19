@@ -235,22 +235,40 @@ endfunction
 function __wolin_pl_qus_wolin_main
 // switchType to:unit by function return type 1
 // 
-// == FN_CALL: pl.qus.wolin.print ========
-alloc SPF, #5
-// == FN_CALL: ARG #0 ("dupa") pl.qus.wolin.print
-alloc SP<__wolin_reg32>, #2 // for call argument 0
+// == FN_CALL: pl.qus.wolin.printAt ========
+alloc SPF, #4
+// == FN_CALL: ARG #0 (20) pl.qus.wolin.printAt
+alloc SP<__wolin_reg32>, #1 // for call argument 0
+// Prze visit vALUE
+//  obliczenia dla parametru 20
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg32>[ubyte] = #20[ubyte] // atomic ex
+// po visit value
+let SPF(3)[ubyte] = SP(0)<__wolin_reg32>[ubyte]
+free SP<__wolin_reg32>, #1 // for call argument 0, type = ubyte
+// == FN_CALL: ARG #1 (20) pl.qus.wolin.printAt
+alloc SP<__wolin_reg33>, #1 // for call argument 1
+// Prze visit vALUE
+//  obliczenia dla parametru 20
+// switchType to:ubyte by parse literal constant
+let SP(0)<__wolin_reg33>[ubyte] = #20[ubyte] // atomic ex
+// po visit value
+let SPF(2)[ubyte] = SP(0)<__wolin_reg33>[ubyte]
+free SP<__wolin_reg33>, #1 // for call argument 1, type = ubyte
+// == FN_CALL: ARG #2 ("dupa") pl.qus.wolin.printAt
+alloc SP<__wolin_reg34>, #2 // for call argument 2
 // Prze visit vALUE
 //  obliczenia dla parametru "dupa"
 // switchType to:ubyte* by parse literal constant
-let SP(0)<__wolin_reg32>[ubyte*] = #__wolin_lab_stringConst_0[uword] // atomic ex
+let SP(0)<__wolin_reg34>[ubyte*] = #__wolin_lab_stringConst_0[uword] // atomic ex
 // po visit value
-let SPF(3)[ubyte*] = SP(0)<__wolin_reg32>[ubyte*]
-free SP<__wolin_reg32>, #2 // for call argument 0, type = ubyte*
+let SPF(0)[ubyte*] = SP(0)<__wolin_reg34>[ubyte*]
+free SP<__wolin_reg34>, #2 // for call argument 2, type = ubyte*
 // switchType to:unit by function return type 2
 // switchType to:unit by function call
-call __wolin_pl_qus_wolin_print[uword]
+call __wolin_pl_qus_wolin_printAt[uword]
 
-// == FN_CALL END: pl.qus.wolin.print ========
+// == FN_CALL END: pl.qus.wolin.printAt ========
 // 
 // top type already set: __wolin_reg31: unit = 65535 /* for blockLevel expression */
 // freeing call stack

@@ -2,7 +2,6 @@ package pl.qus.wolin
 
 import org.antlr.v4.runtime.ANTLRInputStream
 import org.antlr.v4.runtime.CommonTokenStream
-import pl.qus.wolin.exception.Debugger
 import pl.qus.wolin.exception.NoRuleException
 import java.io.*
 
@@ -430,7 +429,7 @@ Optumalizacja operatorów:
             FileInputStream(File("src/main/wolin/template.asm"))
         )
 
-        //Debugger.start()
+        Debugger.start()
 
     }
 
