@@ -5,18 +5,18 @@ fun plot^0xFFF0(x: ubyte^CPU.X, y: ubyte^CPU.Y)
 var carry: bool^CPU.C
 
 fun printAt(x: ubyte, y: ubyte, what: string) {
-    carry = true
+    carry = false
     plot(x,y)
     print(what)
 }
 
 fun print(what: string) {
     val i = 0
-    val char = what[i]
+    val char: ubyte = what[i] // inference myśli, ze char jest ubyte*
     while (char != 0) {
         chrout(char)
         i++
-        val char = what[i]
+        char = what[i]
     }
 }
 

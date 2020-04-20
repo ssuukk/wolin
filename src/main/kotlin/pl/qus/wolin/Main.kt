@@ -428,9 +428,6 @@ Optumalizacja operatorów:
             FileInputStream(File("src/main/wolin/assembler_opt1.asm")),
             FileInputStream(File("src/main/wolin/template.asm"))
         )
-
-        Debugger.start()
-
     }
 
     private fun optimize(asmStream: InputStream, outStream: OutputStream) {

@@ -53,7 +53,7 @@ setup HEADER -> """
 ;* BASIC header
 ;*
 ;* compile with:
-;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg -g -Ln assembler.lbl -l assembler.txt assembler.s
+;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg -g -Ln assembler.lbl -l assembler.lst assembler.s
 ;*
 ;**********************************************
             .org 2049
@@ -1410,6 +1410,27 @@ add SPF(?d)[ubyte*] = SPF(?c1)[ubyte*], SPF(?c2)[ubyte] -> """
     adc #0
     ldy #{d}+1
     sta (__wolin_spf), y
+"""
+
+// dereference array element
+add SPF(?d)[ubyte] = SPF(?c1)[ubyte*], SPF(?c2)[ubyte] -> """
+    dex
+    dex
+    clc
+    ldy #{c1}
+    lda (__wolin_spf), y
+    ldy #{c2}
+    adc (__wolin_spf), y
+    sta 0,x
+    ldy #{c1}+1
+    lda (__wolin_spf), y
+    adc #0
+    sta 1,x
+    ldy #{d}
+    lda (0,x)
+    sta (__wolin_spf), y
+    inx
+    inx
 """
 
 add SPF(?d)[ubyte] = SPF(?c1)[ubyte],SPF(?c2)[ubyte] -> """

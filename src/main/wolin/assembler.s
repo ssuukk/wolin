@@ -6,7 +6,7 @@
 ;* BASIC header
 ;*
 ;* compile with:
-;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg -g -Ln assembler.lbl -l assembler.txt assembler.s
+;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg -g -Ln assembler.lbl -l assembler.lst assembler.s
 ;*
 ;**********************************************
             .org 2049
@@ -62,7 +62,7 @@ __wolin_this_ptr_hi := 176+1
 
 __wolin_pl_qus_wolin_printAt:
 
-; 8: let CPU.C[bool] = #1[bool] 
+; 8: let CPU.C[bool] = #0[bool] 
 
 
     clc
@@ -112,27 +112,27 @@ __wolin_pl_qus_wolin_printAt:
     pla
     tax
 
-; 16: alloc SPF , #5 
+; 16: alloc SPF , #4 
 
 
     sec
     lda __wolin_spf
-    sbc #5
+    sbc #4
     sta __wolin_spf
     bcs :+
     dec __wolin_spf+1
 :
 
-; 17: let SPF(3)[ubyte*] = SPF(5)<pl.qus.wolin.printAt.what>[ubyte*] 
+; 17: let SPF(2)[ubyte*] = SPF(4)<pl.qus.wolin.printAt.what>[ubyte*] 
 
 
-    ldy #5
+    ldy #4
     lda (__wolin_spf),y
-    ldy #3
+    ldy #2
     sta (__wolin_spf),y
-    ldy #5+1
+    ldy #4+1
     lda (__wolin_spf),y
-    ldy #3+1
+    ldy #2+1
     sta (__wolin_spf),y
 
 
@@ -159,28 +159,32 @@ __wolin_pl_qus_wolin_printAt:
 
 __wolin_pl_qus_wolin_print:
 
-; 22: let SPF(2)<pl.qus.wolin.print..i>[ubyte] = #0[ubyte] 
+; 22: let SPF(1)<pl.qus.wolin.print..i>[ubyte] = #0[ubyte] 
 
 
-    ldy #2
+    ldy #1
     lda #0
     sta (__wolin_spf),y
 
-; 23: add SPF(0)<pl.qus.wolin.print..char>[ubyte*] = SPF(3)<pl.qus.wolin.print.what>[ubyte*] , SPF(2)<pl.qus.wolin.print..i>[ubyte] 
+; 23: add SPF(0)<pl.qus.wolin.print..char>[ubyte] = SPF(2)<pl.qus.wolin.print.what>[ubyte*] , SPF(1)<pl.qus.wolin.print..i>[ubyte] 
 
 
-    clc
-    ldy #3
-    lda (__wolin_spf), y
+    dex
+    dex
     ldy #2
+    lda (__wolin_spf), y
+    ldy #1
     adc (__wolin_spf), y
-    ldy #0
-    sta (__wolin_spf), y
-    ldy #3+1
+    sta 0,x
+    ldy #2+1
     lda (__wolin_spf), y
     adc #0
-    ldy #0+1
+    sta 1,x
+    ldy #0
+    lda (0,x)
     sta (__wolin_spf), y
+    inx
+    inx
 
 
 ; 24: alloc SP<__wolin_reg18> , #1 
@@ -191,27 +195,17 @@ __wolin_pl_qus_wolin_print:
 
 __wolin_lab_loop_start_1:
 
-; 26: evalneq SP(0)<__wolin_reg18>[bool] = &SPF(0)<pl.qus.wolin.print..char>[ubyte*] , #0[ubyte] 
+; 26: evalneq SP(0)<__wolin_reg18>[bool] = SPF(0)<pl.qus.wolin.print..char>[ubyte] , #0[ubyte] 
 
 
     lda #1 ; rozne
     sta 0,x
-    dex
-    dex
     ldy #0
-    lda (__wolin_spf),y
-    sta 0,x
-    iny
-    lda (__wolin_spf),y
-    sta 1,x
-    lda (0,x)
+    lda (__wolin_spf), y
     bne :+
-    lda #0
-    sta 0+2,x
+    lda #0 ; jednak rowne
+    sta 0,x
 :
-    inx
-    inx
-
 
 ; 27: bne SP(0)<__wolin_reg18>[bool] = #1[bool] , __wolin_lab_loop_end_1<label_po_if>[uword] 
 
@@ -225,21 +219,12 @@ __wolin_lab_loop_start_1:
     txa
     pha
 
-; 29: save &SPF(0)<pl.qus.wolin.print..char>[ubyte*] 
+; 29: save SPF(0)<pl.qus.wolin.print..char>[ubyte] 
 
 
-    dex
-    dex
     ldy #0
     lda (__wolin_spf),y
-    sta 0,x
-    iny
-    lda (__wolin_spf),y
-    sta 1,x
-    lda (0,x)
     pha
-    inx
-    inx
 
 
 ; 30: restore CPU.A[ubyte] 
@@ -257,31 +242,35 @@ __wolin_lab_loop_start_1:
     pla
     tax
 
-; 33: add SPF(2)<pl.qus.wolin.print..i>[ubyte] = SPF(2)<pl.qus.wolin.print..i>[ubyte] , #1[ubyte] 
+; 33: add SPF(1)<pl.qus.wolin.print..i>[ubyte] = SPF(1)<pl.qus.wolin.print..i>[ubyte] , #1[ubyte] 
 
 
     clc
-    ldy #2
+    ldy #1
     lda #1
     adc (__wolin_spf),y
     sta (__wolin_spf),y
 
 
-; 34: add SPF(0)<pl.qus.wolin.print..char>[ubyte*] = SPF(3)<pl.qus.wolin.print.what>[ubyte*] , SPF(2)<pl.qus.wolin.print..i>[ubyte] 
+; 34: add SPF(0)<pl.qus.wolin.print..char>[ubyte] = SPF(2)<pl.qus.wolin.print.what>[ubyte*] , SPF(1)<pl.qus.wolin.print..i>[ubyte] 
 
 
-    clc
-    ldy #3
-    lda (__wolin_spf), y
+    dex
+    dex
     ldy #2
+    lda (__wolin_spf), y
+    ldy #1
     adc (__wolin_spf), y
-    ldy #0
-    sta (__wolin_spf), y
-    ldy #3+1
+    sta 0,x
+    ldy #2+1
     lda (__wolin_spf), y
     adc #0
-    ldy #0+1
+    sta 1,x
+    ldy #0
+    lda (0,x)
     sta (__wolin_spf), y
+    inx
+    inx
 
 
 ; 35: goto __wolin_lab_loop_start_1[uword] 
@@ -296,12 +285,12 @@ __wolin_lab_loop_end_1:
 
     inx
 
-; 38: free SPF<pl.qus.wolin.print.__fnargs> , #5 
+; 38: free SPF<pl.qus.wolin.print.__fnargs> , #4 
 
 
     clc
     lda __wolin_spf
-    adc #5
+    adc #4
     sta __wolin_spf
     bcc :+
     inc __wolin_spf+1
@@ -362,7 +351,7 @@ __wolin_pl_qus_wolin_main:
 
 
 __wolin_lab_stringConst_0:
-    .asciiz "dupa"
+    .asciiz "kupa z gilem"
     ;.byt 0
 
 
