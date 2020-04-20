@@ -22,6 +22,8 @@ Extra perks:
 
 - Wolin generates assembler code for ca65 with memory config for Commodore 64, it is very easy, though, to port it to other architectures via intermediate code to native code templates
 
+- Has its own graphic debugger that connects to VICE session
+
 # TODOs
 
 - a lot of other language features
