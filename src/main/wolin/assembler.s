@@ -171,6 +171,7 @@ __wolin_pl_qus_wolin_print:
 
     dex
     dex
+    clc
     ldy #2
     lda (__wolin_spf), y
     ldy #1
@@ -257,6 +258,7 @@ __wolin_lab_loop_start_1:
 
     dex
     dex
+    clc
     ldy #2
     lda (__wolin_spf), y
     ldy #1
@@ -351,7 +353,7 @@ __wolin_pl_qus_wolin_main:
 
 
 __wolin_lab_stringConst_0:
-    .asciiz "kupa z gilem"
+    .asciiz {val}
     ;.byt 0
 
 

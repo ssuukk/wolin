@@ -1,7 +1,7 @@
 plugins {
     id 'idea'
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.21'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.61'
     id 'antlr'
 }
 
@@ -19,6 +19,7 @@ dependencies {
     antlr "org.antlr:antlr4:4.5.1"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation 'commons-net:commons-net:3.6'
+    implementation 'no.tornado:tornadofx:1.7.20'
 }
 
 compileKotlin {

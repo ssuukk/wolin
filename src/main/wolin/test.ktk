@@ -12,7 +12,7 @@ fun printAt(x: ubyte, y: ubyte, what: string) {
 
 fun print(what: string) {
     val i = 0
-    val char: ubyte = what[i] // inference myśli, ze char jest ubyte*
+    val char: ubyte = what[i] // BLĄD!!! inference myśli, ze char jest ubyte*
     while (char != 0) {
         chrout(char)
         i++

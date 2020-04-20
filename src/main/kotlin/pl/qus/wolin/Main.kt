@@ -3,6 +3,7 @@ package pl.qus.wolin
 import org.antlr.v4.runtime.ANTLRInputStream
 import org.antlr.v4.runtime.CommonTokenStream
 import pl.qus.wolin.exception.NoRuleException
+import tornadofx.launch
 import java.io.*
 
 object Main {
@@ -428,6 +429,8 @@ Optumalizacja operatorów:
             FileInputStream(File("src/main/wolin/assembler_opt1.asm")),
             FileInputStream(File("src/main/wolin/template.asm"))
         )
+
+        launch<MyApp>(args)
     }
 
     private fun optimize(asmStream: InputStream, outStream: OutputStream) {
