@@ -2,6 +2,7 @@ package pl.qus.wolin.components
 
 import pl.qus.wolin.KotlinParser
 import pl.qus.wolin.WolinStateObject
+import pl.qus.wolin.hex
 import java.lang.Exception
 
 class Funkcja(
@@ -28,7 +29,11 @@ class Funkcja(
     val locals: List<Zmienna>
         get() = fields.filter { it.fieldType != FieldType.ARGUMENT }
 
-    val labelName: String get() = "__wolin_${fullName.replace(".", "_")}"
+    val labelName: String get() =
+//        if(location != 0)
+//            "__wolin__system_${location.hex()}"
+//        else
+            "__wolin_${fullName.replace(".", "_")}"
     var fields: MutableList<Zmienna> = mutableListOf()
 
     //val calledFunctions = mutableListOf<Funkcja>()

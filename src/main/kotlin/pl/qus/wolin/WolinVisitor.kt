@@ -1563,7 +1563,7 @@ class WolinVisitor(
                     }
                     checkTypeAndAddAssignment(ctx, zwrotka, state.currentReg, "jump expression", RegOper.VALUE, refType)
                     state.switchType(state.currentFunction!!.type, "return expression")
-                    state.freeRegsOnReturn(state.currentFunction!!)
+                    //state.freeRegsOnReturn(state.currentFunction!!)
 
                 } catch (ex: VariableNotFound) {
                     błędzik(ctx, "Unit function ${state.currentFunction?.fullName} has no return type")
@@ -1953,6 +1953,10 @@ class WolinVisitor(
         // TODO: to powinno być includem dla c64
 
         state.code("setup HEADER")
+
+        state.functiary.values.filter { it.location != 0 }.forEach {
+            state.code("label ${it.labelName} = ${it.location}")
+        }
 
         if (state.exceptionsUsed) {
             state.code("setup SPE = 155[ubyte], 53247[uword] // exception stack pointer at 155 = 53247 (was: datasette something)")

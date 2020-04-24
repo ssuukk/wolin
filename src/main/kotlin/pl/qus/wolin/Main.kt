@@ -9,6 +9,9 @@ import java.io.*
 object Main {
     /*
 
+******************************************
+Mapa pamięci
+******************************************
 
 http://c64os.com/post/rethinkingthememmap
 
@@ -78,12 +81,18 @@ w adresie 1 umieścić:
 1 bit = blok 256 bajtów wolny/zajęty
 
 ******************************************
-C64 specific
+ZEROPAGE
 ******************************************
 
 C64 - dostępna pamięć:
 
-2-143 - basic: SP (72 wordy)
+2-143 - basic: [SP] (72 words)
+155-156 - tape: [ESP]
+176-177 - tape: [HEAP]
+178-179 - tape: [EXCEPTION OBJECT]
+197-246 - screen editor: [???] only if not using screen editor
+251-252 - nothing: [SPF]
+253-254 - nothing: [CATCH JUMP ADDRESS]
 
 bajty do wykorzystania:
 146 - tape
@@ -91,16 +100,6 @@ bajty do wykorzystania:
 190 - tape
 192 - tape
 255 - free
-
-wordy do wykorzystania:
-155-156 - tape: [ESP]
-176-177 - tape: [HEAP]
-178-179 - tape: [EXCEPTION OBJECT]
-251-252 - free: [FSP]
-253-254 - free: [CATCH JUMP ADDRESS]
-
-potencjalnie do wykorzystania:
-197-246 - edytor
 
 ******************************************
 6502 specific
@@ -157,21 +156,24 @@ USEFUL MACROS
 
 http://wilsonminesco.com/StructureMacros/
 
-
-TRY-CATCH
-=========
-
-http://www.c64os.com/post?p=76
-
-
 BUGI
 ====
 
 jmp ($xxFF) - fail, bo pobierze starszy bajt z $xx00
 
 ******************************************
-Multiplication
+try-catch
 ******************************************
+
+http://www.c64os.com/post?p=76
+
+******************************************
+matematyka
+******************************************
+
+http://www.crbond.com/download/fltpt65.cba
+http://forum.6502.org/viewtopic.php?f=2&t=5724
+
 
 mnożenie ruskich wieśniaków 13*238
 
@@ -181,8 +183,6 @@ mnożenie ruskich wieśniaków 13*238
    1	(1)		11101110000		(1904)
 
 wynik = suma nieparzystych lewych, czyli: 238 + 952 + 1904
-
-
 
 według tej pracy:
 https://pdfs.semanticscholar.org/ac5b/f27be15e39feda0d5cb0a4ff5d3d597fb586.pdf
@@ -196,21 +196,25 @@ https://www.atariarchives.org/roots/chapter_10.php
 Wolin
 ******************************************
 
-	1) scope funkcji
+jeżeli
+package pl.qus
+to:
 
-		pl.qus.Dupa.sum..a
+1) local scope funkcji sum, zmienna a
 
-	2) scope parametrów funkcji
+    pl.qus.sum..a
 
-		pl.qus.Dupa.sum.a
+2) scope parametrów funkcji sum, parametr a
 
-	3) scope obiektu
+    pl.qus.sum.a
 
-		pl.qus.Dupa.a - ustawiamy tej zmiennej stos na "HEAP"
+3) scope obiektu Dupa
 
-	4) scope pliku
+    pl.qus.Dupa.a - ustawiamy tej zmiennej stos na "HEAP"
 
-		pl.qus.a
+4) scope pliku
+
+    pl.qus.a
 
 
 4. wszystko po throw wyciąć aż do najbliższego labela
@@ -221,186 +225,7 @@ throw SP(0)[uword] // nie martwimy sie o sotsy, bo te odtworzy obsluga wyjatku
 --ret
 label xxxx
 
-
-5. ciekawy przypadek dla optymalizacji:
-
-
-label lambda_function_0
-
-alloc SP<r.temp12>, #1 // for statement a+b
-let SP(0)<r.temp12>[ubyte] = SPF(1)<pl.qus.wolin.test.lambda_function_0.a>[ubyte] // simple id from var
-alloc SP<r.temp13>, #1 // for right side
-let SP(0)<r.temp13>[ubyte] = SPF(0)<pl.qus.wolin.test.lambda_function_0.b>[ubyte] // simple id from var
-add SP(1)<r.temp12>[ubyte] = SP(1)<r.temp12>[ubyte], SP(0)<r.temp13>[ubyte] // two sides
-free SP<r.temp13>, #1 // for right side, type =ubyte
-let SPF(2)<lambdaReturn>[ubyte] = SP(0)<r.temp12>[ubyte] // LAMBDA return assignment
-free SP<r.temp12>, #1 // for statement a+b, type = ubyte
-free SPF, #2 // free fn arguments and locals for lambda_function_0
-
-ret
-
-1) pl.qus.wolin.test.lambda_function_0.b jest umieszczany w temp13 i tylko czytany, więc zamieniamy wystąpienia temp13 w b, usuwamy podstawienie:
-
-label lambda_function_0
-
-alloc SP<r.temp12>, #1 // for statement a+b
-let SP(0)<r.temp12>[ubyte] = SPF(1)<pl.qus.wolin.test.lambda_function_0.a>[ubyte] // simple id from var
-// KROK1 allokacja temp13
-// KROK1 podstawienie temp13
-add SP(1)<r.temp12>[ubyte] = SP(1)<r.temp12>[ubyte], **SPF(0)<pl.qus.wolin.test.lambda_function_0.b>[ubyte]** // two sides
-// KROK1 deallokacja temp13
-let SPF(2)<lambdaReturn>[ubyte] = SP(0)<r.temp12>[ubyte] // LAMBDA return assignment
-free SP<r.temp12>, #1 // for statement a+b, type = ubyte
-free SPF, #2 // free fn arguments and locals for lambda_function_0
-
-ret
-
-2) temp12 jest umieszczany w lambdaReturn i natychmiast zwalniany, więc zamieniamy WSZYSTKIE wystąpienia temp12 w lambdaReturn:
-
-label lambda_function_0
-
-// KROK2 allokacja temp12
-KROK2 let SPF(2)<lambdaReturn>[ubyte] = SPF(1)<pl.qus.wolin.test.lambda_function_0.a>[ubyte] // simple id from var
-// KROK1 allokacja temp13
-// KROK1 podstawienie temp13
-KROK2 add SPF(2)<lambdaReturn>[ubyte] = SPF(2)<lambdaReturn>[ubyte], **SPF(0)<pl.qus.wolin.test.lambda_function_0.b>[ubyte]** // two sides
-// KROK1 deallokacja temp13
-KROK2 let SPF(2)<lambdaReturn>[ubyte] = SPF(2)<lambdaReturn>[ubyte] // LAMBDA return assignment
-// KROK2 deallokacja temp12
-free SPF, #2 // free fn arguments and locals for lambda_function_0
-
-ret
-
-3) eliminujemy tożsamości:
-
-label lambda_function_0
-
-// KROK2 allokacja temp12
-KROK2 let SPF(2)<lambdaReturn>[ubyte] = SPF(1)<pl.qus.wolin.test.lambda_function_0.a>[ubyte] // simple id from var
-// KROK1 allokacja temp13
-// KROK1 podstawienie temp13
-KROK2 add SPF(2)<lambdaReturn>[ubyte] = SPF(2)<lambdaReturn>[ubyte], **SPF(0)<pl.qus.wolin.test.lambda_function_0.b>[ubyte]** // two sides
-// KROK1 deallokacja temp13
-// KROK2 KROK3 tożsamość
-// KROK2 deallokacja temp12
-free SPF, #2 // free fn arguments and locals for lambda_function_0
-
-ret
-
-4) a jest umieszczany w lambdaReturn, do pierwszego zapisu (włącznie) lambdaReturn możemy posługiwać się a zamiast lambdaReturn po prawej stronie i usuwamy podstawienie:
-
-label lambda_function_0
-
-// KROK2 allokacja temp12
-KROK2 KROK4 // podstawienie a do lambdaReturn
-// KROK1 allokacja temp13
-// KROK1 podstawienie temp13
-KROK2 add SPF(2)<lambdaReturn>[ubyte] = SPF(1)<pl.qus.wolin.test.lambda_function_0.a>[ubyte], **SPF(0)<pl.qus.wolin.test.lambda_function_0.b>[ubyte]** // two sides
-// KROK1 deallokacja temp13
-// KROK2 KROK3 tożsamość
-// KROK2 deallokacja temp12
-free SPF, #2 // free fn arguments and locals for lambda_function_0
-
-ret
-
-5) w efekcie mamy:
-
-label lambda_function_0
-add SPF(2)<lambdaReturn>[ubyte] = SPF(1)<pl.qus.wolin.test.lambda_function_0.a>[ubyte], **SPF(0)<pl.qus.wolin.test.lambda_function_0.b>[ubyte]** // two sides
-free SPF, #2 // free fn arguments and locals for lambda_function_0
-
-ret
      */
-
-
-    // TODO - przesunąć deallokacje SPF za ostatnie użycie danego rejestru
-    /*
-call __wolin_pl_qus_wolin_allocMem[adr]
-free SPF<pl.qus.wolin.allocMem.__returnValue>, #2 <------- musi być na końcu
-let SPF(0)<pl.qus.wolin.SomeClass.pl.qus.wolin.SomeClass.__returnValue>[any*] = SPF(2)<pl.qus.wolin.allocMem.__returnValue>[uword]
-setup HEAP = SPF(2)<pl.qus.wolin.allocMem.__returnValue>[uword]
-<----- tu musi być
-     */
-    // TODO - przesunąć wektory SPF posługując się stosem funkcji
-    /*
-call __wolin_pl_qus_wolin_allocMem[adr]
-let SPF(2)<pl.qus.wolin.SomeClass.pl.qus.wolin.SomeClass.__returnValue>[any*] = SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
-setup HEAP = SPF(0)<pl.qus.wolin.allocMem.__returnValue>[uword]
-free SPF<pl.qus.wolin.allocMem.__returnValue>, #2
-
-     */
-    // TODO
-    // błąd optymalizatora!
-    // kiedy do SP zapisujemy rejestr SPF, lub inny, to po napotkaniu alloc SPF musimy dodać do wektora tego rejestru n
-    // a po napotkaniu free SPF musimy odjąć od wektora tego rejestru n!
-    //
-    // np:
-    // let SP(0)<__wolin_reg18>[any*] = SPF(0)<pl.qus.wolin.main..testowa>[any*] // przez sprawdzacz typow - simple id from var
-    // napotykamy alloc SPF, #3
-    // więc w SP(0) powinno być teraz:
-    // SPF(3)<pl.qus.wolin.main..testowa>[any*]
-
-
-
-
-    /*
-
-
-    fun main() {
-        val a = 4
-        val b = 8
-
-        border = a+b
-    }
-
-function __wolin_pl_qus_wolin_main
-let SPF(1)<pl.qus.wolin.main..a>[ubyte] = #4[ubyte]
-let SPF(0)<pl.qus.wolin.main..b>[ubyte] = #8[ubyte]
-alloc SP<__wolin_reg6>, #2
-let SP(0)<__wolin_reg6>[ubyte*] = *53280[ubyte]
-alloc SP<__wolin_reg7>, #1
-add &SP(0)<__wolin_reg7>[ubyte] = &*SPF(1)<pl.qus.wolin.main..a>[ubyte], &*SPF(0)<pl.qus.wolin.main..b>[ubyte]
-let &SP(1)<__wolin_reg6>[ubyte*] = &SP(0)<__wolin_reg7>[ubyte]
-free SP<__wolin_reg7>, #3
-free SPF<pl.qus.wolin.main.__fnargs>, #2
-ret
-
-reg6 - jedno podstawienie, a potem deref, więc:
-
-function __wolin_pl_qus_wolin_main
-let SPF(1)<pl.qus.wolin.main..a>[ubyte] = #4[ubyte]
-let SPF(0)<pl.qus.wolin.main..b>[ubyte] = #8[ubyte]
-alloc SP<__wolin_reg7>, #1
-add &SP(0)<__wolin_reg7>[ubyte] = &*SPF(1)<pl.qus.wolin.main..a>[ubyte], &*SPF(0)<pl.qus.wolin.main..b>[ubyte]
-let &53270[ubyte*] = &SP(0)<__wolin_reg7>[ubyte]
-free SP<__wolin_reg7>, #3
-free SPF<pl.qus.wolin.main.__fnargs>, #2
-ret
-
-sprawdzamy, czy któryś z podstawianych rejestrów jest targetem innej operacji, tutaj reg7
-
-function __wolin_pl_qus_wolin_main
-let SPF(1)<pl.qus.wolin.main..a>[ubyte] = #4[ubyte]
-let SPF(0)<pl.qus.wolin.main..b>[ubyte] = #8[ubyte]
-add &&53270[ubyte*] = &*SPF(1)<pl.qus.wolin.main..a>[ubyte], &*SPF(0)<pl.qus.wolin.main..b>[ubyte]
-free SPF<pl.qus.wolin.main.__fnargs>, #2
-ret
-
-skoro a i b są val:
-
-function __wolin_pl_qus_wolin_main
-add &&53270[ubyte*] = &*#4, &*#8
-free SPF<pl.qus.wolin.main.__fnargs>, #2
-ret
-
-
-
-Optumalizacja operatorów:
-
-
-
-     */
-
 
     @JvmStatic
     fun main(args: Array<String>) {

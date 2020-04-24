@@ -20,12 +20,6 @@ class StackOpsSanitizer(outStream: OutputStream) {
         while(i?.hasNext() == true) {
             val linia = i.next()
 
-            if(insideFunction == null) {
-                println("nie w funkcji - zrzucić linię, jak jest")
-                writer.write(linia.children.joinToString(" ") { it.text })
-            } else {
-                functionCode.add(linia)
-            }
 
             if(linia.instrukcja().text == "function") {
                 val nazwaFunkcji = linia.arg(0).text
@@ -36,6 +30,12 @@ class StackOpsSanitizer(outStream: OutputStream) {
                 insideFunction = null
             }
 
+            if(insideFunction == null) {
+                writer.write(linia.children.joinToString(" ") { it.text })
+            } else {
+                functionCode.add(linia)
+            }
+
         }
 
         writer.flush()
@@ -44,28 +44,60 @@ class StackOpsSanitizer(outStream: OutputStream) {
 
     private fun processWholeFunction() {
         var pendingFreeFunction = false
+        var calledFunction : Funkcja? = null
+
+        writer.newLine()
 
         wolinState.fnDeclAllocStackAndRet(insideFunction!!)
 
+        println("=====================================================")
+        println("Przetwarzanie ${insideFunction!!.labelName}")
+
         functionCode.forEach { linia ->
 
+            if(pendingFreeFunction) {
+                println("po wywolaniu ${calledFunction?.labelName}, usuwam stos, ktory normalnie by sama usunela")
+                // było wywołanie funkcji, a ta funkcja skasowała swój stos, mogła pozostać zwrotka!
+                wolinState.fnCallReleaseArgs(calledFunction!!)
+                pendingFreeFunction = false
+            }
 
 
             if(linia.instrukcja().text == "call") {
+                if(calledFunction == null) {
+                    val nazwaFunkcji = linia.arg(0).operand()!!.value().text
+                    calledFunction = wolinState.findFunctionByLabel(nazwaFunkcji)
+                }
+                println("funkcja wywoluje: ${calledFunction?.labelName}")
                 pendingFreeFunction = true
             } else if (linia.instrukcja().text == "alloc" && linia.arg(0).operand().value().addressed().text == "SPF") {
+                // będzie wywołanie funkcji, zapamiętajmy, jakiej
                 val nazwaFunkcji = linia.arg(0).operand().name(0).identifier().text
-                val funkcjaDoAllokacji = wolinState.findFunctionByLabel(nazwaFunkcji)
-                wolinState.fnCallAllocRetAndArgs(funkcjaDoAllokacji!!)
-                println("tu!")
+                calledFunction = wolinState.findFunctionByLabel(nazwaFunkcji)
+                wolinState.fnCallAllocRetAndArgs(calledFunction!!)
+                println("funkcja wywola: ${calledFunction?.labelName} i allokuje jej stos")
             } else if (linia.instrukcja().text == "free" && linia.arg(0).operand().value().addressed().text == "SPF") {
-
+                // to jest zwalnianie parametrów funkcji, w której jesteśmy!
+                // ALBO zwalnianie zwrotki wywołanej funkcji!
+                val nazwaFunkcji = linia.arg(0).operand().name(0).identifier().text
+                when (nazwaFunkcji) {
+                    insideFunction!!.labelName -> {
+                        println("koniec funkcji przetwarzanej, zwalnianie jej stosu (${insideFunction?.labelName})")
+                    }
+                    calledFunction!!.labelName -> {
+                        println("zwalnianie zwrotki funkcji, ktora wywolala przetwarzana ${calledFunction?.labelName}")
+                    }
+                    else -> {
+                        throw Exception("Nie wiem co zwalniane!")
+                    }
+                }
             }
             writer.write(linia.children.joinToString(" ") { it.text })
         }
 
         functionCode.clear()
 
-        wolinState.fnDeclFreeStackAndRet(insideFunction!!)
+        //wolinState.fnDeclFreeStackAndRet(insideFunction!!)
+        wolinState.callStack.clear() // nic już nas nie obchodzi stos funckji
     }
 }

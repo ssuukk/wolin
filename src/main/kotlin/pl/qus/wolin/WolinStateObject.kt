@@ -15,7 +15,7 @@ class WolinStateObject(val pass: Pass) {
     var commentOn = true
 
     private var variablary = hashMapOf<String, Zmienna>()
-    private var functiary = hashMapOf<String, Funkcja>()
+    var functiary = hashMapOf<String, Funkcja>()
     private var classary = hashMapOf<String, Klasa>()
 
     val operStack = SpecStack("SP")
@@ -712,21 +712,6 @@ class WolinStateObject(val pass: Pass) {
         return rejestr
     }
 
-    fun freeRegsOnReturn(funkcja: Funkcja) {
-//        val name = "__wolin_reg${funkcja.startReg}"
-//
-//        var i = 1
-//        var zmienna = operStack[operStack.size-i]
-//
-//        while(zmienna.name != name) {
-//            code("free SP<${zmienna.name}>, #${zmienna.type.sizeOnStack} // dealloc on mid function return")
-//            i ++
-//            zmienna = operStack[operStack.size-i]
-//        }
-//
-//        code("goto spf_dealloc")
-    }
-
     fun freeReg(comment: String = "") {
         val zmienna = operStack.peek()
 
@@ -914,7 +899,7 @@ class WolinStateObject(val pass: Pass) {
         }
 
         val call = when {
-            proc.location != 0 -> "call ${proc.location}[uword] // ${proc.fullName}\n"
+            //proc.location != 0 -> "call ${proc.location}[uword] // ${proc.fullName}\n"
             lambda -> "call ${proc.labelName}[uword*] // lambda call\n"
             else -> "call ${proc.labelName}[uword]\n"
         }

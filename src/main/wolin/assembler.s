@@ -21,7 +21,15 @@ BasEnd:     .word 0
             ;
 
 
-; 2: setup SPF = 251[ubyte] , 40959[uword] 
+; 2: label __wolin_pl_qus_wolin_plot = 65520 
+
+__wolin_pl_qus_wolin_plot = 65520
+
+; 3: label __wolin_pl_qus_wolin_chrout = 65490 
+
+__wolin_pl_qus_wolin_chrout = 65490
+
+; 4: setup SPF = 251[ubyte] , 40959[uword] 
 
 
 ; prepare function stack
@@ -35,7 +43,7 @@ __wolin_spf_top_hi := 40959+1 ; function stack top
     lda #>__wolin_spf_top
     sta __wolin_spf+1
 
-; 3: setup SP = 114[ubyte] 
+; 5: setup SP = 114[ubyte] 
 
 
 ; prepare program stack
@@ -43,38 +51,108 @@ __wolin_sp_top := 114 ; program stack top
 __wolin_sp_top_hi := 114+1 ; program stack top
     ldx #__wolin_sp_top ; set program stack top
 
-; 4: setup HEAP = 176[ubyte] 
+; 6: setup HEAP = 176[ubyte] 
 
 
 __wolin_this_ptr := 176
 __wolin_this_ptr_hi := 176+1
 
 
-; 5: call __wolin_pl_qus_wolin_main[uword] 
+; 7: goto __wolin_pl_qus_wolin_main[uword] 
 
-    jsr __wolin_pl_qus_wolin_main
+    jmp __wolin_pl_qus_wolin_main
 
-; 6: endfunction 
+; 8: function __wolin_pl_qus_wolin_strLen 
+
+__wolin_pl_qus_wolin_strLen:
+
+; 9: let SPF(0)<pl.qus.wolin.strLen..len>[ubyte] = #0[ubyte] 
+
+
+    ldy #0
+    lda #0
+    sta (__wolin_spf),y
+
+; 10: alloc SP<__wolin_reg4> , #1 
+
+    dex
+
+; 11: label __wolin_lab_loop_start_1 
+
+__wolin_lab_loop_start_1:
+
+; 12: alloc SP<__wolin_reg6> , #2 
+
+
+    dex
+    dex
+
+; 14: free SP<__wolin_reg6> , #2 
+
+
+    inx
+    inx
+
+; 16: bne SP(0)<__wolin_reg4>[bool] = #1[bool] , __wolin_lab_loop_end_1<label_po_if>[uword] 
+
+
+    lda 0,x
+    beq __wolin_lab_loop_end_1
+
+; 17: add SPF(0)<pl.qus.wolin.strLen..len>[ubyte] = SPF(0)<pl.qus.wolin.strLen..len>[ubyte] , #1[ubyte] 
+
+
+    clc
+    ldy #0
+    lda #1
+    adc (__wolin_spf),y
+    sta (__wolin_spf),y
+
+
+; 18: goto __wolin_lab_loop_start_1[uword] 
+
+    jmp __wolin_lab_loop_start_1
+
+; 19: label __wolin_lab_loop_end_1 
+
+__wolin_lab_loop_end_1:
+
+; 20: free SP<__wolin_reg4> , #1 
+
+    inx
+
+; 22: free SPF<__wolin_pl_qus_wolin_strLen> , #3 
+
+
+    clc
+    lda __wolin_spf
+    adc #3
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
+
+; 23: endfunction 
 
     rts
 
-; 7: function __wolin_pl_qus_wolin_printAt 
+; 24: function __wolin_pl_qus_wolin_printAt 
 
 __wolin_pl_qus_wolin_printAt:
 
-; 8: let CPU.C[bool] = #0[bool] 
+; 25: let CPU.C[bool] = #0[bool] 
 
 
     clc
 
 
-; 9: save SP 
+; 26: save SP 
 
 
     txa
     pha
 
-; 10: save SPF(3)<pl.qus.wolin.printAt.x>[ubyte] 
+; 27: save SPF(3)<pl.qus.wolin.printAt.x>[ubyte] 
 
 
     ldy #3
@@ -82,7 +160,7 @@ __wolin_pl_qus_wolin_printAt:
     pha
 
 
-; 11: save SPF(2)<pl.qus.wolin.printAt.y>[ubyte] 
+; 28: save SPF(2)<pl.qus.wolin.printAt.y>[ubyte] 
 
 
     ldy #2
@@ -90,29 +168,29 @@ __wolin_pl_qus_wolin_printAt:
     pha
 
 
-; 12: restore CPU.Y[ubyte] 
+; 29: restore CPU.Y[ubyte] 
 
 
     pla
     tay
 
-; 13: restore CPU.X[ubyte] 
+; 30: restore CPU.X[ubyte] 
 
 
     pla
     tax
 
-; 14: call 65520[uword] 
+; 31: call __wolin_pl_qus_wolin_plot[uword] 
 
-    jsr 65520
+    jsr __wolin_pl_qus_wolin_plot
 
-; 15: restore SP 
+; 32: restore SP 
 
 
     pla
     tax
 
-; 16: alloc SPF , #4 
+; 33: alloc SPF<__wolin_pl_qus_wolin_print> , #4 
 
 
     sec
@@ -123,7 +201,7 @@ __wolin_pl_qus_wolin_printAt:
     dec __wolin_spf+1
 :
 
-; 17: let SPF(2)[ubyte*] = SPF(4)<pl.qus.wolin.printAt.what>[ubyte*] 
+; 34: let SPF(2)<pl.qus.wolin.print.what>[ubyte*] = SPF(4)<pl.qus.wolin.printAt.what>[ubyte*] 
 
 
     ldy #4
@@ -136,11 +214,11 @@ __wolin_pl_qus_wolin_printAt:
     sta (__wolin_spf),y
 
 
-; 18: call __wolin_pl_qus_wolin_print[uword] 
+; 35: call __wolin_pl_qus_wolin_print[uword] 
 
     jsr __wolin_pl_qus_wolin_print
 
-; 19: free SPF<pl.qus.wolin.printAt.__fnargs> , #4 
+; 36: free SPF<__wolin_pl_qus_wolin_printAt> , #4 
 
 
     clc
@@ -151,22 +229,22 @@ __wolin_pl_qus_wolin_printAt:
     inc __wolin_spf+1
 :
 
-; 20: endfunction 
+; 37: endfunction 
 
     rts
 
-; 21: function __wolin_pl_qus_wolin_print 
+; 38: function __wolin_pl_qus_wolin_print 
 
 __wolin_pl_qus_wolin_print:
 
-; 22: let SPF(1)<pl.qus.wolin.print..i>[ubyte] = #0[ubyte] 
+; 39: let SPF(1)<pl.qus.wolin.print..i>[ubyte] = #0[ubyte] 
 
 
     ldy #1
     lda #0
     sta (__wolin_spf),y
 
-; 23: add SPF(0)<pl.qus.wolin.print..char>[ubyte] = SPF(2)<pl.qus.wolin.print.what>[ubyte*] , SPF(1)<pl.qus.wolin.print..i>[ubyte] 
+; 40: add SPF(0)<pl.qus.wolin.print..char>[ubyte] = SPF(2)<pl.qus.wolin.print.what>[ubyte*] , SPF(1)<pl.qus.wolin.print..i>[ubyte] 
 
 
     dex
@@ -188,15 +266,15 @@ __wolin_pl_qus_wolin_print:
     inx
 
 
-; 24: alloc SP<__wolin_reg18> , #1 
+; 41: alloc SP<__wolin_reg31> , #1 
 
     dex
 
-; 25: label __wolin_lab_loop_start_1 
+; 42: label __wolin_lab_loop_start_2 
 
-__wolin_lab_loop_start_1:
+__wolin_lab_loop_start_2:
 
-; 26: evalneq SP(0)<__wolin_reg18>[bool] = SPF(0)<pl.qus.wolin.print..char>[ubyte] , #0[ubyte] 
+; 43: evalneq SP(0)<__wolin_reg31>[bool] = SPF(0)<pl.qus.wolin.print..char>[ubyte] , #0[ubyte] 
 
 
     lda #1 ; rozne
@@ -208,19 +286,19 @@ __wolin_lab_loop_start_1:
     sta 0,x
 :
 
-; 27: bne SP(0)<__wolin_reg18>[bool] = #1[bool] , __wolin_lab_loop_end_1<label_po_if>[uword] 
+; 44: bne SP(0)<__wolin_reg31>[bool] = #1[bool] , __wolin_lab_loop_end_2<label_po_if>[uword] 
 
 
     lda 0,x
-    beq __wolin_lab_loop_end_1
+    beq __wolin_lab_loop_end_2
 
-; 28: save SP 
+; 45: save SP 
 
 
     txa
     pha
 
-; 29: save SPF(0)<pl.qus.wolin.print..char>[ubyte] 
+; 46: save SPF(0)<pl.qus.wolin.print..char>[ubyte] 
 
 
     ldy #0
@@ -228,22 +306,22 @@ __wolin_lab_loop_start_1:
     pha
 
 
-; 30: restore CPU.A[ubyte] 
+; 47: restore CPU.A[ubyte] 
 
 
     pla
 
-; 31: call 65490[uword] 
+; 48: call __wolin_pl_qus_wolin_chrout[uword] 
 
-    jsr 65490
+    jsr __wolin_pl_qus_wolin_chrout
 
-; 32: restore SP 
+; 49: restore SP 
 
 
     pla
     tax
 
-; 33: add SPF(1)<pl.qus.wolin.print..i>[ubyte] = SPF(1)<pl.qus.wolin.print..i>[ubyte] , #1[ubyte] 
+; 50: add SPF(1)<pl.qus.wolin.print..i>[ubyte] = SPF(1)<pl.qus.wolin.print..i>[ubyte] , #1[ubyte] 
 
 
     clc
@@ -253,7 +331,7 @@ __wolin_lab_loop_start_1:
     sta (__wolin_spf),y
 
 
-; 34: add SPF(0)<pl.qus.wolin.print..char>[ubyte] = SPF(2)<pl.qus.wolin.print.what>[ubyte*] , SPF(1)<pl.qus.wolin.print..i>[ubyte] 
+; 51: add SPF(0)<pl.qus.wolin.print..char>[ubyte] = SPF(2)<pl.qus.wolin.print.what>[ubyte*] , SPF(1)<pl.qus.wolin.print..i>[ubyte] 
 
 
     dex
@@ -275,19 +353,19 @@ __wolin_lab_loop_start_1:
     inx
 
 
-; 35: goto __wolin_lab_loop_start_1[uword] 
+; 52: goto __wolin_lab_loop_start_2[uword] 
 
-    jmp __wolin_lab_loop_start_1
+    jmp __wolin_lab_loop_start_2
 
-; 36: label __wolin_lab_loop_end_1 
+; 53: label __wolin_lab_loop_end_2 
 
-__wolin_lab_loop_end_1:
+__wolin_lab_loop_end_2:
 
-; 37: free SP<__wolin_reg18> , #1 
+; 54: free SP<__wolin_reg31> , #1 
 
     inx
 
-; 38: free SPF<pl.qus.wolin.print.__fnargs> , #4 
+; 55: free SPF<__wolin_pl_qus_wolin_print> , #4 
 
 
     clc
@@ -298,15 +376,15 @@ __wolin_lab_loop_end_1:
     inc __wolin_spf+1
 :
 
-; 39: endfunction 
+; 56: endfunction 
 
     rts
 
-; 40: function __wolin_pl_qus_wolin_main 
+; 57: function __wolin_pl_qus_wolin_main 
 
 __wolin_pl_qus_wolin_main:
 
-; 41: alloc SPF , #4 
+; 58: alloc SPF<__wolin_pl_qus_wolin_printAt> , #4 
 
 
     sec
@@ -317,21 +395,21 @@ __wolin_pl_qus_wolin_main:
     dec __wolin_spf+1
 :
 
-; 42: let SPF(3)[ubyte] = #20[ubyte] 
+; 59: let SPF(3)<pl.qus.wolin.printAt.x>[ubyte] = #20[ubyte] 
 
 
     ldy #3
     lda #20
     sta (__wolin_spf),y
 
-; 43: let SPF(2)[ubyte] = #20[ubyte] 
+; 60: let SPF(2)<pl.qus.wolin.printAt.y>[ubyte] = #20[ubyte] 
 
 
     ldy #2
     lda #20
     sta (__wolin_spf),y
 
-; 44: let SPF(0)[ubyte*] = #__wolin_lab_stringConst_0[uword] 
+; 61: let SPF(0)<pl.qus.wolin.printAt.what>[ubyte*] = #__wolin_lab_stringConst_0[uword] 
 
 
     lda #<__wolin_lab_stringConst_0
@@ -341,15 +419,15 @@ __wolin_pl_qus_wolin_main:
     iny
     sta (__wolin_spf),y
 
-; 45: call __wolin_pl_qus_wolin_printAt[uword] 
+; 62: call __wolin_pl_qus_wolin_printAt[uword] 
 
     jsr __wolin_pl_qus_wolin_printAt
 
-; 46: endfunction 
+; 63: endfunction 
 
     rts
 
-; 47: string __wolin_lab_stringConst_0[uword] = $"dupa" 
+; 64: string __wolin_lab_stringConst_0[uword] = $"dupa" 
 
 
 __wolin_lab_stringConst_0:
