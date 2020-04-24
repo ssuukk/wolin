@@ -65,7 +65,7 @@ class WolinStateObject(val pass: Pass) {
     Generalny kod
      *****************************************************************/
 
-    fun copy(state: WolinStateObject) {
+    fun copyInto(state: WolinStateObject) {
         state.variablary = variablary
         state.exceptionsUsed = exceptionsUsed
         state.classary = classary
@@ -559,7 +559,7 @@ class WolinStateObject(val pass: Pass) {
         }
 
         if(zliczacz > 0)
-            code("alloc SPF, #$zliczacz")
+            code("alloc SPF<${funkcja.labelName}>, #$zliczacz")
 
     }
 
@@ -617,7 +617,7 @@ class WolinStateObject(val pass: Pass) {
         }
 
         if (suma > 0)
-            code("free SPF<${funkcja.fullName}.__fnargs>, #$suma // free fn arguments and locals for ${funkcja.fullName}")
+            code("free SPF<${funkcja.labelName}>, #$suma // free fn arguments and locals for ${funkcja.fullName}")
 
         if (!funkcja.type.isUnit) {
             rem("***** fnDeclFreeStackAndRet usuwanie zwrotki ${funkcja.fullName} ze stosu")
@@ -625,7 +625,7 @@ class WolinStateObject(val pass: Pass) {
         }
     }
 
-    fun findProc(nazwa: String): Funkcja {
+    fun findFunction(nazwa: String): Funkcja {
         var funkcja: Funkcja? = functiary[nazwa]
 
         if (funkcja != null)
@@ -654,6 +654,10 @@ class WolinStateObject(val pass: Pass) {
         } while (funkcja == null)
 
         return funkcja
+    }
+
+    fun findFunctionByLabel(label: String): Funkcja? {
+        return functiary.values.firstOrNull { it.labelName == label }
     }
 
     fun functionLocals(function: Funkcja): List<Zmienna> =
@@ -904,7 +908,7 @@ class WolinStateObject(val pass: Pass) {
 
     fun getFunctionCallCode(nazwa: String): String {
         val (proc, lambda) = try {
-            Pair(findProc(nazwa), false)
+            Pair(findFunction(nazwa), false)
         } catch (ex: FunctionNotFound) {
             Pair(lambdaTypeToFunction(findVarInVariablaryWithDescoping(nazwa)), true)
         }

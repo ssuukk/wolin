@@ -722,10 +722,10 @@ class WolinVisitor(
 //                            val fnName = state.functiary.keys.first { it == klasa.name }
 //                            state.functiary[fnName]!!
 
-                            state.findProc(klasa.name)
+                            state.findFunction(klasa.name)
                         } catch (ex: Exception) {
                             try {
-                                state.findProc(procName)
+                                state.findFunction(procName)
                             } catch (ex: FunctionNotFound) {
                                 state.lambdaTypeToFunction(state.findVarInVariablaryWithDescoping(procName))
                             }
@@ -751,7 +751,7 @@ class WolinVisitor(
                             val found = state.findStackVector(state.callStack, "${prototyp.fullName}.this")
 
                             state.code(
-                                "let SPF(${found.first})[${found.second.type.typeForAsm}] = ${state.varToAsm(state.classDerefStack.peek())}"
+                                "let SPF(${found.first})<${found.second.name}>[${found.second.type.typeForAsm}] = ${state.varToAsm(state.classDerefStack.peek())}"
                             )
                         }
 
@@ -1170,7 +1170,7 @@ class WolinVisitor(
         val lambdaName = "lambda_function_${state.lambdaCounter++}"
 
         val nowaFunkcja = try {
-            state.findProc(lambdaName)
+            state.findFunction(lambdaName)
         } catch (ex: Exception) {
             Funkcja(fullName = lambdaName)
         }
@@ -1635,7 +1635,7 @@ class WolinVisitor(
                     state.switchType(zmienna.type, "type from ${zmienna.name}", true)
                 } catch (ex: VariableNotFound) {
                     try {
-                        val proc = state.findProc(ctx.Identifier().text)
+                        val proc = state.findFunction(ctx.Identifier().text)
                         checkTypeAndAddAssignment(
                             ctx,
                             state.currentReg,
@@ -1676,7 +1676,7 @@ class WolinVisitor(
         val functionName = state.nameStitcher(name)
 
         val nowaFunkcja = try {
-            state.findProc(functionName)
+            state.findFunction(functionName)
         } catch (ex: Exception) {
             val nowa = Funkcja()
 
@@ -1764,7 +1764,7 @@ class WolinVisitor(
         }
 
         val konstruktor = try {
-            state.findProc(state.currentClass!!.name)
+            state.findFunction(state.currentClass!!.name)
         } catch (ex: Exception) {
             Funkcja(
                 state.currentClass!!.name,
@@ -1795,7 +1795,7 @@ class WolinVisitor(
         val zwrotka =
             state.createAndRegisterVar("${konstruktor.returnName}", AllocType.NORMAL, typZwrotki, FieldType.ARGUMENT)
 
-        val funkcjaAlloc = state.findProc("allocMem").apply {
+        val funkcjaAlloc = state.findFunction("allocMem").apply {
             if (state.pass == Pass.TRANSLATION) {
                 val zKlasarium = state.findClass(state.currentClass!!.name)
                 this.arguments[0].intValue = state.getStackSize(zKlasarium.heap).toLong()
@@ -1977,8 +1977,9 @@ class WolinVisitor(
             state.rem(" main function entry")
             //state.code("goto ${state.mainFunction!!.labelName}[adr]")
 
-            easeyCall(ctx, state.mainFunction!!, null)
-            state.code("endfunction")
+            state.code("goto ${state.mainFunction!!.labelName}[uword]")
+//            easeyCall(ctx, state.mainFunction!!, null)
+//            state.code("endfunction")
         }
 
         //state.fileScopeSuffix = nazwaPliku
@@ -2515,7 +2516,7 @@ class WolinVisitor(
                 val found = state.findStackVector(state.callStack, prototyp.arguments[i].name)
 
                 state.code(
-                    "let SPF(${found.first})[${found.second.type.typeForAsm}] = ${state.currentRegToAsm()}"
+                    "let SPF(${found.first})<${found.second.name}>[${found.second.type.typeForAsm}] = ${state.currentRegToAsm()}"
                 )
             }
 

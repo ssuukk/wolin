@@ -3,7 +3,7 @@ package pl.qus.wolin
 import org.antlr.v4.runtime.ANTLRInputStream
 import org.antlr.v4.runtime.CommonTokenStream
 import pl.qus.wolin.exception.NoRuleException
-import tornadofx.launch
+import pl.qus.wolin.pl.qus.wolin.StackOpsSanitizer
 import java.io.*
 
 object Main {
@@ -404,69 +404,72 @@ Optumalizacja operatorów:
 
     @JvmStatic
     fun main(args: Array<String>) {
-// gradlew generateGrammarSource
+        val finalState = wolinIntoPseudoAsm(FileInputStream(File("src/main/wolin/test.ktk")))
 
-        parseWolinek(FileInputStream(File("src/main/wolin/test.ktk")))
-
-        optimize(
+        optimizePseudoAsm(
             FileInputStream(File("src/main/wolin/assembler.asm")),
-            FileOutputStream(File("src/main/wolin/assembler_opt1.asm"))
+            FileOutputStream(File("src/main/wolin/assembler_optX.asm"))
         )
 
-        // ciekawostka. Po ostatnich zmianach mamy:
-        /*
-        free SP<__wolin_reg5>, #2
-        let &SP(-1)<__wolin_reg5>[ubyte*] = &#65[ubyte]
+        sanitizePseudoAsmStackOps(
+            FileInputStream(File("src/main/wolin/assembler_optX.asm")),
+            FileOutputStream(File("src/main/wolin/assembler_opt1.asm")),
+            finalState
+        )
 
-        więc to jest znak, że trzeba przesunąć to:
+        // tu jeszcze raz optimizer, żeby skonsolidować alloce
 
-        let &SP(0)<__wolin_reg5>[ubyte*] = &#65[ubyte]
-        free SP<__wolin_reg5>, #2
-
-         */
-
-        translateAsm(
+        pseudoAsmToTargetAsm(
             FileInputStream(File("src/main/wolin/assembler_opt1.asm")),
             FileInputStream(File("src/main/wolin/template.asm"))
         )
 
-        launch<MyApp>(args)
+        //launch<MyApp>(args)
     }
 
-    private fun optimize(asmStream: InputStream, outStream: OutputStream) {
+    private fun sanitizePseudoAsmStackOps(
+        asmStream: InputStream,
+        outStream: OutputStream,
+        finalState: WolinStateObject
+    ) {
         val asmLexer = PseudoAsmLexer(ANTLRInputStream(asmStream))
         val asmTokens = CommonTokenStream(asmLexer)
         val asmParser = PseudoAsmParser(asmTokens)
         val asmContext = asmParser.pseudoAsmFile()
-        val visitor = OptimizerVisitor()
+        val sanitizer = StackOpsSanitizer(outStream)
+        finalState.copyInto(sanitizer.wolinState)
+        sanitizer.startWork(asmContext)
+
+    }
+
+    private fun optimizePseudoAsm(asmStream: InputStream, outStream: OutputStream) {
+        val asmLexer = PseudoAsmLexer(ANTLRInputStream(asmStream))
+        val asmTokens = CommonTokenStream(asmLexer)
+        val asmParser = PseudoAsmParser(asmTokens)
+        val asmContext = asmParser.pseudoAsmFile()
+        val optimizer = OptimizerProcessor()
 
         // zebrać wszystkie rejestry
-        visitor.gatherAllSPRegs(asmContext)
+        optimizer.gatherAllSPRegs(asmContext)
         // sprawdzić które kwalifikują się do usunięcia
-        visitor.markSingleAssignmentRegs(asmContext)
+        optimizer.markSingleAssignmentRegs(asmContext)
         // tu można wygenerować ponownie plik tekstowy, pewnie nawet trzeba, tu się przesuwa funkcyjne rejestry
-        visitor.replaceSingleAssignmentRegWithItsValue(asmContext)
+        optimizer.replaceSingleAssignmentRegWithItsValue(asmContext)
         // sprawdzić, czy dany rejestr występuje tylko jako free/alloc +ew. let rejestr =, tylko odflaguje
-        visitor.markRegIfStillUsed(asmContext)
+        optimizer.markRegIfStillUsed(asmContext)
         // usuwa oflagowane rejestry
-        visitor.removeAndShiftArgs(asmContext)
+        optimizer.removeAndShiftArgs(asmContext)
 
-        visitor.optimizeReverseAssigns(asmContext)
-        visitor.replaceSingleAssignmentRegWithItsValue(asmContext)
-        visitor.markRegIfStillUsed(asmContext)
-        visitor.removeAndShiftArgs(asmContext)
-
-
-
-        //visitor.markReplacablePointerTargets(asmContext)
-        //visitor.removeAndShiftTargets(asmContext)
+        optimizer.optimizeReverseAssigns(asmContext)
+        optimizer.replaceSingleAssignmentRegWithItsValue(asmContext)
+        optimizer.markRegIfStillUsed(asmContext)
+        optimizer.removeAndShiftArgs(asmContext)
 
 
-        visitor.sanitizeDerefs(asmContext)
-        visitor.consolidateAllocs(asmContext)
+        optimizer.sanitizeDerefs(asmContext)
+        //optimizer.consolidateAllocs(asmContext)
 
         outStream.use {
-
             asmContext.linia().iterator().forEach {
                 val linia = it.children.map{ it.text }.joinToString(" ")
                 outStream.write(linia.toByteArray())
@@ -474,7 +477,7 @@ Optumalizacja operatorów:
         }
     }
 
-    private fun translateAsm(asmStream: InputStream, templateStream: InputStream) {
+    private fun pseudoAsmToTargetAsm(asmStream: InputStream, templateStream: InputStream) {
         val asmLexer = PseudoAsmLexer(ANTLRInputStream(asmStream))
         val asmTokens = CommonTokenStream(asmLexer)
         val asmParser = PseudoAsmParser(asmTokens)
@@ -508,34 +511,7 @@ Optumalizacja operatorów:
     }
 
 
-    private fun translateAsm(asmContext: PseudoAsmParser.PseudoAsmFileContext, templateStream: InputStream) {
-        val templateLexer = PseudoAsmLexer(ANTLRInputStream(templateStream))
-        val templateTokens = CommonTokenStream(templateLexer)
-        val templateParser = PseudoAsmParser(templateTokens)
-        val templateContext = templateParser.pseudoAsmFile()
-        val templateVisitor = RuleMatcherVisitor()
-
-        asmContext.linia().forEach {
-            templateVisitor.state.assemblerLine = it
-            try {
-                templateVisitor.visit(templateContext)
-            } catch (ex: NoRuleException) {
-                println("No rule for parsing:${ex.message}")
-            } catch (ex: Exception) {
-                println("Syntax error in rule file")
-                throw ex
-            }
-        }
-
-        val ostream = BufferedOutputStream(FileOutputStream(File("src/main/wolin/assembler.s")))
-
-        ostream.use {
-            it.write(templateVisitor.state.dumpCode().toByteArray())
-        }
-    }
-
-
-    private fun parseWolinek(istream: InputStream) {
+    private fun wolinIntoPseudoAsm(istream: InputStream): WolinStateObject {
         // Get our lexer
         val lexer = KotlinLexer(ANTLRInputStream(istream))
 
@@ -565,8 +541,8 @@ Optumalizacja operatorów:
         println("== PASS 2 - type inference ==")
 
         // zebranie typów dla rejestrów
-        val mainName = symbolsVisitor.state.findProc("main")// { it == "main" || it.endsWith(".main")}
-        symbolsVisitor.state.copy(declarationVisitor.state)
+        val mainName = symbolsVisitor.state.findFunction("main")// { it == "main" || it.endsWith(".main")}
+        symbolsVisitor.state.copyInto(declarationVisitor.state)
         declarationVisitor.state.mainFunction = mainName
 
         declarationVisitor.visit(fileContext)
@@ -575,7 +551,7 @@ Optumalizacja operatorów:
         println("== PASS 3 - code generation ==")
 
         // właściwa translacja
-        declarationVisitor.state.copy(translationVisitor.state)
+        declarationVisitor.state.copyInto(translationVisitor.state)
         val wynik = translationVisitor.visit(fileContext)
 
         translationVisitor.appendLambdas()
@@ -591,7 +567,7 @@ Optumalizacja operatorów:
 //        } catch (ex: Exception) {
 //            println(ex.message)
 //        }
-
+        return translationVisitor.state
     }
 }
 
