@@ -1,11 +1,7 @@
 package pl.qus.wolin
 
 import org.antlr.v4.runtime.*
-import org.antlr.v4.runtime.tree.ParseTree
-import org.antlr.v4.runtime.tree.TerminalNode
-import org.antlr.v4.runtime.tree.TerminalNodeImpl
 import java.lang.IndexOutOfBoundsException
-import java.lang.NullPointerException
 import java.util.*
 import kotlin.math.abs
 
@@ -27,7 +23,7 @@ class OptimizerProcessor /*: PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() 
                 val template = linie.next()
 
                 if (template.instrukcja().simpleIdentifier().text == "alloc") {
-                    val r = createReg(template)
+                    val r = createRegFromAlloc(template)
                     if (r != null) {
                         registers[r.numer] = r
                         println("Reg found: reg${r.numer} (${r.wielkość}b)")
@@ -105,33 +101,6 @@ class OptimizerProcessor /*: PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() 
                 }
             }
         }
-    }
-
-
-    fun moveFreeBehindLastOp(regNr: Int) {
-        /*
-add SP(0)<__wolin_reg10>[ubyte*] = SP(0)<__wolin_reg10>[ubyte*], &*__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]
-reg9 - SP(2)
-reg8 - SP(3)
-free SP<__wolin_reg10>, #2
-reg9 - SP(0)
-reg8 - SP(1)
-add __wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte] = __wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte], #1[ubyte]
-let &SP(-2)<__wolin_reg10>[ubyte*] = &*__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte]
-
-przenosząc rejest SP(n) w dół kodu muszę dodać do każdego rejestru <=n wielkość tego rejestru, czyli:
-
-add SP(0)<__wolin_reg10>[ubyte*] = SP(0)<__wolin_reg10>[ubyte*], &*__wolin_pl_qus_wolin_i<pl.qus.wolin.i>[uword]
-reg9 - SP(2)
-reg8 - SP(3)
-stąd przeniosłem reg10 o wielkości 2 ------->
-reg9 - SP(0+2)                              |
-reg8 - SP(1+2)                              |
-add __wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte] = __wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte], #1[ubyte]
-let &SP(-2+2)<__wolin_reg10>[ubyte*] = &*__wolin_pl_qus_wolin_chr<pl.qus.wolin.chr>[ubyte]
-free SP<__wolin_reg10>, #2 <-----------------
-
-         */
     }
 
 
@@ -250,12 +219,12 @@ op B = *
                     val prevOp = previous?.instrukcja()?.simpleIdentifier()?.text
 
                     val currentStack = try {
-                        extractStackType(getFirstArg(current).getChild(0) as PseudoAsmParser.OperandContext)
+                        extractStackTypeFromOperand(getFirstArg(current).getChild(0) as PseudoAsmParser.OperandContext)
                     } catch (ex: Exception) {
                         null
                     }
                     val prevStack = try {
-                        extractStackType(getFirstArg(previous!!).getChild(0) as PseudoAsmParser.OperandContext)
+                        extractStackTypeFromOperand(getFirstArg(previous!!).getChild(0) as PseudoAsmParser.OperandContext)
                     } catch (ex: Exception) {
                         null
                     }
@@ -309,14 +278,14 @@ op B = *
                         val refType = linia.target(0)?.operand()?.referencer()?.firstOrNull()?.text ?: ""
 
                         if (instrukcja == "alloc" && state.insideOptimizedReg == -1) {
-                            val r = createReg(linia)
+                            val r = createRegFromAlloc(linia)
                             if (r != null && r.numer == removedRegistr.numer) {
                                 state.insideOptimizedReg = r.numer
                                 println("usuwam alloc ${r.numer}")
                                 linieIterator.remove()
                             }
                         } else if (instrukcja == "free" && state.insideOptimizedReg == removedRegistr.numer) {
-                            val r = createReg(linia)
+                            val r = createRegFromAlloc(linia)
                             if (r != null && r.numer == removedRegistr.numer) {
                                 state.insideOptimizedReg = -1
                                 println("usuwam free ${removedRegistr.numer}")
@@ -351,26 +320,26 @@ op B = *
                             val target = extractTarget(linia)
 
                             if (firstArg != null && firstArg.numer < removedRegistr.numer) {
-                                val vector = extractSPVector(linia.arg(0).operand()) - removedRegistr.wielkość
+                                val vector = extractSPVectorFromOperand(linia.arg(0).operand()) - removedRegistr.wielkość
                                 val child = getFirstArg(linia)
-                                changeVector(
+                                changeVectorInOperand(
                                     (child as PseudoAsmParser.ArgContext).children[0] as PseudoAsmParser.OperandContext,
                                     vector
                                 )
                             }
 
                             if (secondArg != null && secondArg.numer < removedRegistr.numer) {
-                                val vector = extractSPVector(linia.arg(1).operand()) - removedRegistr.wielkość
+                                val vector = extractSPVectorFromOperand(linia.arg(1).operand()) - removedRegistr.wielkość
                                 val child = getSecondArg(linia)
-                                changeVector(
+                                changeVectorInOperand(
                                     (child as PseudoAsmParser.ArgContext).children[0] as PseudoAsmParser.OperandContext,
                                     vector
                                 )
                             }
 
                             if (target != null && target.numer < removedRegistr.numer) {
-                                val vector = extractSPVector(linia.target(0).operand()) - removedRegistr.wielkość
-                                changeVector(
+                                val vector = extractSPVectorFromOperand(linia.target(0).operand()) - removedRegistr.wielkość
+                                changeVectorInOperand(
                                     (linia.children[1] as PseudoAsmParser.TargetContext).children[0] as PseudoAsmParser.OperandContext,
                                     vector
                                 )
@@ -382,20 +351,7 @@ op B = *
         }
     }
 
-    private fun changeVector(operand: PseudoAsmParser.OperandContext, vector: Int) {
-        if (vector < 0) {
-            println("regx moved beyond 'free regx' in ${operand.text}")
-            //throw Exception("regx moved beyond 'free regx' fo4 ${operand.text}")
-        }
-        val indeks =
-            if (operand.children[0] is PseudoAsmParser.ReferencerContext)
-                (((operand.children[1] as PseudoAsmParser.ValueContext).children[0] as PseudoAsmParser.AddressedContext).children[2] as PseudoAsmParser.IndexContext)
-            else
-                (((operand.children[0] as PseudoAsmParser.ValueContext).children[0] as PseudoAsmParser.AddressedContext).children[2] as PseudoAsmParser.IndexContext)
 
-        val node = indeks.children[0] as TerminalNodeImpl
-        (node.symbol as CommonToken).text = vector.toString()
-    }
 
     private fun replaceAllOccurencesOfSingleAssignRegistersWithTheirValues(
         ctx: PseudoAsmParser.PseudoAsmFileContext,
@@ -538,113 +494,6 @@ op B = *
         }
     }
 
-    fun optimizeLoops() {
-        /*
-        label __wolin_lab_loop_start_1
-
-        alloc XXX, #n
-
-        free XXX, #n
-
-        label __wolin_lab_loop_end_1
-         */
-    }
-
-//    private fun replaceInArg(
-//        intoThisField: PseudoAsmParser.ArgContext,
-//        thisarg: Register
-//    ): Register {
-//        //val thisField = thisarg.argContext!!
-//        val thisFieldOperand = thisarg.argContext?.operand() ?: thisarg.targetContext?.operand()!!
-//
-//        val intoReference = intoThisField.operand().referencer()
-//        val thisReference = thisFieldOperand.referencer()
-//
-//        val referenceryRazem = intoReference + thisReference
-//        if (thisFieldOperand.children[0] is PseudoAsmParser.ReferencerContext) {
-//            // usunąć pierwszy kontekst referencera, zastąpić go referenceryRazem, dopisać resztę
-//            val stareDzieci = thisFieldOperand.children.drop(1)
-//            thisFieldOperand.children = referenceryRazem + stareDzieci
-//        } else {
-//            val stareDzieci = thisFieldOperand.children
-//            thisFieldOperand.children = referenceryRazem + stareDzieci
-//        }
-//
-//        return thisarg
-//    }
-
-
-    private fun replaceInArg(
-        intoThisField: PseudoAsmParser.ArgContext?,
-        thisFieldOperand: PseudoAsmParser.OperandContext
-    ) {
-        val intoReference = intoThisField?.operand()?.referencer()
-        val thisReference = thisFieldOperand.referencer()
-
-        val referenceryRazem = if(intoReference != null) intoReference + thisReference else thisReference
-        if (thisFieldOperand.children[0] is PseudoAsmParser.ReferencerContext) {
-            // usunąć pierwszy kontekst referencera, zastąpić go referenceryRazem, dopisać resztę
-            val stareDzieci = thisFieldOperand.children.drop(1)
-            thisFieldOperand.children = referenceryRazem + stareDzieci
-        } else {
-            val stareDzieci = thisFieldOperand.children
-            thisFieldOperand.children = referenceryRazem + stareDzieci
-        }
-    }
-
-
-
-//    private fun replaceInTarget(
-//        intoThisField: PseudoAsmParser.TargetContext,
-//        thisarg: Register
-//    ): PseudoAsmParser.TargetContext {
-//        val thisFieldOperand = thisarg.argContext?.operand() ?: thisarg.targetContext?.operand()!!
-//
-//        val intoReference = intoThisField.operand().referencer()
-//        val thisReference = thisFieldOperand.referencer()
-//        val zwrotka =
-//            PseudoAsmParser.TargetContext(intoThisField.ruleContext as ParserRuleContext, intoThisField.invokingState)
-//
-//        val referenceryRazem = intoReference + thisReference
-//        if (thisFieldOperand.children[0] is PseudoAsmParser.ReferencerContext) {
-//            // usunąć pierwszy kontekst referencera, zastąpić go referenceryRazem, dopisać resztę
-//            val stareDzieci = thisFieldOperand.children.drop(1)
-//            thisFieldOperand.children = referenceryRazem + stareDzieci
-//        } else {
-//            val stareDzieci = thisFieldOperand.children
-//            thisFieldOperand.children = referenceryRazem + stareDzieci
-//        }
-//
-//        zwrotka.children = thisarg.argContext?.children ?: thisarg.targetContext?.children!!
-//
-//        return zwrotka
-//    }
-
-
-    private fun replaceInTarget(
-        intoThisField: PseudoAsmParser.TargetContext,
-        thisFieldOperand: PseudoAsmParser.OperandContext
-    ): PseudoAsmParser.TargetContext {
-        val intoReference = intoThisField.operand().referencer()
-        val thisReference = thisFieldOperand.referencer()
-        val zwrotka =
-            PseudoAsmParser.TargetContext(intoThisField.ruleContext as ParserRuleContext, intoThisField.invokingState)
-
-        val referenceryRazem = intoReference + thisReference
-        if (thisFieldOperand.children[0] is PseudoAsmParser.ReferencerContext) {
-            // usunąć pierwszy kontekst referencera, zastąpić go referenceryRazem, dopisać resztę
-            val stareDzieci = thisFieldOperand.children.drop(1)
-            thisFieldOperand.children = referenceryRazem + stareDzieci
-        } else {
-            val stareDzieci = thisFieldOperand.children
-            thisFieldOperand.children = referenceryRazem + stareDzieci
-        }
-
-        zwrotka.children = listOf(thisFieldOperand)
-
-        return zwrotka
-    }
-
 
     /**
      * Sprawdzenie, czy rejestr ma tylko jedno, proste podstawienie
@@ -725,182 +574,6 @@ op B = *
             }
             else -> null
         }
-    }
-
-    private fun extractStackType(ctx: PseudoAsmParser.OperandContext): String? {
-        return ctx.value()?.addressed()?.identifier()?.simpleIdentifier(0)?.text
-    }
-
-
-    private fun extractAllocSize(template: PseudoAsmParser.LiniaContext, stack: String): Int? {
-        val stos = template.arg(0)?.operand()?.value()?.addressed()?.identifier()?.simpleIdentifier(0)?.text
-        val wielkość = template.arg(1)?.operand()?.value()?.immediate()
-
-        return when (stos) {
-            stack -> wielkość?.IntegerLiteral()!!.text.toInt()
-            else -> null
-        }
-    }
-
-    private fun extractSPVector(ctx: PseudoAsmParser.OperandContext): Int {
-        val wektor = ctx.value()?.addressed()?.index(0)?.text
-        return Integer.parseInt(wektor)
-    }
-
-    private fun createReg(template: PseudoAsmParser.LiniaContext): Register? {
-        val stos = template.arg(0)?.operand()?.value()?.addressed()?.identifier()?.simpleIdentifier(0)?.text // SP
-        val nazwa = template.arg(0)?.operand()?.name(0)?.identifier()?.simpleIdentifier(0)?.text // __wolin_reg3
-        val wielkość = template.arg(1)?.operand()?.value()?.immediate()?.IntegerLiteral()?.text
-
-        return if (stos == "SP") {
-            val reg = Register()
-
-            reg.numer = Integer.parseInt(nazwa!!.substring(11))
-            reg.wielkość = Integer.parseInt(wielkość!!)
-            reg.name = nazwa
-            reg
-        } else null
-    }
-
-    fun copy(ctx: ParseTree): ParseTree {
-        return when (ctx) {
-            is ParserRuleContext -> {
-                val nowa = ctx.javaClass.getDeclaredConstructor(ParserRuleContext::class.java, Int::class.java)
-                    .newInstance(ctx.parent, ctx.invokingState) // dodać argsy
-                nowa.copyFrom(ctx)
-                nowa.children = ctx.children?.map { copy(it) }?.toMutableList()
-
-                nowa
-            }
-            is TerminalNode -> {
-                val kopia = object : Token {
-                    val textCopy = ctx.text.substring(0)
-
-                    override fun getTokenSource(): TokenSource {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    }
-
-                    override fun getType(): Int {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    }
-
-                    override fun getStopIndex(): Int {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    }
-
-                    override fun getText(): String {
-                        return textCopy
-                    }
-
-                    override fun getChannel(): Int {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    }
-
-                    override fun getTokenIndex(): Int {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    }
-
-                    override fun getCharPositionInLine(): Int {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    }
-
-                    override fun getStartIndex(): Int {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    }
-
-                    override fun getLine(): Int {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    }
-
-                    override fun getInputStream(): CharStream {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    }
-
-                }
-                TerminalNodeImpl(kopia)
-            }
-            else -> {
-                TODO()
-            }
-        }
-    }
-
-
-    fun createTerminalNode(contents: String): ParseTree {
-        val kopia = object : Token {
-            //val textCopy = ctx.text.substring(0)
-
-            override fun getTokenSource(): TokenSource {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun getType(): Int {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun getStopIndex(): Int {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun getText(): String {
-                return contents
-            }
-
-            override fun getChannel(): Int {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun getTokenIndex(): Int {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun getCharPositionInLine(): Int {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun getStartIndex(): Int {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun getLine(): Int {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun getInputStream(): CharStream {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-        }
-        return TerminalNodeImpl(kopia)
-    }
-
-
-    fun getFirstArg(linia: PseudoAsmParser.LiniaContext): ParseTree {
-        return if (linia.target().isNotEmpty())
-            linia.children[3]
-        else
-            linia.children[1]
-    }
-
-    fun getSecondArg(linia: PseudoAsmParser.LiniaContext): ParseTree {
-        return if (linia.target().isNotEmpty())
-            linia.children[5]
-        else
-            linia.children[3]
-    }
-
-    fun setFirstArg(linia: PseudoAsmParser.LiniaContext, child: ParserRuleContext) {
-        if (linia.target().isNotEmpty())
-            linia.children[3] = child
-        else
-            linia.children[1] = child
-    }
-
-    fun setSecondArg(linia: PseudoAsmParser.LiniaContext, child: ParserRuleContext) {
-        if (linia.target().isNotEmpty())
-            linia.children[5] = child
-        else
-            linia.children[3] = child
     }
 
 

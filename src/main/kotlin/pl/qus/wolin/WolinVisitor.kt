@@ -2009,11 +2009,12 @@ class WolinVisitor(
 
             state.code("")
             state.code("label __wolin_create_exception_entry")
-            state.code("alloc SPE, #5")
+            state.code("alloc SPE, #7")
             state.code("let SPE(0)[uword] = SP(0)[uword] // adres bloku catch, jeśli będzie exception")
             state.code("free SP, #2 //catch_addr")
             state.code("let SPE(2)[ubyte] = SPC[ubyte] // aktualny stos CPU, dwa odejmiemy od niego, jeśli będzie exception")
             state.code("let SPE(3)[ubyte] = SP[ubyte] // aktualny stos wolina")
+            state.code("let SPE(4)[uword] = SPF[uword] // aktualny stos funkcji")
             state.rem(" TODO - sprawdzić czy jego też trzeba zmniejszyć, bo catch jest wewnątrz allokacji dla statementu!")
             state.code("endfunction")
 
@@ -2029,7 +2030,8 @@ class WolinVisitor(
             state.code("add SPE(2)[ubyte] = SPE(2)[ubyte], #2[ubyte] // stos zapamiętaliśmy w podprogramie, musimy go zmniejszyć o adres powrotny")
             state.code("let SPC[ubyte] = SPE(2)[ubyte] // przywrócenie stosu CPU, takiego jak był w bloku try")
             state.code("let SP[ubyte] = SPE(3)[ubyte] // przywrócenie stosu wolina")
-            state.code("free SPE, #5")
+            state.code("let SPF[uword] = SPE(4)[uword] // przywrocenie stosu funckji")
+            state.code("free SPE, #7")
             state.code("goto __wolin_spe_zp_vector[uword*]")
         }
 

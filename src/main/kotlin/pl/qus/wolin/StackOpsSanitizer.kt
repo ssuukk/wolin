@@ -12,7 +12,7 @@ class StackOpsSanitizer(outStream: OutputStream) {
 
     var functionCode = mutableListOf<PseudoAsmParser.LiniaContext>()
 
-    val writer = outStream.bufferedWriter()
+    private val writer = outStream.bufferedWriter()
 
     fun startWork(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         val i = ctx.linia()?.iterator()
@@ -26,7 +26,8 @@ class StackOpsSanitizer(outStream: OutputStream) {
                 insideFunction = wolinState.findFunctionByLabel(nazwaFunkcji)
                 //println("mamy funkcję: $prawdziwaFunkcja")
             } else if(linia.instrukcja().text == "endfunction") {
-                processWholeFunction()
+                shuffleAllocs()
+                processVectors()
                 insideFunction = null
             }
 
@@ -42,13 +43,20 @@ class StackOpsSanitizer(outStream: OutputStream) {
         writer.close()
     }
 
-    private fun processWholeFunction() {
+    private fun shuffleAllocs() {
+        // 1. znaleźć alloc/free, które są w pętli i przenieść je poza pętle
+        // 2. znaleźć rejestry, które są używane po free, przenieść free za nie, uważać na granice pętli
+    }
+
+    private fun processVectors() {
         var pendingFreeFunction = false
         var calledFunction : Funkcja? = null
 
         writer.newLine()
 
         wolinState.fnDeclAllocStackAndRet(insideFunction!!)
+
+
 
         println("=====================================================")
         println("Przetwarzanie ${insideFunction!!.labelName}")
