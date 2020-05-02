@@ -1,0 +1,375 @@
+ca65 V2.18 - Git a0db846
+Main file   : assembler.s
+Current file: assembler.s
+
+000000r 1               ; 1: setup HEADER
+000000r 1               
+000000r 1               
+000000r 1               ;**********************************************
+000000r 1               ;*
+000000r 1               ;* BASIC header
+000000r 1               ;*
+000000r 1               ;* compile with:
+000000r 1               ;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg -g -Ln assembler.lbl -l assembler.txt assembler.s
+000000r 1               ;*
+000000r 1               ;**********************************************
+000000r 1                           .org 2049
+000801  1                           .export LOADADDR = *
+000801  1  0C 08        Bas10:      .word BasEnd
+000803  1  0A 00                    .word 10
+000805  1  9E                       .byte 158 ; sys
+000806  1  20 32 30 36              .byte " 2064"
+00080A  1  34           
+00080B  1  00                       .byte 0
+00080C  1  00 00        BasEnd:     .word 0
+00080E  1  00 00                    .word 0
+000810  1                           ;
+000810  1               
+000810  1               
+000810  1               ; 2: setup SPF = 251[ubyte] , 40959[uword]
+000810  1               
+000810  1               
+000810  1               ; prepare function stack
+000810  1               __wolin_spf := 251 ; function stack ptr
+000810  1               __wolin_spf_hi := 251+1 ; function stack ptr
+000810  1               
+000810  1               __wolin_spf_top := 40959 ; function stack top
+000810  1               __wolin_spf_top_hi := 40959+1 ; function stack top
+000810  1  A9 FF            lda #<__wolin_spf_top ; set function stack top
+000812  1  85 FB            sta __wolin_spf
+000814  1  A9 9F            lda #>__wolin_spf_top
+000816  1  85 FC            sta __wolin_spf+1
+000818  1               
+000818  1               ; 3: setup SP = 114[ubyte]
+000818  1               
+000818  1               
+000818  1               ; prepare program stack
+000818  1               __wolin_sp_top := 114 ; program stack top
+000818  1               __wolin_sp_top_hi := 114+1 ; program stack top
+000818  1  A2 72            ldx #__wolin_sp_top ; set program stack top
+00081A  1               
+00081A  1               ; 4: setup HEAP = 176[ubyte]
+00081A  1               
+00081A  1               
+00081A  1               __wolin_this_ptr := 176
+00081A  1               __wolin_this_ptr_hi := 176+1
+00081A  1               
+00081A  1               
+00081A  1               ; 5: call __wolin_pl_qus_wolin_main[uword]
+00081A  1               
+00081A  1  20 E5 08         jsr __wolin_pl_qus_wolin_main
+00081D  1               
+00081D  1               ; 6: endfunction
+00081D  1               
+00081D  1  60               rts
+00081E  1               
+00081E  1               ; 7: function __wolin_pl_qus_wolin_printAt
+00081E  1               
+00081E  1               __wolin_pl_qus_wolin_printAt:
+00081E  1               
+00081E  1               ; 8: let CPU.C[bool] = #1[bool]
+00081E  1               
+00081E  1               
+00081E  1  18               clc
+00081F  1               
+00081F  1               
+00081F  1               ; 9: save SP
+00081F  1               
+00081F  1               
+00081F  1  8A               txa
+000820  1  48               pha
+000821  1               
+000821  1               ; 10: save SPF(3)<pl.qus.wolin.printAt.x>[ubyte]
+000821  1               
+000821  1               
+000821  1  A0 03            ldy #3
+000823  1  B1 FB            lda (__wolin_spf),y
+000825  1  48               pha
+000826  1               
+000826  1               
+000826  1               ; 11: save SPF(2)<pl.qus.wolin.printAt.y>[ubyte]
+000826  1               
+000826  1               
+000826  1  A0 02            ldy #2
+000828  1  B1 FB            lda (__wolin_spf),y
+00082A  1  48               pha
+00082B  1               
+00082B  1               
+00082B  1               ; 12: restore CPU.Y[ubyte]
+00082B  1               
+00082B  1               
+00082B  1  68               pla
+00082C  1  A8               tay
+00082D  1               
+00082D  1               ; 13: restore CPU.X[ubyte]
+00082D  1               
+00082D  1               
+00082D  1  68               pla
+00082E  1  AA               tax
+00082F  1               
+00082F  1               ; 14: call 65520[uword]
+00082F  1               
+00082F  1  20 F0 FF         jsr 65520
+000832  1               
+000832  1               ; 15: restore SP
+000832  1               
+000832  1               
+000832  1  68               pla
+000833  1  AA               tax
+000834  1               
+000834  1               ; 16: alloc SPF , #5
+000834  1               
+000834  1               
+000834  1  38               sec
+000835  1  A5 FB            lda __wolin_spf
+000837  1  E9 05            sbc #5
+000839  1  85 FB            sta __wolin_spf
+00083B  1  B0 02            bcs :+
+00083D  1  C6 FC            dec __wolin_spf+1
+00083F  1               :
+00083F  1               
+00083F  1               ; 17: let SPF(3)[ubyte*] = SPF(5)<pl.qus.wolin.printAt.what>[ubyte*]
+00083F  1               
+00083F  1               
+00083F  1  A0 05            ldy #5
+000841  1  B1 FB            lda (__wolin_spf),y
+000843  1  A0 03            ldy #3
+000845  1  91 FB            sta (__wolin_spf),y
+000847  1  A0 06            ldy #5+1
+000849  1  B1 FB            lda (__wolin_spf),y
+00084B  1  A0 04            ldy #3+1
+00084D  1  91 FB            sta (__wolin_spf),y
+00084F  1               
+00084F  1               
+00084F  1               ; 18: call __wolin_pl_qus_wolin_print[uword]
+00084F  1               
+00084F  1  20 5E 08         jsr __wolin_pl_qus_wolin_print
+000852  1               
+000852  1               ; 19: free SPF<pl.qus.wolin.printAt.__fnargs> , #4
+000852  1               
+000852  1               
+000852  1  18               clc
+000853  1  A5 FB            lda __wolin_spf
+000855  1  69 04            adc #4
+000857  1  85 FB            sta __wolin_spf
+000859  1  90 02            bcc :+
+00085B  1  E6 FC            inc __wolin_spf+1
+00085D  1               :
+00085D  1               
+00085D  1               ; 20: endfunction
+00085D  1               
+00085D  1  60               rts
+00085E  1               
+00085E  1               ; 21: function __wolin_pl_qus_wolin_print
+00085E  1               
+00085E  1               __wolin_pl_qus_wolin_print:
+00085E  1               
+00085E  1               ; 22: let SPF(2)<pl.qus.wolin.print..i>[ubyte] = #0[ubyte]
+00085E  1               
+00085E  1               
+00085E  1  A0 02            ldy #2
+000860  1  A9 00            lda #0
+000862  1  91 FB            sta (__wolin_spf),y
+000864  1               
+000864  1               ; 23: add SPF(0)<pl.qus.wolin.print..char>[ubyte*] = SPF(3)<pl.qus.wolin.print.what>[ubyte*] , SPF(2)<pl.qus.wolin.print..i>[ubyte]
+000864  1               
+000864  1               
+000864  1  18               clc
+000865  1  A0 03            ldy #3
+000867  1  B1 FB            lda (__wolin_spf), y
+000869  1  A0 02            ldy #2
+00086B  1  71 FB            adc (__wolin_spf), y
+00086D  1  A0 00            ldy #0
+00086F  1  91 FB            sta (__wolin_spf), y
+000871  1  A0 04            ldy #3+1
+000873  1  B1 FB            lda (__wolin_spf), y
+000875  1  69 00            adc #0
+000877  1  A0 01            ldy #0+1
+000879  1  91 FB            sta (__wolin_spf), y
+00087B  1               
+00087B  1               
+00087B  1               ; 24: alloc SP<__wolin_reg18> , #1
+00087B  1               
+00087B  1  CA               dex
+00087C  1               
+00087C  1               ; 25: label __wolin_lab_loop_start_1
+00087C  1               
+00087C  1               __wolin_lab_loop_start_1:
+00087C  1               
+00087C  1               ; 26: evalneq SP(0)<__wolin_reg18>[bool] = &SPF(0)<pl.qus.wolin.print..char>[ubyte*] , #0[ubyte]
+00087C  1               
+00087C  1               
+00087C  1  A9 01            lda #1 ; rozne
+00087E  1  95 00            sta 0,x
+000880  1  CA               dex
+000881  1  CA               dex
+000882  1  A0 00            ldy #0
+000884  1  B1 FB            lda (__wolin_spf),y
+000886  1  95 00            sta 0,x
+000888  1  C8               iny
+000889  1  B1 FB            lda (__wolin_spf),y
+00088B  1  95 01            sta 1,x
+00088D  1  A1 00            lda (0,x)
+00088F  1  D0 04            bne :+
+000891  1  A9 00            lda #0
+000893  1  95 02            sta 0+2,x
+000895  1               :
+000895  1  E8               inx
+000896  1  E8               inx
+000897  1               
+000897  1               
+000897  1               ; 27: bne SP(0)<__wolin_reg18>[bool] = #1[bool] , __wolin_lab_loop_end_1<label_po_if>[uword]
+000897  1               
+000897  1               
+000897  1  B5 00            lda 0,x
+000899  1  F0 3D            beq __wolin_lab_loop_end_1
+00089B  1               
+00089B  1               ; 28: save SP
+00089B  1               
+00089B  1               
+00089B  1  8A               txa
+00089C  1  48               pha
+00089D  1               
+00089D  1               ; 29: save &SPF(0)<pl.qus.wolin.print..char>[ubyte*]
+00089D  1               
+00089D  1               
+00089D  1  CA               dex
+00089E  1  CA               dex
+00089F  1  A0 00            ldy #0
+0008A1  1  B1 FB            lda (__wolin_spf),y
+0008A3  1  95 00            sta 0,x
+0008A5  1  C8               iny
+0008A6  1  B1 FB            lda (__wolin_spf),y
+0008A8  1  95 01            sta 1,x
+0008AA  1  A1 00            lda (0,x)
+0008AC  1  48               pha
+0008AD  1  E8               inx
+0008AE  1  E8               inx
+0008AF  1               
+0008AF  1               
+0008AF  1               ; 30: restore CPU.A[ubyte]
+0008AF  1               
+0008AF  1               
+0008AF  1  68               pla
+0008B0  1               
+0008B0  1               ; 31: call 65490[uword]
+0008B0  1               
+0008B0  1  20 D2 FF         jsr 65490
+0008B3  1               
+0008B3  1               ; 32: restore SP
+0008B3  1               
+0008B3  1               
+0008B3  1  68               pla
+0008B4  1  AA               tax
+0008B5  1               
+0008B5  1               ; 33: add SPF(2)<pl.qus.wolin.print..i>[ubyte] = SPF(2)<pl.qus.wolin.print..i>[ubyte] , #1[ubyte]
+0008B5  1               
+0008B5  1               
+0008B5  1  18               clc
+0008B6  1  A0 02            ldy #2
+0008B8  1  A9 01            lda #1
+0008BA  1  71 FB            adc (__wolin_spf),y
+0008BC  1  91 FB            sta (__wolin_spf),y
+0008BE  1               
+0008BE  1               
+0008BE  1               ; 34: add SPF(0)<pl.qus.wolin.print..char>[ubyte*] = SPF(3)<pl.qus.wolin.print.what>[ubyte*] , SPF(2)<pl.qus.wolin.print..i>[ubyte]
+0008BE  1               
+0008BE  1               
+0008BE  1  18               clc
+0008BF  1  A0 03            ldy #3
+0008C1  1  B1 FB            lda (__wolin_spf), y
+0008C3  1  A0 02            ldy #2
+0008C5  1  71 FB            adc (__wolin_spf), y
+0008C7  1  A0 00            ldy #0
+0008C9  1  91 FB            sta (__wolin_spf), y
+0008CB  1  A0 04            ldy #3+1
+0008CD  1  B1 FB            lda (__wolin_spf), y
+0008CF  1  69 00            adc #0
+0008D1  1  A0 01            ldy #0+1
+0008D3  1  91 FB            sta (__wolin_spf), y
+0008D5  1               
+0008D5  1               
+0008D5  1               ; 35: goto __wolin_lab_loop_start_1[uword]
+0008D5  1               
+0008D5  1  4C 7C 08         jmp __wolin_lab_loop_start_1
+0008D8  1               
+0008D8  1               ; 36: label __wolin_lab_loop_end_1
+0008D8  1               
+0008D8  1               __wolin_lab_loop_end_1:
+0008D8  1               
+0008D8  1               ; 37: free SP<__wolin_reg18> , #1
+0008D8  1               
+0008D8  1  E8               inx
+0008D9  1               
+0008D9  1               ; 38: free SPF<pl.qus.wolin.print.__fnargs> , #5
+0008D9  1               
+0008D9  1               
+0008D9  1  18               clc
+0008DA  1  A5 FB            lda __wolin_spf
+0008DC  1  69 05            adc #5
+0008DE  1  85 FB            sta __wolin_spf
+0008E0  1  90 02            bcc :+
+0008E2  1  E6 FC            inc __wolin_spf+1
+0008E4  1               :
+0008E4  1               
+0008E4  1               ; 39: endfunction
+0008E4  1               
+0008E4  1  60               rts
+0008E5  1               
+0008E5  1               ; 40: function __wolin_pl_qus_wolin_main
+0008E5  1               
+0008E5  1               __wolin_pl_qus_wolin_main:
+0008E5  1               
+0008E5  1               ; 41: alloc SPF , #4
+0008E5  1               
+0008E5  1               
+0008E5  1  38               sec
+0008E6  1  A5 FB            lda __wolin_spf
+0008E8  1  E9 04            sbc #4
+0008EA  1  85 FB            sta __wolin_spf
+0008EC  1  B0 02            bcs :+
+0008EE  1  C6 FC            dec __wolin_spf+1
+0008F0  1               :
+0008F0  1               
+0008F0  1               ; 42: let SPF(3)[ubyte] = #20[ubyte]
+0008F0  1               
+0008F0  1               
+0008F0  1  A0 03            ldy #3
+0008F2  1  A9 14            lda #20
+0008F4  1  91 FB            sta (__wolin_spf),y
+0008F6  1               
+0008F6  1               ; 43: let SPF(2)[ubyte] = #20[ubyte]
+0008F6  1               
+0008F6  1               
+0008F6  1  A0 02            ldy #2
+0008F8  1  A9 14            lda #20
+0008FA  1  91 FB            sta (__wolin_spf),y
+0008FC  1               
+0008FC  1               ; 44: let SPF(0)[ubyte*] = #__wolin_lab_stringConst_0[uword]
+0008FC  1               
+0008FC  1               
+0008FC  1  A9 0B            lda #<__wolin_lab_stringConst_0
+0008FE  1  A0 00            ldy #0
+000900  1  91 FB            sta (__wolin_spf),y
+000902  1  A9 09            lda #>__wolin_lab_stringConst_0
+000904  1  C8               iny
+000905  1  91 FB            sta (__wolin_spf),y
+000907  1               
+000907  1               ; 45: call __wolin_pl_qus_wolin_printAt[uword]
+000907  1               
+000907  1  20 1E 08         jsr __wolin_pl_qus_wolin_printAt
+00090A  1               
+00090A  1               ; 46: endfunction
+00090A  1               
+00090A  1  60               rts
+00090B  1               
+00090B  1               ; 47: string __wolin_lab_stringConst_0[uword] = $"dupa"
+00090B  1               
+00090B  1               
+00090B  1               __wolin_lab_stringConst_0:
+00090B  1  44 55 50 41      .asciiz "dupa"
+00090F  1  00           
+000910  1                   ;.byt 0
+000910  1               
+000910  1               
+000910  1               

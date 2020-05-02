@@ -13,6 +13,7 @@ class Funkcja(
     var lambdaBody: KotlinParser.StatementsContext? = null // dla lambd
 ) {
 
+    var isExternal: Boolean = false
     var startReg: Int = -1
 
     var fullReturnType: Zmienna? = null

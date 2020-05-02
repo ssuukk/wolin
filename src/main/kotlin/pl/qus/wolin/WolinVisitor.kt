@@ -19,13 +19,15 @@ class WolinVisitor(
 ) : KotlinParserBaseVisitor<WolinStateObject>() {
     val state = WolinStateObject(pass)
 
-    val loopStartLabel = "loop_start"
-    val loopEndLabel = "loop_end"
-    val ifStartLabel = "if_start"
-    val ifEndLabel = "if_end"
-    val elseLabel = "else_branch"
-    val whenBranchLabel = "when_branch"
-    val whenEndLabel = "when_end"
+    companion object {
+        val loopStartLabel = "loop_start"
+        val loopEndLabel = "loop_end"
+        val ifStartLabel = "if_start"
+        val ifEndLabel = "if_end"
+        val elseLabel = "else_branch"
+        val whenBranchLabel = "when_branch"
+        val whenEndLabel = "when_end"
+    }
 
     override fun visitFunctionBody(ctx: KotlinParser.FunctionBodyContext): WolinStateObject {
         if (ctx.block() != null)
@@ -1255,11 +1257,15 @@ class WolinVisitor(
     override fun visitWhileExpression(ctx: KotlinParser.WhileExpressionContext): WolinStateObject {
 
         state.loopCounter++
+        state.scopeCounter++
+        val scopeNow = state.scopeCounter
 
         val condLabel = labelMaker(loopStartLabel, state.loopCounter)
         val afterBodyLabel = labelMaker(loopEndLabel, state.loopCounter)
 
         state.allocReg("for while condition", Typ.bool)
+
+        state.code("_scope_ loop,${scopeNow}")
 
         state.code("label $condLabel")
 
@@ -1271,6 +1277,8 @@ class WolinVisitor(
 
         state.code("goto $condLabel[uword]")
 
+        state.code("_scope_ endloop,${scopeNow}")
+
         state.code("label $afterBodyLabel")
 
         state.freeReg("for while condition")
@@ -1281,9 +1289,13 @@ class WolinVisitor(
     override fun visitDoWhileExpression(ctx: KotlinParser.DoWhileExpressionContext): WolinStateObject {
 
         state.loopCounter++
+        state.scopeCounter++
+        val scopeNow = state.scopeCounter
 
         val bodyLabel = labelMaker(loopStartLabel, state.loopCounter)
         val afterBodyLabel = labelMaker(loopEndLabel, state.loopCounter)
+
+        state.code("_scope_ loop,${scopeNow}")
 
         state.code("label $bodyLabel")
 
@@ -1294,6 +1306,8 @@ class WolinVisitor(
         visitExpression(ctx.expression())
 
         state.code("beq ${state.currentRegToAsm()} = #1[bool], $bodyLabel<label_po_if>[uword]")
+
+        state.code("_scope_ endloop,${scopeNow}")
 
         state.code("label $afterBodyLabel")
 
@@ -1667,6 +1681,8 @@ class WolinVisitor(
 
         val lokacjaAdres = Zmienna("", allocation = AllocType.FIXED, fieldType = FieldType.DUMMY)
 
+        val isExternal = ctx.modifierList()?.modifier()?.any { it.text == "external" } == true
+
         state.switchType(Typ.unit, "function declaration")
 
         lokacjaLiterał?.let {
@@ -1683,6 +1699,7 @@ class WolinVisitor(
             nowa.location = lokacjaAdres.intValue.toInt()
             nowa.fullName = functionName
             nowa.isInterrupt = isInterrupt
+            nowa.isExternal = isExternal
 
             val zwrotka = state.createVar(nowa.returnName, ctx.type(0), null, FieldType.ARGUMENT)
 
@@ -1720,7 +1737,11 @@ class WolinVisitor(
         if (body != null && nowaFunkcja.location != 0)
             throw Exception("Fixed address function ${nowaFunkcja.fullName} with a body!")
 
-        if (state.currentFunction?.location == 0) {
+        if (body != null && nowaFunkcja.isExternal)
+            throw Exception("External function ${nowaFunkcja.fullName} with a body!")
+
+
+        if (state.currentFunction?.location == 0 && !nowaFunkcja.isExternal) {
             state.code(
                 "\n" + """// ****************************************
             |// funkcja: ${nowaFunkcja}

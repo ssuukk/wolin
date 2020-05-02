@@ -1,0 +1,27 @@
+package pl.qus.wolin
+
+var border: ubyte^53280
+
+fun allocMem(size: uword, count: uword): uword {
+    return 30000
+}
+
+class SummingClass {
+    var x: ubyte = 1
+    var y: ubyte = 1
+
+    fun sum(): ubyte {
+        return x+y
+    }
+}
+
+fun main() {
+    val obj: SummingClass
+
+    obj = SummingClass()
+
+    obj.x = 2
+    obj.y = 4
+
+    border = obj.sum()
+}

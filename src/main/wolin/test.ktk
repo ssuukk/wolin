@@ -4,20 +4,8 @@ fun chrout^0xFFD2(char: ubyte^CPU.A)
 fun plot^0xFFF0(x: ubyte^CPU.X, y: ubyte^CPU.Y)
 var carry: bool^CPU.C
 
-fun strLen(what: string): ubyte {
-    var len: ubyte = 0
-    while (what[len] != 0) {
-        len++
-    }
-    return len
-}
-
-fun printAt(x: ubyte, y: ubyte, what: string) {
-    carry = false
-    plot(x,y)
-    print(what)
-}
-
+external fun extPrint(what: string)
+/*
 fun print(what: string) {
     val i = 0
     val char: ubyte = what[i] // BLĄD!!! inference myśli, ze char jest ubyte*
@@ -28,6 +16,21 @@ fun print(what: string) {
     }
 }
 
+fun printAt(x: ubyte, y: ubyte, what: string, war: bool) {
+    while (x < 100) {
+        if(war) { // rzucić błąd, jeżeli w kondyszjonalsie jest esajnmęt
+            while (y > 10) {
+                x++
+            }
+        } else {
+            while (x < 20) {
+                y++
+            }
+        }
+    }
+}
+*/
 fun main() {
-    printAt(20,20,"dupa")
+    //printAt(20,20,"dupa", true)
+    extPrint("dupa")
 }

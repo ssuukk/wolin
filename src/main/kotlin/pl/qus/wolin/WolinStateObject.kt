@@ -35,6 +35,7 @@ class WolinStateObject(val pass: Pass) {
     var whenCounter = 0
     var stackVarCounter = 0
     var classCounter = 0
+    var scopeCounter = 0
 
     var basePackage = ""
     var currentScopeSuffix = ""

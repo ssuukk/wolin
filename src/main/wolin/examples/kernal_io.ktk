@@ -9,16 +9,6 @@ fun setnam^0xFFBD(fnameLen: ubyte^CPU.A, name: string^CPU.XY)
 fun kopen^0xFFC0()
 fun chrout^0xFFD2(char: ubyte^CPU.A)
 
-fun print(what: string) {
-    var i: ubyte = 0
-    var znak: ubyte
-
-    do {
-        znak = what[i]
-        i++
-        chrout(znak)
-    } while (znak != 0)
-}
 fun openCommandChannel(lfn: ubyte, device: ubyte, command: string) {
     setlfs(lfn, device, 15)
     setnam(10, command)

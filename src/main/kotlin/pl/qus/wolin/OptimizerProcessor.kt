@@ -401,7 +401,10 @@ op B = *
                         println("====================================================================")
                         println("reverse oper *replace* = arg, arg\n${linia.text}")
 
-                        val ta = linia.target(0)
+                        if(registers[regNr]?.targetContext == null) {
+                            println("ZONK!!! Rejestr $regNr nie ma target kontekstu!!!")
+                        }
+
                         val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!.argContext?.get(0)?.operand() ?: registers[regNr]!!.targetContext!!.operand()!!)
 
                         val kopia = PseudoAsmParser.TargetContext(

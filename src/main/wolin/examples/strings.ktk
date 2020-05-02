@@ -1,0 +1,33 @@
+package pl.qus.wolin
+
+fun chrout^0xFFD2(char: ubyte^CPU.A)
+fun plot^0xFFF0(x: ubyte^CPU.X, y: ubyte^CPU.Y)
+var carry: bool^CPU.C
+
+fun strLen(what: string): ubyte {
+    var len: ubyte = 0
+    while (what[len] != 0) {
+        len++
+    }
+    return len
+}
+
+fun printAt(x: ubyte, y: ubyte, what: string) {
+    carry = false
+    plot(x,y)
+    print(what)
+}
+
+fun print(what: string) {
+    val i = 0
+    val char: ubyte = what[i] // BLĄD!!! inference myśli, ze char jest ubyte*
+    while (char != 0) {
+        chrout(char)
+        i++
+        char = what[i]
+    }
+}
+
+fun main() {
+    printAt(20,20,"dupa")
+}

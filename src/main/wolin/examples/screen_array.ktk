@@ -1,0 +1,13 @@
+package pl.qus.wolin
+
+var screen: ubyte[]^1024
+
+var i: uword = 0
+
+var chr: ubyte = 0
+
+fun main() {
+    while(i<1000) {
+        screen[i++] = chr++
+    }
+}
