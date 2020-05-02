@@ -53,7 +53,7 @@ class Funkcja(
                 state.code("free SPF <${this.returnName}>, #${this.type.sizeOnStack} // free return value of ${this.fullName} from call stack")
         } catch (ex: Exception) {
             val a = state.currentFunction?.fullName
-            println("tu")
+            println("Release called function Błąd$$$$ $a")
         }
 
     }

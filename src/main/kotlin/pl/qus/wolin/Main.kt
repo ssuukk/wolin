@@ -86,13 +86,13 @@ ZEROPAGE
 
 C64 - dostępna pamięć:
 
-2-143 - basic: [SP] (72 words)
-155-156 - tape: [ESP]
-176-177 - tape: [HEAP]
-178-179 - tape: [EXCEPTION OBJECT]
-197-246 - screen editor: [???] only if not using screen editor
-251-252 - nothing: [SPF]
-253-254 - nothing: [CATCH JUMP ADDRESS]
+2-143 - basic: [operations stack pointer=X] (72 words)
+155-156 - tape: [exception stack pointer ESP]
+176-177 - tape: [heap pointer]
+178-179 - tape: [object pointer if exception]
+197-246 - screen editor: [unused] only if not using screen editor
+251-252 - nothing: [function stack pointer SPF]
+253-254 - nothing: [catch pointer for exception]
 
 bajty do wykorzystania:
 146 - tape

@@ -1,7 +1,6 @@
 package pl.qus.wolin
 
 import pl.qus.wolin.exception.NoRuleException
-import java.lang.Exception
 
 class RuleMatcherVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
     var counter: Int = 0
@@ -16,7 +15,7 @@ class RuleMatcherVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
             while (linie.hasNext()) {
                 val template = linie.next()
 
-                matched(template, state.assemblerLine!!)
+                matchWholeLine(template, state.assemblerLine!!)
 
                 if (state.matched != null) {
                     processParams(state.matched!!, state.assemblerLine!!, asmFileLine)
@@ -34,7 +33,7 @@ class RuleMatcherVisitor : PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() {
         return state
     }
 
-    fun matched(template: PseudoAsmParser.LiniaContext, data: PseudoAsmParser.LiniaContext) {
+    fun matchWholeLine(template: PseudoAsmParser.LiniaContext, data: PseudoAsmParser.LiniaContext) {
 /*
 let SP(?a)[uword] = SP(?b)[uword]
  lda {a},x
@@ -45,12 +44,18 @@ let SP(?a)[uword] = SP(?b)[uword]
 
         state.pary.clear()
 
+
         if (template.instrukcja().text == data.instrukcja().text) {
             state.matched = template
         }
 
+        if(template.instrukcja().text == "string" && state.matched != null) {
+            println("tu!")
+        }
+
+
         if (template.target(0) != null && data.target(0) != null) {
-            val targetMatch = operandsMatch(template.target(0)?.operand(), data.target(0)?.operand())
+            val targetMatch = checkIfOperandsMatchAndReturnPairs(template.target(0)?.operand(), data.target(0)?.operand())
 
             if (targetMatch.first && state.matched != null) {
                 state.matched = template
@@ -63,7 +68,7 @@ let SP(?a)[uword] = SP(?b)[uword]
             state.matched = null
 
         if (template.arg(0) != null && data.arg(0) != null) {
-            val arg1Match = operandsMatch(template.arg(0)?.operand(), data.arg(0)?.operand())
+            val arg1Match = checkIfOperandsMatchAndReturnPairs(template.arg(0)?.operand(), data.arg(0)?.operand())
 
             if (arg1Match.first && state.matched != null) {
                 state.matched = template
@@ -73,7 +78,7 @@ let SP(?a)[uword] = SP(?b)[uword]
         }
 
         if (template.arg(1) != null && data.arg(1) != null) {
-            val arg2Match = operandsMatch(template.arg(1)?.operand(), data.arg(1)?.operand())
+            val arg2Match = checkIfOperandsMatchAndReturnPairs(template.arg(1)?.operand(), data.arg(1)?.operand())
 
             if (arg2Match.first && state.matched != null) {
                 state.matched = template
@@ -97,7 +102,7 @@ let SP(?a)[uword] = SP(?b)[uword]
         return deref1 == deref2 && ref1 == ref2
     }
 
-    private fun operandsMatch(
+    private fun checkIfOperandsMatchAndReturnPairs(
         templateOp: PseudoAsmParser.OperandContext?,
                                       dataOp: PseudoAsmParser.OperandContext?
 
@@ -106,15 +111,6 @@ let SP(?a)[uword] = SP(?b)[uword]
 
         return if (templateOp != null && dataOp != null) {
             var match = true
-
-//            if(templateOp.referencer().firstOrNull()?.text == "&") {
-//                val a = templateOp.text
-//                val b = dataOp.text
-//
-//                println("tu!")
-//            }
-//
-//            println("${templateOp.referencer().firstOrNull()?.text} vs ${dataOp.referencer().firstOrNull()?.text}")
 
             match = match && testReferencers(templateOp.referencer().getOrNull(0), dataOp.referencer().getOrNull(0))
 
@@ -134,10 +130,11 @@ let SP(?a)[uword] = SP(?b)[uword]
                 val integer = dataOp.value()?.immediate()?.IntegerLiteral()?.text
                 val label = dataOp.value()?.immediate()?.identifier()?.text
 
+
                 pary.add(
                     Pair(
                         templateOp.value()!!.immediate()!!.jocker()!!.simpleIdentifier()!!.text,
-                        if(integer.isNullOrBlank()) label else integer
+                        label ?: integer
                     )
                 )
             }
@@ -151,13 +148,11 @@ let SP(?a)[uword] = SP(?b)[uword]
                     match && templateOp.value()?.addressed()?.identifier()?.text == dataOp.value()?.addressed()?.identifier()?.text
 
             } else {
-                if(dataOp.text == "\"dupe\"") {
-                    println("tu!")
-                }
-                //println("debug: ${dataOp?.text}")
                 val value =
                     dataOp.value().addressed()?.absAddress()?.IntegerLiteral()?.text
                         ?: dataOp.value()?.addressed()?.identifier()?.text
+                        ?: dataOp.value()?.stringimmediate()?.lineStringLiteral()?.text
+                        ?: dataOp.value()?.floatimmediate()?.text
                 pary.add(
                     Pair(
                         templateOp.value()?.addressed()?.jocker()!!.simpleIdentifier()!!.text,

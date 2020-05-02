@@ -6,7 +6,7 @@
 ;* BASIC header
 ;*
 ;* compile with:
-;* cl65.exe -o assembler.prg -t c64 -C c64-asm.cfg -g -Ln assembler.lbl -l assembler.lst assembler.s
+;* cl65.exe -o assembler.prg -WaU -t c64 -C c64-asm.cfg -g -Ln assembler.lbl -l assembler.lst assembler.s
 ;*
 ;**********************************************
             .org 2049
@@ -99,7 +99,7 @@ __wolin_pl_qus_wolin_main:
 
 
 __wolin_lab_stringConst_0:
-    .asciiz {val}
+    .asciiz "dupa"
     ;.byt 0
 
 
