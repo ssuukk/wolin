@@ -5,18 +5,8 @@ fun plot^0xFFF0(x: ubyte^CPU.X, y: ubyte^CPU.Y)
 var carry: bool^CPU.C
 
 external fun extPrint(what: string)
-/*
-fun print(what: string) {
-    val i = 0
-    val char: ubyte = what[i] // BLĄD!!! inference myśli, ze char jest ubyte*
-    while (char != 0) {
-        chrout(char)
-        i++
-        char = what[i]
-    }
-}
 
-fun printAt(x: ubyte, y: ubyte, what: string, war: bool) {
+fun scopeTest(x: ubyte, y: ubyte, what: string, war: bool) {
     while (x < 100) {
         if(war) { // rzucić błąd, jeżeli w kondyszjonalsie jest esajnmęt
             while (y > 10) {
@@ -29,8 +19,7 @@ fun printAt(x: ubyte, y: ubyte, what: string, war: bool) {
         }
     }
 }
-*/
 fun main() {
-    //printAt(20,20,"dupa", true)
+    //scopeTest(20,20,"dupa", true)
     extPrint("dupa")
 }

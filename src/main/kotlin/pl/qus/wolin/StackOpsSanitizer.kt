@@ -56,6 +56,35 @@ class StackOpsSanitizer(outStream: OutputStream) {
 
         /*
 
+        Zasada:
+        jeżeli w OBRĘBIE TEGO SAMEGO POZIOMU SKOŁPU jest dellokacja i allokacja tej samej wielkości, i nie są one
+        ROZDZIELONE INNYM SKOŁPEM, np:
+
+
+        alloc SP<A>, #x
+        yyy <A>
+        free SP<A>, #x
+        .
+        .
+        .
+        alloc SP<B>, #x
+        xxx <B>
+        free SP<B>, #x
+
+
+        to usuwamy obie, a następnie możemy zastąpić wystąpienia zmiennej allokowanej
+        deallokowaną i zwalnianie dellokowanej pierwszą:
+
+
+        alloc SP<A>, #x
+        yyy <A>
+        .
+        .
+        .
+        xxx <A>
+        free SP<A>, #x
+
+
         function __wolin_pl_qus_wolin_strLen
         let SPF(0)<pl.qus.wolin.strLen..len>[ubyte] = #0[ubyte]
         alloc SP<__wolin_reg4> , #1

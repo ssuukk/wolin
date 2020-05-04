@@ -47,6 +47,9 @@ lda (pointer_to_Sx_on_ZP),y
 // funkcje startowe
 //============================================
 
+import ?name -> """
+    .import {name}"""
+
 setup HEADER -> """
 ;**********************************************
 ;*
@@ -1123,7 +1126,6 @@ let SP(?d)[adr] = ?s[adr] -> """
 string ?label[uword] = ?val[?dummy] -> """
 {label}:
     .asciiz {val}
-    ;.byt 0
 """
 
 float ?label[uword] = ?val[?dummy] -> """
