@@ -1,6 +1,7 @@
-package pl.qus.wolin
+package pl.qus.wolin.pl.qus.wolin.optimizer
 
 import org.antlr.v4.runtime.*
+import pl.qus.wolin.*
 import java.lang.IndexOutOfBoundsException
 import java.util.*
 import kotlin.math.abs
@@ -219,12 +220,20 @@ op B = *
                     val prevOp = previous?.instrukcja()?.simpleIdentifier()?.text
 
                     val currentStack = try {
-                        extractStackTypeFromOperand(getFirstArg(current).getChild(0) as PseudoAsmParser.OperandContext)
+                        extractStackTypeFromOperand(
+                            getFirstArg(
+                                current
+                            ).getChild(0) as PseudoAsmParser.OperandContext
+                        )
                     } catch (ex: Exception) {
                         null
                     }
                     val prevStack = try {
-                        extractStackTypeFromOperand(getFirstArg(previous!!).getChild(0) as PseudoAsmParser.OperandContext)
+                        extractStackTypeFromOperand(
+                            getFirstArg(
+                                previous!!
+                            ).getChild(0) as PseudoAsmParser.OperandContext
+                        )
                     } catch (ex: Exception) {
                         null
                     }
@@ -250,9 +259,11 @@ op B = *
                         operandContext.children[0] = createTerminalNode(consolidatedOp)
 
                         val valueContext =
-                            getSecondArg(previous!!).getChild(0).getChild(0).getChild(0) as PseudoAsmParser.ImmediateContext
+                            getSecondArg(previous!!)
+                                .getChild(0).getChild(0).getChild(0) as PseudoAsmParser.ImmediateContext
 
-                        valueContext.children[1] = createTerminalNode(abs(consolidatedSum).toString())
+                        valueContext.children[1] =
+                            createTerminalNode(abs(consolidatedSum).toString())
 
                         linieIterator.remove()
                     } else {
@@ -320,7 +331,9 @@ op B = *
                             val target = extractTarget(linia)
 
                             if (firstArg != null && firstArg.numer < removedRegistr.numer) {
-                                val vector = extractSPVectorFromOperand(linia.arg(0).operand()) - removedRegistr.wielkość
+                                val vector = extractSPVectorFromOperand(
+                                    linia.arg(0).operand()
+                                ) - removedRegistr.wielkość
                                 val child = getFirstArg(linia)
                                 changeVectorInOperand(
                                     (child as PseudoAsmParser.ArgContext).children[0] as PseudoAsmParser.OperandContext,
@@ -329,7 +342,9 @@ op B = *
                             }
 
                             if (secondArg != null && secondArg.numer < removedRegistr.numer) {
-                                val vector = extractSPVectorFromOperand(linia.arg(1).operand()) - removedRegistr.wielkość
+                                val vector = extractSPVectorFromOperand(
+                                    linia.arg(1).operand()
+                                ) - removedRegistr.wielkość
                                 val child = getSecondArg(linia)
                                 changeVectorInOperand(
                                     (child as PseudoAsmParser.ArgContext).children[0] as PseudoAsmParser.OperandContext,
@@ -338,7 +353,9 @@ op B = *
                             }
 
                             if (target != null && target.numer < removedRegistr.numer) {
-                                val vector = extractSPVectorFromOperand(linia.target(0).operand()) - removedRegistr.wielkość
+                                val vector = extractSPVectorFromOperand(
+                                    linia.target(0).operand()
+                                ) - removedRegistr.wielkość
                                 changeVectorInOperand(
                                     (linia.children[1] as PseudoAsmParser.TargetContext).children[0] as PseudoAsmParser.OperandContext,
                                     vector
@@ -383,7 +400,11 @@ op B = *
                         println("oper *replace* = arg, arg\n${linia.text}")
 
                         val ta = linia.target(0)
-                        val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!.argContext?.get(0)?.operand() ?: registers[regNr]!!.targetContext!!.operand()!!)
+                        val correctedTarget = replaceInTarget(
+                            linia.target(0),
+                            registers[regNr]!!.argContext?.get(0)?.operand()
+                                ?: registers[regNr]!!.targetContext!!.operand()!!
+                        )
 
                         val kopia = PseudoAsmParser.TargetContext(
                             correctedTarget.ruleContext as ParserRuleContext,
@@ -405,7 +426,11 @@ op B = *
                             println("ZONK!!! Rejestr $regNr nie ma target kontekstu!!!")
                         }
 
-                        val correctedTarget = replaceInTarget(linia.target(0), registers[regNr]!!.argContext?.get(0)?.operand() ?: registers[regNr]!!.targetContext!!.operand()!!)
+                        val correctedTarget = replaceInTarget(
+                            linia.target(0),
+                            registers[regNr]!!.argContext?.get(0)?.operand()
+                                ?: registers[regNr]!!.targetContext!!.operand()!!
+                        )
 
                         val kopia = PseudoAsmParser.TargetContext(
                             correctedTarget.ruleContext as ParserRuleContext,
@@ -424,7 +449,11 @@ op B = *
                         println("====================================================================")
                         println("oper target = *replace* INDEXED\n${linia.text}")
 
-                        replaceInArg(linia.arg(0), registers[regNr]!!.argContext?.get(0)?.operand() ?: registers[regNr]!!.targetContext!!.operand())
+                            replaceInArg(
+                                linia.arg(0),
+                                registers[regNr]!!.argContext?.get(0)?.operand()
+                                    ?: registers[regNr]!!.targetContext!!.operand()
+                            )
                         val correctedFirstArgX = registers[regNr]!!
                         val correctedFirstArg = correctedFirstArgX.argContext?.get(0) ?: correctedFirstArgX.targetContext!!
 
@@ -434,7 +463,7 @@ op B = *
                         )
                         kopia.copyFrom(correctedFirstArg)
 
-                        setFirstArg(linia, correctedFirstArg)
+                            setFirstArg(linia, correctedFirstArg)
 
                         // nie ma drugiego argumentu, trzeba go dodać
                         linia.children = linia.children.dropLast(1) // remove LF
@@ -442,7 +471,11 @@ op B = *
                         linia.children.add(kopia)
                         linia.children.add(createTerminalNode("\n"))
 
-                        replaceInArg(null, registers[regNr]!!.argContext?.get(1)?.operand() ?: registers[regNr]!!.targetContext!!.operand())
+                            replaceInArg(
+                                null,
+                                registers[regNr]!!.argContext?.get(1)?.operand()
+                                    ?: registers[regNr]!!.targetContext!!.operand()
+                            )
                         val correctedSecondArgX = registers[regNr]!!
                         val correctedSecondArg = correctedSecondArgX.argContext?.get(1) ?: correctedSecondArgX.targetContext!!
 
@@ -452,7 +485,7 @@ op B = *
                         )
                         kopia2.copyFrom(correctedSecondArg)
 
-                        setSecondArg(linia, correctedSecondArg)
+                            setSecondArg(linia, correctedSecondArg)
 
 
                         print("${linia.text}")
@@ -464,7 +497,11 @@ op B = *
                         println("====================================================================")
                         println("oper target = *replace*, arg\n${linia.text}")
 
-                        replaceInArg(linia.arg(0), registers[regNr]!!.argContext?.get(0)?.operand() ?: registers[regNr]!!.targetContext!!.operand())
+                            replaceInArg(
+                                linia.arg(0),
+                                registers[regNr]!!.argContext?.get(0)?.operand()
+                                    ?: registers[regNr]!!.targetContext!!.operand()
+                            )
                         val correctedFirstArgX = registers[regNr]!!
                         val correctedFirstArg = correctedFirstArgX.argContext?.get(0) ?: correctedFirstArgX.targetContext!!
 
@@ -474,7 +511,7 @@ op B = *
                         )
                         kopia.copyFrom(correctedFirstArg)
 
-                        setFirstArg(linia, correctedFirstArg)
+                            setFirstArg(linia, correctedFirstArg)
 
                         print("${linia.text}")
                         state.replaced = true
@@ -483,7 +520,11 @@ op B = *
                     if (secondArg?.numer == regNr) {
                         println("====================================================================")
                         println("oper target = arg, *replace*\n${linia.text}")
-                        replaceInArg(linia.arg(1), registers[regNr]!!.argContext?.get(0)?.operand() ?: registers[regNr]!!.targetContext!!.operand())
+                        replaceInArg(
+                            linia.arg(1),
+                            registers[regNr]!!.argContext?.get(0)?.operand()
+                                ?: registers[regNr]!!.targetContext!!.operand()
+                        )
                         val correctedSecondArgX = registers[regNr]!!
                         val correctedSecondArg = correctedSecondArgX.argContext?.get(0) ?: correctedSecondArgX.targetContext!!
 
@@ -583,15 +624,3 @@ op B = *
 }
 
 
-class Register {
-    var numer: Int = -1
-    var wielkość: Int = -1
-    var canBeRemoved: Boolean = true // czy naprawdę można go usunąć
-    var argContext: List<PseudoAsmParser.ArgContext>? = null // jaką zawiera wartość
-    var targetContext: PseudoAsmParser.TargetContext? = null // jaką zawiera wartość
-    var name: String = ""
-
-    override fun toString(): String {
-        return "reg $numer, canBeRemoved=$canBeRemoved, content1=${argContext?.getOrNull(0)?.text}, content2=${argContext?.getOrNull(1)?.text}"
-    }
-}

@@ -4,7 +4,12 @@ import org.antlr.v4.runtime.ANTLRInputStream
 import org.antlr.v4.runtime.CommonTokenStream
 import pl.qus.wolin.exception.NoRuleException
 import pl.qus.wolin.pl.qus.wolin.StackOpsSanitizer
+import pl.qus.wolin.pl.qus.wolin.optimizer.OptimizerProcessor
+import pl.qus.wolin.pl.qus.wolin.optimizer.testTree
 import java.io.*
+import java.lang.StringBuilder
+import java.net.ServerSocket
+import java.net.URL
 
 object Main {
     /*
@@ -229,6 +234,9 @@ label xxxx
 
     @JvmStatic
     fun main(args: Array<String>) {
+
+        //server()
+
         val finalState = wolinIntoPseudoAsm(FileInputStream(File("src/main/wolin/test.ktk")))
 
         optimizePseudoAsm(
@@ -250,6 +258,7 @@ label xxxx
         )
 
         //launch<MyApp>(args)
+        testTree()
     }
 
     private fun sanitizePseudoAsmStackOps(
@@ -393,6 +402,96 @@ label xxxx
 //            println(ex.message)
 //        }
         return translationVisitor.state
+    }
+
+    fun server() {
+        val hostName = "127.0.0.1"
+        val portNumber = 64128
+
+            val serverSocket = ServerSocket(64128)
+            val echoSocket = serverSocket.accept()
+            val out = PrintWriter (echoSocket.getOutputStream(), true);
+
+            val builder = StringBuilder()
+
+            var localServer: Thread? = null
+
+            InputStreamReader(echoSocket.getInputStream()).use {
+                println("Soket otwarty!")
+                var connected = false
+                do {
+                    var b = it.read()
+                    if(b == 0x1b) {
+                        b = it.read() xor 0x20
+                    }
+
+                    val linia = builder.toString()
+
+                    val tokeny = linia.split(" ")
+                    val token = tokeny[0]
+
+                    when {
+                        b==13 -> {
+                            //builder.append(b.toChar())
+                            println("Przyszła linia: '${linia}'")
+                            builder.clear()
+                            when (token) {
+                                "ATI" -> {
+                                    out.println("JAM JEST MODEM WIELKI")
+                                }
+                                "AT" -> {
+                                    out.println("OK")
+                                }
+                                "ATD" -> {
+                                    println("otworzyc: ${tokeny[1]}\n")
+                                    val url = URL("http://${tokeny[1]}/")
+                                    val uistream = BufferedReader(InputStreamReader(url.openStream()))
+
+                                    connected = true
+                                    localServer = Thread {
+                                        while(connected) {
+                                            val char = uistream.readLine()
+                                            out.println(char)
+                                            print(char)
+                                            Thread.sleep(1000)
+                                        }
+                                    }
+
+                                    localServer?.start()
+
+                                }
+                                "" -> {
+                                    println("pusta")
+                                }
+                                else -> {
+                                    println("Nieznana komenda")
+                                    out.println("?syntax  error")
+                                }
+                            }
+                        }
+                        b<32 -> {
+                            builder.append("<$b>")
+                        }
+                        b>=32 -> {
+                            //println("${b.toChar()}")
+                            builder.append(b.toChar())
+                            if(builder.toString()=="+++") {
+                                out.println("coming back")
+                                builder.clear()
+                                connected = false
+                            }
+                        }
+                        else -> {
+                            //print("nic ")
+                        }
+                    }
+
+
+
+                } while(echoSocket.isBound)
+
+                println("Rozlaczone!")
+            }
     }
 }
 

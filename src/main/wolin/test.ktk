@@ -4,22 +4,10 @@ fun chrout^0xFFD2(char: ubyte^CPU.A)
 fun plot^0xFFF0(x: ubyte^CPU.X, y: ubyte^CPU.Y)
 var carry: bool^CPU.C
 
-external fun extPrint(what: string)
-
-fun scopeTest(x: ubyte, y: ubyte, what: string, war: bool) {
-    while (x < 100) {
-        if(war) { // rzucić błąd, jeżeli w kondyszjonalsie jest esajnmęt
-            while (y > 10) {
-                x++
-            }
-        } else {
-            while (x < 20) {
-                y++
-            }
-        }
-    }
+fun extPrint(what: string): ubyte {
+    return what[0]
 }
+
 fun main() {
-    //scopeTest(20,20,"dupa", true)
     extPrint("dupa")
 }

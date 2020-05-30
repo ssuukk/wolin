@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.antlr.v4.runtime.tree.TerminalNodeImpl
+import pl.qus.wolin.pl.qus.wolin.optimizer.Register
 
 
 fun extractStackTypeFromOperand(ctx: PseudoAsmParser.OperandContext): String? {

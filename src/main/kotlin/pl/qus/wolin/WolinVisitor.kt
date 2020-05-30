@@ -1277,7 +1277,7 @@ class WolinVisitor(
 
         state.code("goto $condLabel[uword]")
 
-        state.code("_scope_ endloop,${scopeNow}")
+        state.code("_endscope_ loop,${scopeNow}")
 
         state.code("label $afterBodyLabel")
 
@@ -1307,7 +1307,7 @@ class WolinVisitor(
 
         state.code("beq ${state.currentRegToAsm()} = #1[bool], $bodyLabel<label_po_if>[uword]")
 
-        state.code("_scope_ endloop,${scopeNow}")
+        state.code("_endscope_ loop,${scopeNow}")
 
         state.code("label $afterBodyLabel")
 
@@ -1959,7 +1959,6 @@ class WolinVisitor(
                 doInitCode(zmienna)
                 if(zmienna.type == Typ.unit)
                     zmienna.type = state.currentWolinType.copy()
-                println("tu!")
             }
         } else {
             if (ctx.variableDeclaration().type() == null)

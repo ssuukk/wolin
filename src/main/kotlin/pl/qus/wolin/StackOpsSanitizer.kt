@@ -131,6 +131,45 @@ Po przesunięciach:
 
 
          */
+
+
+        /*
+        _scope_ loop , 1
+	label __wolin_lab_loop_start_1
+	evalless SP(0)<__wolin_reg2>[bool] = SPF(4)<pl.qus.wolin.scopeTest.x>[ubyte] , #100[ubyte]
+	bne SP(0)<__wolin_reg2>[bool] = #1[bool] , __wolin_lab_loop_end_1<label_po_if>[uword]
+	bne *SPF(0)<pl.qus.wolin.scopeTest.war>[bool] = #1[bool] , __wolin_lab_else_branch_1<label_DO_else>[uword]
+	alloc SP<__wolin_reg11> , #1
+
+	_scope_ loop , 2
+		label __wolin_lab_loop_start_2
+		evalless SP(0)<__wolin_reg11>[bool] = #10[ubyte] , SPF(3)<pl.qus.wolin.scopeTest.y>[ubyte]
+		bne SP(0)<__wolin_reg11>[bool] = #1[bool] , __wolin_lab_loop_end_2<label_po_if>[uword]
+		add SPF(4)<pl.qus.wolin.scopeTest.x>[ubyte] = SPF(4)<pl.qus.wolin.scopeTest.x>[ubyte] , #1[ubyte]
+		goto __wolin_lab_loop_start_2[uword]
+	_endscope_ loop , 2
+
+	label __wolin_lab_loop_end_2
+	free SP<__wolin_reg11> , #1
+	goto __wolin_lab_if_end_1[uword]
+	label __wolin_lab_else_branch_1
+	alloc SP<__wolin_reg18> , #1
+
+	_scope_ loop , 3
+		label __wolin_lab_loop_start_3
+		evalless SP(0)<__wolin_reg18>[bool] = SPF(4)<pl.qus.wolin.scopeTest.x>[ubyte] , #20[ubyte]
+		bne SP(0)<__wolin_reg18>[bool] = #1[bool] , __wolin_lab_loop_end_3<label_po_if>[uword]
+		add SPF(3)<pl.qus.wolin.scopeTest.y>[ubyte] = SPF(3)<pl.qus.wolin.scopeTest.y>[ubyte] , #1[ubyte]
+		goto __wolin_lab_loop_start_3[uword]
+	_endscope_ loop , 3
+
+	label __wolin_lab_loop_end_3
+	free SP<__wolin_reg18> , #1
+	label __wolin_lab_if_end_1
+	goto __wolin_lab_loop_start_1[uword]
+_endscope_ loop , 1
+         */
+
     }
 
     private fun processVectors() {
@@ -177,11 +216,11 @@ Po przesunięciach:
                     insideFunction!!.labelName -> {
                         println("koniec funkcji przetwarzanej, zwalnianie jej stosu (${insideFunction?.labelName})")
                     }
-                    calledFunction!!.labelName -> {
+                    calledFunction!!.returnName -> {
                         println("zwalnianie zwrotki funkcji, ktora wywolala przetwarzana ${calledFunction?.labelName}")
                     }
                     else -> {
-                        throw Exception("Nie wiem co zwalniane!")
+                        throw Exception("Nie wiem co zwalniane, linia=${linia.text}!")
                     }
                 }
             }
