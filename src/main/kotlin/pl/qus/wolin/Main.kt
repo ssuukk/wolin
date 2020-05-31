@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.ANTLRInputStream
 import org.antlr.v4.runtime.CommonTokenStream
 import pl.qus.wolin.exception.NoRuleException
 import pl.qus.wolin.pl.qus.wolin.StackOpsSanitizer
+import pl.qus.wolin.pl.qus.wolin.optimizer.NewOptimizerProcessor
 import pl.qus.wolin.pl.qus.wolin.optimizer.OptimizerProcessor
 import pl.qus.wolin.pl.qus.wolin.optimizer.testTree
 import java.io.*
@@ -282,6 +283,11 @@ label xxxx
         val asmParser = PseudoAsmParser(asmTokens)
         val asmContext = asmParser.pseudoAsmFile()
         val optimizer = OptimizerProcessor()
+        val newOpt = NewOptimizerProcessor()
+
+
+        newOpt.findRednundantRegs(asmContext)
+
 
         // zebrać wszystkie rejestry
         optimizer.gatherAllSPRegs(asmContext)

@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.*
 import pl.qus.wolin.*
 import java.lang.IndexOutOfBoundsException
 import java.util.*
+import kotlin.collections.HashMap
 import kotlin.math.abs
 
 class OptimizerProcessor /*: PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() */{
@@ -12,6 +13,7 @@ class OptimizerProcessor /*: PseudoAsmParserBaseVisitor<PseudoAsmStateObject>() 
     val registers = mutableMapOf<Int, Register>()
 
     val nonAssignOpcodes = listOf("bne", "beq")
+
 
 
     /**
@@ -591,6 +593,9 @@ op B = *
         }
     }
 
+
+
+
     private fun extractTarget(template: PseudoAsmParser.LiniaContext): Register? {
         val stos = template.target(0)?.operand()?.value()?.addressed()?.identifier()?.simpleIdentifier(0)?.text // SP
         val nazwa = template.target(0)?.operand()?.name(0)?.identifier()?.simpleIdentifier(0)?.text // __wolin_reg3
@@ -619,8 +624,4 @@ op B = *
             else -> null
         }
     }
-
-
 }
-
-
