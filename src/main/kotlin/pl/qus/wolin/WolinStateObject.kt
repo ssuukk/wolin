@@ -14,7 +14,7 @@ class WolinStateObject(val pass: Pass) {
     var codeOn = true
     var commentOn = true
 
-    private var variablary = hashMapOf<String, Zmienna>()
+    var variablary = hashMapOf<String, Zmienna>()
     var functiary = hashMapOf<String, Funkcja>()
     private var classary = hashMapOf<String, Klasa>()
 
@@ -383,7 +383,10 @@ class WolinStateObject(val pass: Pass) {
     }
 
     fun varToAsm(register: Zmienna, deref: RegOper = RegOper.VALUE): String {
-        val finalDeref = if(deref == RegOper.STAR && register.type.isPointer) RegOper.VALUE else deref
+        val finalDeref =
+            if(deref == RegOper.STAR && register.type.isPointer) RegOper.VALUE
+            else if(deref == RegOper.AMPRESAND && !register.type.isPointer) RegOper.VALUE
+            else deref
 
         return when (finalDeref) {
             RegOper.AMPRESAND -> "&"

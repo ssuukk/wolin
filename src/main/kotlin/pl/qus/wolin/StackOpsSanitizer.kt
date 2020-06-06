@@ -15,6 +15,7 @@ class StackOpsSanitizer(outStream: OutputStream) {
 
     private val writer = outStream.bufferedWriter()
 
+
     fun startWork(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         val i = ctx.linia()?.iterator()
 

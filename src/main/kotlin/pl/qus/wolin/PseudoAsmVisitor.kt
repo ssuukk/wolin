@@ -50,7 +50,7 @@ let SP(?a)[uword] = SP(?b)[uword]
         }
 
         if(template.instrukcja().text == "string" && state.matched != null) {
-            println("tu!")
+            println("tu string!")
         }
 
 

@@ -1,91 +1,88 @@
 package pl.qus.wolin.pl.qus.wolin.optimizer
 
 import org.antlr.v4.runtime.ParserRuleContext
+import pl.qus.wolin.WolinStateObject
+import pl.qus.wolin.components.FieldType
 
+class DestPair(
+    var node: FlowNode,
+    var ref: String
+)
+
+{
+    override fun toString(): String {
+        return "${ref?:""}${node.contents?.getUid()}"
+    }
+}
 class FlowNode (
-    //var thiz: Register? = null,
-    var left: FlowNode? = null,
-    var right: FlowNode? = null,
-    var leftRef: String = "",
-    var rightRef: String = "",
-    var canBeRemoved: Boolean = false,
-    var contents: ParserRuleContext? = null
+    var contents: ParserRuleContext? = null,
+
+    var incomingLeft: DestPair? = null,
+    var incomingRight: DestPair? = null,
+    var goesInto: MutableList<DestPair> = mutableListOf(),
+
+    var referenced: Boolean = false,
+    var opcode: String = "",
+    var nodeNum: Int = 0,
+    var type: Type = Type.NODE,
+    var redundant: Boolean = false
 ) {
-    val hasNoSources get() = left == null
-    val leftAggregates get() = left?.left != null && left?.right != null
-    val rightAggregates get() = right?.left != null && right?.right != null
+    enum class Type {ENTRY, EXIT, NODE}
+
+    val isSimple get() = incomingRight == null
+    val isNode get() = type == Type.NODE
+    val isNotEntry get() = type != Type.ENTRY
+    val isEntry get() = type == Type.ENTRY
+    val leftIsComplex get() = incomingLeft?.node?.incomingLeft != null && incomingLeft?.node?.incomingRight != null
+    val rightIsComplex get() = incomingRight?.node?.incomingLeft != null && incomingRight?.node?.incomingRight != null
+    val uid get() = contents?.getUid()
+
+
 
     override fun toString(): String {
-        return "${contents?.text} <- ${left?.contents?.text} + ${right?.contents?.text}"
+        return "'${contents!!.getUid()}' ${type.name} re'd=$referenced ${contents?.text} <- ${incomingLeft?.node?.contents?.text} + ${incomingRight?.node?.contents?.text}"
     }
 
-    fun deepLeft(): FlowNode? {
-        return when {
-            hasNoSources -> {
-                canBeRemoved = false
-                this // tylko źródłowy nołd nie ma src
-            }
-            leftRef != "" -> {
-                canBeRemoved = false
-                left // jest referencja, nie da się
-            }
-            leftAggregates -> {
-                left?.canBeRemoved = false
-                left // koniec, powyżej nołd agregujący
-            }
-            else -> {
-                canBeRemoved = true
-                left!!.deepLeft()
-            }
+    fun walkDownToSource(finalState: WolinStateObject) {
+
+        val leftKnowsAboutMe = incomingLeft?.node?.goesInto?.any {
+            it.node.contents!!.getUid() == this.contents!!.getUid()
+        }
+
+        if(leftKnowsAboutMe != true) {
+            val toMe = DestPair(this, this.incomingLeft?.ref ?: "")
+            incomingLeft?.node?.goesInto?.add(toMe)
+        }
+
+        val rightKnowsAboutMe = incomingRight?.node?.goesInto?.any {
+            it.node.contents!!.getUid() == this.contents!!.getUid()
+        }
+
+        if(rightKnowsAboutMe != true) {
+            val toMe = DestPair(this, this.incomingRight?.ref ?: "")
+            incomingRight?.node?.goesInto?.add(toMe)
+        }
+
+        val meInVariablary = finalState.variablary.values.firstOrNull { it.name == this.contents!!.getUid() }
+
+//        if(incomingLeft != null) {
+//            type = Type.NODE
+//        }
+
+        if(contents?.text?.contains("__returnValue") == true) {
+            type = Type.EXIT
+        }
+
+        if(meInVariablary?.fieldType == FieldType.ARGUMENT) {
+            type = Type.ENTRY
+        }
+
+        if(incomingLeft == null && incomingRight == null) {
+            type = Type.ENTRY
+        } else {
+            incomingLeft!!.node.walkDownToSource(finalState)
+            incomingRight?.node?.walkDownToSource(finalState)
         }
     }
-
-    fun deepRight(): FlowNode? {
-        return when {
-            hasNoSources -> {
-                canBeRemoved = false
-                this // tylko źródłowy nołd nie ma src
-            }
-            rightRef != "" -> {
-                canBeRemoved = false
-                left // jest referencja, nie da się
-            }
-            rightAggregates -> {
-                right?.canBeRemoved = false
-                right // koniec, powyżej nołd agregujący
-            }
-            right == null -> {
-                null
-            }
-            else -> {
-                canBeRemoved = true
-                right!!.deepLeft()
-            }
-        }
-    }
-
 }
 
-
-fun testTree() {
-//    val what = FlowNode(Register(name="what"), null, null)
-//    val imm0 = FlowNode(Register(name="#0"), null, null)
-//    val r3 = FlowNode(Register(name="r3"), what, null)
-//    val r4 = FlowNode(Register(name="r4"), imm0, null)
-//    val r2 = FlowNode(Register(name="r2"), r3, r4)
-//    val r1 = FlowNode(Register(name="r1"), r2, null)
-//    val ret = FlowNode(Register(name="ret"), r1, null, "&")
-//
-//    val regs = listOf(what, imm0, r3, r4, r2, r1, ret)
-//
-//    val lewyDlaR2 = r2.deepLeft()
-//    val prawyDlaR2 = r2.deepRight() //
-//    val dlaRet = ret.deepLeft() // argument można zastąpić...
-//    val dlaR1 = r1.deepLeft() // r1 można zastąpić...
-//
-//    regs.filter { it.thiz?.canBeRemoved == true }.forEach {
-//        println("Mozna usunac: ${it.thiz?.name}, zastępując jego wystąpienia: ${it.deepLeft()?.thiz?.name}")
-//    }
-//
-//    println("tu!")
-}

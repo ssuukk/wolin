@@ -1455,6 +1455,18 @@ add SP(?d)[ubyte*] = ?adr[ubyte*], ?idx[ubyte] -> """
     sta {d}+1,x
 """
 
+add SP(?d)[ubyte*] = SPF(?pos)[ubyte*], #?idx[ubyte] -> """
+    clc
+    ldy #{pos}
+    lda (__wolin_spf), y
+    adc #{idx}
+    sta {d},x
+    iny
+    lda (__wolin_spf), y
+    adc #0
+    sta {d}+1,x
+"""
+
 add &SP(?d)[ubyte*] = &SP(?d)[ubyte*], SPF(?s)[ubyte] -> """
     clc
     lda ({d},x)

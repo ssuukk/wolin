@@ -6,7 +6,6 @@ import pl.qus.wolin.exception.NoRuleException
 import pl.qus.wolin.pl.qus.wolin.StackOpsSanitizer
 import pl.qus.wolin.pl.qus.wolin.optimizer.NewOptimizerProcessor
 import pl.qus.wolin.pl.qus.wolin.optimizer.OptimizerProcessor
-import pl.qus.wolin.pl.qus.wolin.optimizer.testTree
 import java.io.*
 import java.lang.StringBuilder
 import java.net.ServerSocket
@@ -242,7 +241,8 @@ label xxxx
 
         optimizePseudoAsm(
             FileInputStream(File("src/main/wolin/assembler.asm")),
-            FileOutputStream(File("src/main/wolin/assembler_optX.asm"))
+            FileOutputStream(File("src/main/wolin/assembler_optX.asm")),
+            finalState
         )
 
         sanitizePseudoAsmStackOps(
@@ -259,7 +259,6 @@ label xxxx
         )
 
         //launch<MyApp>(args)
-        testTree()
     }
 
     private fun sanitizePseudoAsmStackOps(
@@ -277,33 +276,37 @@ label xxxx
 
     }
 
-    private fun optimizePseudoAsm(asmStream: InputStream, outStream: OutputStream) {
+    private fun optimizePseudoAsm(
+        asmStream: InputStream,
+        outStream: OutputStream,
+        finalState: WolinStateObject
+    ) {
         val asmLexer = PseudoAsmLexer(ANTLRInputStream(asmStream))
         val asmTokens = CommonTokenStream(asmLexer)
         val asmParser = PseudoAsmParser(asmTokens)
         val asmContext = asmParser.pseudoAsmFile()
         val optimizer = OptimizerProcessor()
-        val newOpt = NewOptimizerProcessor()
+        val newOpt = NewOptimizerProcessor(finalState)
+        newOpt.buildFlowTree(asmContext)
+        //newOpt.replaceRedundantRemoveAllocs(asmContext, finalState)
+        newOpt.removeIdentities(asmContext)
 
 
-        newOpt.findRednundantRegs(asmContext)
-
-
-        // zebrać wszystkie rejestry
-        optimizer.gatherAllSPRegs(asmContext)
-        // sprawdzić które kwalifikują się do usunięcia
-        optimizer.markSingleAssignmentRegs(asmContext)
-        // tu można wygenerować ponownie plik tekstowy, pewnie nawet trzeba, tu się przesuwa funkcyjne rejestry
-        optimizer.replaceSingleAssignmentRegWithItsValue(asmContext)
-        // sprawdzić, czy dany rejestr występuje tylko jako free/alloc +ew. let rejestr =, tylko odflaguje
-        optimizer.markRegIfStillUsed(asmContext)
-        // usuwa oflagowane rejestry
-        optimizer.removeAndShiftArgs(asmContext)
-
-        optimizer.optimizeReverseAssigns(asmContext)
-        optimizer.replaceSingleAssignmentRegWithItsValue(asmContext)
-        optimizer.markRegIfStillUsed(asmContext)
-        optimizer.removeAndShiftArgs(asmContext)
+//        // zebrać wszystkie rejestry
+//        optimizer.gatherAllSPRegs(asmContext)
+//        // sprawdzić które kwalifikują się do usunięcia
+//        optimizer.markSingleAssignmentRegs(asmContext)
+//        // tu można wygenerować ponownie plik tekstowy, pewnie nawet trzeba, tu się przesuwa funkcyjne rejestry
+//        optimizer.replaceSingleAssignmentRegWithItsValue(asmContext)
+//        // sprawdzić, czy dany rejestr występuje tylko jako free/alloc +ew. let rejestr =, tylko odflaguje
+//        optimizer.markRegIfStillUsed(asmContext)
+//        // usuwa oflagowane rejestry
+//        optimizer.removeAndShiftArgs(asmContext)
+//
+//        optimizer.optimizeReverseAssigns(asmContext)
+//        optimizer.replaceSingleAssignmentRegWithItsValue(asmContext)
+//        optimizer.markRegIfStillUsed(asmContext)
+//        optimizer.removeAndShiftArgs(asmContext)
 
 
         optimizer.sanitizeDerefs(asmContext)
