@@ -24,24 +24,23 @@ class Chain(var elements: List<FlowNode> = listOf()) {
         elements = elements + app
     }
 
-//    fun contains(drugi: Chain): Boolean {
-//        val ten = elements.map { it.uid!! }
-//        val tamten = drugi.elements.map { it.uid!! }
-//
-//
-//        return (ten as Collection<String>).contains(tamten as Collection<String>)
-//    }
+    fun contains(drugi: Chain): Boolean {
+        val ten = elements.map { it.uid!! }
+        val tamten = drugi.elements.map { it.uid!! }
 
-    fun getReplacementPair(): Pair<FlowNode,FlowNode> {
+        return ten.containsAll(tamten)
+    }
+
+    fun getReplacementPair(): Pair<FlowNode, FlowNode> {
         //pierwszy element wstawiamy do kodu w miejscu, gdzie pojawia się przedostatni
-        (1..elements.size-2).forEach {
+        (1..elements.size - 2).forEach {
             elements[it].redundant = true
         }
         return Pair(penultimate, first)
     }
 }
 
-class NewOptimizerProcessor(val finalState: WolinStateObject) {
+class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     val newRegs = mutableListOf<FlowNode>()
     val chains = mutableListOf<Chain>()
 
@@ -50,7 +49,7 @@ class NewOptimizerProcessor(val finalState: WolinStateObject) {
     fun buildFlowTree(
         ctx: PseudoAsmParser.PseudoAsmFileContext
     ) {
-        println("== looking for registers ==")
+        println("== gathering registers ==")
         ctx.linia()?.iterator()?.let { linie ->
             while (linie.hasNext()) {
                 val line = linie.next()
@@ -69,7 +68,7 @@ class NewOptimizerProcessor(val finalState: WolinStateObject) {
                     if (leftContext == null) null
                     else
                         obtain(leftContext).apply {
-                            referenced = true
+                            referenced = referenced || opcode != "free" && opcode != "alloc"
                             contents = leftContext
                         }
 
@@ -87,7 +86,7 @@ class NewOptimizerProcessor(val finalState: WolinStateObject) {
                     existing?.referenced = true
                 }
 
-                if (targetContext != null && !nonAssignOpcodes.contains(opcode) && targetRef != "&") {
+                if (targetContext != null && !nonAssignOpcodes.contains(opcode)/* && targetRef != "&"*/) {
                     obtainTarget(targetContext, opcode).apply {
                         referenced = true
                         incomingLeft = if (leftNode != null) DestPair(leftNode, leftRef) else null
@@ -112,10 +111,12 @@ class NewOptimizerProcessor(val finalState: WolinStateObject) {
         findLongChains()
         // TODO - usunąć łańcuchy zawarte w innych
 
-        println("== wynik ==")
         chains.forEach {
             it.getReplacementPair()
-            println(it.dump())
+        }
+
+        newRegs.filter { !it.referenced }.forEach {
+            it.redundant = true
         }
 
         newRegs.filter { it.redundant }.forEach {
@@ -127,10 +128,11 @@ class NewOptimizerProcessor(val finalState: WolinStateObject) {
 
     private fun isMutable(b: FlowNode): Boolean {
         val zmienna = finalState.variablary.values.firstOrNull { it.name == b.uid }
-        return if(zmienna!=null) !zmienna.immutable else (newRegs.count { it.uid == b.uid } > 1)
+        return if (zmienna != null) !zmienna.immutable else (newRegs.count { it.uid == b.uid } > 1)
     }
 
     private fun findTriplets() {
+        println("== Looking for triplets ==")
         newRegs.forEach { a ->
             a.goesInto.forEach { aDestination ->
                 val aToBRef = aDestination.ref
@@ -168,6 +170,12 @@ class NewOptimizerProcessor(val finalState: WolinStateObject) {
                         chains.add(Chain(mutableListOf(a, b, c)))
                         println("D prio 4: ${a.uid} -> $bToCRef${b.uid} -> ${c.uid}   ==>      replace ${b.uid} with ${bToCRef}${a.uid}")
                     }
+                    if (b.isSimple && b.isNode && !isMutable(b) && aToBRef != "" && bToCRef == "") {
+                        // W C zamieniamy B na bToCRef A
+                        // B usuwamy
+                        chains.add(Chain(mutableListOf(a, b, c)))
+                        println("D prio 4: ${a.uid} -> $bToCRef${b.uid} -> ${c.uid}   ==>      replace ${b.uid} with ${bToCRef}${a.uid}")
+                    }
 //                    A goesInto ref B(isSimple,isNode) goesInto ref C ==> A goesInto ref C
 
                 }
@@ -176,8 +184,9 @@ class NewOptimizerProcessor(val finalState: WolinStateObject) {
     }
 
     private fun findLongChains() {
+        println("== Extending triplets ==")
+
         do {
-            println("Przejście longChains")
             val i = chains.iterator()
 
             var changed = false
@@ -205,6 +214,36 @@ class NewOptimizerProcessor(val finalState: WolinStateObject) {
                 }
             }
         } while (changed)
+
+        println("== All chains ==")
+        chains.forEach {
+            println(it.dump())
+        }
+
+        println("== To delete ==")
+
+        val toBeDelated = mutableListOf<Chain>()
+
+        chains.forEach { ten ->
+            chains.forEach { tamten ->
+                val same = toBeDelated.any {
+                    it.contains(ten) && it.size == ten.size
+                }
+                if (ten != tamten && tamten.contains(ten) && !same) {
+                    toBeDelated.add(ten)
+                }
+            }
+        }
+
+        toBeDelated.forEach {
+            chains.remove(it)
+        }
+
+        println("== Cleaned chains ==")
+        chains.forEach {
+            println(it.dump())
+        }
+
     }
 
     private fun graphViz(newRegs: List<FlowNode>) {
@@ -229,9 +268,12 @@ class NewOptimizerProcessor(val finalState: WolinStateObject) {
         ostream.write("}\n")
         ostream.close()
     }
-/*
+
     fun replaceRedundantRemoveAllocs(ctx: PseudoAsmParser.PseudoAsmFileContext, finalState: WolinStateObject) {
         println("== looking for registers ==")
+        val redundantRegs = newRegs.filter { it.redundant }
+        val replacablePairs = chains.map { it.getReplacementPair() }
+
         ctx.linia()?.iterator()?.let { linie ->
             while (linie.hasNext()) {
                 val line = linie.next()
@@ -241,26 +283,30 @@ class NewOptimizerProcessor(val finalState: WolinStateObject) {
                 val arg1Uid = (line.arg()?.getOrNull(0) as ParserRuleContext?)?.getUid()
                 val arg2Uid = (line.arg()?.getOrNull(1) as ParserRuleContext?)?.getUid()
 
-                if ((opcode == "alloc" || opcode == "free") && redundantRegs.keys.contains(arg1Uid)) {
+                if ((opcode == "alloc" || opcode == "free") && redundantRegs.any{ it.uid == arg1Uid}) {
                     println("usuwam: ${line.text}")
                     line.children.clear()
                 } else {
-                    if (redundantRegs.keys.contains(arg1Uid)) {
-                        line.arg(0).children = redundantRegs[arg1Uid]!!.optimizedIncomingLeft(finalState)!!.contents!!.children
+                    val arg1Pair = replacablePairs.firstOrNull { it.first.uid == arg1Uid}
+                    val arg2Pair = replacablePairs.firstOrNull { it.first.uid == arg2Uid}
+                    val targetPair = replacablePairs.firstOrNull { it.first.uid == targetUid}
+
+                    if (arg1Pair != null) {
+                        line.arg(0).children = arg1Pair.second.contents!!.children
                     }
 
-                    if (redundantRegs.keys.contains(arg2Uid)) {
-                        line.arg(1).children = redundantRegs[arg2Uid]!!.optimizedIncomingLeft(finalState)!!.contents!!.children
+                    if (arg2Pair != null) {
+                        line.arg(1).children = arg2Pair.second.contents!!.children
                     }
 
-                    if (redundantRegs.keys.contains(targetUid)) {
-                        line.target(0).children = redundantRegs[targetUid]!!.optimizedIncomingLeft(finalState)!!.contents!!.children
+                    if (targetPair != null) {
+                        line.target(0).children = targetPair.second.contents!!.children
                     }
                 }
             }
         }
     }
-*/
+
 
     fun removeIdentities(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         println("== looking for registers ==")
