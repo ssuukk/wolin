@@ -38,6 +38,13 @@ class Chain(var elements: List<FlowNode> = listOf()) {
         }
         return Pair(penultimate, first)
     }
+
+//    fun getReplacementRef(): String {
+//        (0..elements.size-2).forEach { i->
+//            val ten = elements[i]
+//            val nast = elements[1+1]
+//        }
+//    }
 }
 
 class NewOptimizerProcessor(private val finalState: WolinStateObject) {
@@ -107,148 +114,170 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
             it.walkDownToSource(finalState)
         }
 
-        findTriplets()
-        findLongChains()
-        // TODO - usunąć łańcuchy zawarte w innych
+        graphViz(newRegs, "first")
 
-        chains.forEach {
-            it.getReplacementPair()
-        }
+        sposób2()
 
-        newRegs.filter { !it.referenced }.forEach {
-            it.redundant = true
-        }
+        graphViz(newRegs, "second")
 
-        newRegs.filter { it.redundant }.forEach {
-            println("Redundant:${it.uid}")
-        }
+//        findTriplets()
+//        findLongChains()
+//        // TODO - usunąć łańcuchy zawarte w innych
+//
+//        chains.forEach {
+//            it.getReplacementPair()
+//        }
+//
+//        newRegs.filter { !it.referenced }.forEach {
+//            it.redundant = true
+//        }
+//
+//        newRegs.filter { it.redundant }.forEach {
+//            println("Redundant:${it.uid}")
+//        }
+//
+//        graphViz(newRegs,"first")
+//
+//        chains.forEach {
+//            // penultimate zastąpić first
+//            it.first.goesInto = mutableListOf(DestPair(it.last, "x"))
+//            if(it.last.incomingLeft?.node == it.penultimate) {
+//                it.last.incomingLeft = DestPair(it.first,"x")
+//            }
+//            if(it.last.incomingRight?.node == it.penultimate) {
+//                it.last.incomingRight = DestPair(it.first,"x")
+//            }
+//        }
+//        newRegs.removeAll { it.redundant }
 
-        graphViz(newRegs)
+        graphViz(newRegs, "second")
+
     }
 
     private fun isMutable(b: FlowNode): Boolean {
         val zmienna = finalState.variablary.values.firstOrNull { it.name == b.uid }
-        return if (zmienna != null) !zmienna.immutable else (newRegs.count { it.uid == b.uid } > 1)
+        val incoming = newRegs.count { it.uid == b.uid && it.incomingLeft?.ref == "" }
+        return if (zmienna != null) !zmienna.immutable else (incoming > 1)
     }
 
-    private fun findTriplets() {
-        println("== Looking for triplets ==")
-        newRegs.forEach { a ->
-            a.goesInto.forEach { aDestination ->
-                val aToBRef = aDestination.ref
-                val b = aDestination.node
-                b.goesInto.forEach { bDestination ->
-                    val bToCRef = bDestination.ref
+//    private fun findTriplets() {
+//        println("== Looking for triplets ==")
+//        newRegs.forEach { a ->
+//            a.goesInto.forEach { aDestination ->
+//                val aToBRef = aDestination.ref
+//                val b = aDestination.node
+//                b.goesInto.forEach { bDestination ->
+//                    val bToCRef = bDestination.ref
+//
+//                    val c = bDestination.node
+//
+//                    //                    A goesInto * B(isSimple,isNode) goesInto & C ==> A goesInto C
+//                    if (b.isSimple && b.isNode && !isMutable(b) && aToBRef == "*" && bToCRef == "&") {
+//                        // W C zamieniamy B na A
+//                        // B usuwamy
+//                        chains.add(Chain(mutableListOf(a, b, c)))
+//                        println("A prio 1: $aToBRef${a.uid} -> $bToCRef${b.uid} -> ${c.uid}   ==>   replace ${b.uid} with ${a.uid}")
+//                    }
+////                    A goesInto & B(isSimple,isNode) goesInto * C ==> A goesInto C
+//                    if (b.isSimple && b.isNode && !isMutable(b) && aToBRef == "&" && bToCRef == "*") {
+//                        // W C zamieniamy B na A
+//                        // B usuwamy
+//                        chains.add(Chain(mutableListOf(a, b, c)))
+//                        println("B prio 2: $aToBRef${a.uid} -> $bToCRef${b.uid} -> ${c.uid}   ==>   replace ${b.uid} with ${a.uid}")
+//                    }
+//                    //A goesInto .B(isSimple, isNode) goesInto .C ==? A goesInto C
+//                    if (b.isSimple && b.isNode && !isMutable(b) && aToBRef == "" && bToCRef == "") {
+//                        // W C zamieniamy B na A
+//                        // B usuwamy
+//                        chains.add(Chain(mutableListOf(a, b, c)))
+//                        println("C prio 3: ${a.uid} -> ${b.uid} -> ${c.uid}   ==>      replace ${b.uid} with ${a.uid}")
+//                    }
+////                    A goesInto . B(isSimple,isNode) goesInto ref C  ==> A goesInto ref C
+//                    if (b.isSimple && b.isNode && !isMutable(b) && aToBRef == "" && bToCRef != "") {
+//                        // W C zamieniamy B na bToCRef A
+//                        // B usuwamy
+//                        chains.add(Chain(mutableListOf(a, b, c)))
+//                        println("D prio 4: ${a.uid} -> $bToCRef${b.uid} -> ${c.uid}   ==>      replace ${b.uid} with ${bToCRef}${a.uid}")
+//                    }
+//                    if (b.isSimple && b.isNode && !isMutable(b) && aToBRef != "" && bToCRef == "") {
+//                        // W C zamieniamy B na bToCRef A
+//                        // B usuwamy
+//                        chains.add(Chain(mutableListOf(a, b, c)))
+//                        println("D prio 4: ${a.uid} -> $bToCRef${b.uid} -> ${c.uid}   ==>      replace ${b.uid} with ${bToCRef}${a.uid}")
+//                    }
+////                    A goesInto ref B(isSimple,isNode) goesInto ref C ==> A goesInto ref C
+//
+//                }
+//            }
+//        }
+//    }
 
-                    val c = bDestination.node
+//    private fun findLongChains() {
+//        println("== Extending triplets ==")
+//
+//        do {
+//            val i = chains.iterator()
+//
+//            var changed = false
+//
+//            while (i.hasNext()) {
+//                val thiz = i.next()
+//
+////        it.B = this.A
+////        a -> b -> c oraz x -> a -> b   ==>   x -> a -> b -> c->
+//                val preppendable = chains.firstOrNull { it.second.uid == thiz.first.uid }
+//
+////        this.C = it.B
+////        a -> b -> c oraz b -> c -> d  ==>  a -> b -> c -> d ->
+//                val appendable = chains.firstOrNull { thiz.last.uid == it.penultimate.uid }
+//
+//                if (preppendable != null) {
+//                    println("${preppendable.first.uid} => ${thiz.dump()}")
+//                    thiz.preppend(preppendable.first)
+//                    changed = true
+//                }
+//                if (appendable != null) {
+//                    println("${thiz.dump()} => ${appendable.last.uid}")
+//                    thiz.append(appendable.last)
+//                    changed = true
+//                }
+//            }
+//        } while (changed)
+//
+//        println("== All chains ==")
+//        chains.forEach {
+//            println(it.dump())
+//        }
+//
+//        println("== To delete ==")
+//
+//        val toBeDelated = mutableListOf<Chain>()
+//
+//        chains.forEach { ten ->
+//            chains.forEach { tamten ->
+//                val same = toBeDelated.any {
+//                    it.contains(ten) && it.size == ten.size
+//                }
+//                if (ten != tamten && tamten.contains(ten) && !same) {
+//                    toBeDelated.add(ten)
+//                }
+//            }
+//        }
+//
+//        toBeDelated.forEach {
+//            chains.remove(it)
+//        }
+//
+//        println("== Cleaned chains ==")
+//        chains.forEach {
+//            println(it.dump())
+//        }
+//
+//    }
 
-                    //                    A goesInto * B(isSimple,isNode) goesInto & C ==> A goesInto C
-                    if (b.isSimple && b.isNode && !isMutable(b) && aToBRef == "*" && bToCRef == "&") {
-                        // W C zamieniamy B na A
-                        // B usuwamy
-                        chains.add(Chain(mutableListOf(a, b, c)))
-                        println("A prio 1: $aToBRef${a.uid} -> $bToCRef${b.uid} -> ${c.uid}   ==>   replace ${b.uid} with ${a.uid}")
-                    }
-//                    A goesInto & B(isSimple,isNode) goesInto * C ==> A goesInto C
-                    if (b.isSimple && b.isNode && !isMutable(b) && aToBRef == "&" && bToCRef == "*") {
-                        // W C zamieniamy B na A
-                        // B usuwamy
-                        chains.add(Chain(mutableListOf(a, b, c)))
-                        println("B prio 2: $aToBRef${a.uid} -> $bToCRef${b.uid} -> ${c.uid}   ==>   replace ${b.uid} with ${a.uid}")
-                    }
-                    //A goesInto .B(isSimple, isNode) goesInto .C ==? A goesInto C
-                    if (b.isSimple && b.isNode && !isMutable(b) && aToBRef == "" && bToCRef == "") {
-                        // W C zamieniamy B na A
-                        // B usuwamy
-                        chains.add(Chain(mutableListOf(a, b, c)))
-                        println("C prio 3: ${a.uid} -> ${b.uid} -> ${c.uid}   ==>      replace ${b.uid} with ${a.uid}")
-                    }
-//                    A goesInto . B(isSimple,isNode) goesInto ref C  ==> A goesInto ref C
-                    if (b.isSimple && b.isNode && !isMutable(b) && aToBRef == "" && bToCRef != "") {
-                        // W C zamieniamy B na bToCRef A
-                        // B usuwamy
-                        chains.add(Chain(mutableListOf(a, b, c)))
-                        println("D prio 4: ${a.uid} -> $bToCRef${b.uid} -> ${c.uid}   ==>      replace ${b.uid} with ${bToCRef}${a.uid}")
-                    }
-                    if (b.isSimple && b.isNode && !isMutable(b) && aToBRef != "" && bToCRef == "") {
-                        // W C zamieniamy B na bToCRef A
-                        // B usuwamy
-                        chains.add(Chain(mutableListOf(a, b, c)))
-                        println("D prio 4: ${a.uid} -> $bToCRef${b.uid} -> ${c.uid}   ==>      replace ${b.uid} with ${bToCRef}${a.uid}")
-                    }
-//                    A goesInto ref B(isSimple,isNode) goesInto ref C ==> A goesInto ref C
-
-                }
-            }
-        }
-    }
-
-    private fun findLongChains() {
-        println("== Extending triplets ==")
-
-        do {
-            val i = chains.iterator()
-
-            var changed = false
-
-            while (i.hasNext()) {
-                val thiz = i.next()
-
-//        it.B = this.A
-//        a -> b -> c oraz x -> a -> b   ==>   x -> a -> b -> c->
-                val preppendable = chains.firstOrNull { it.second.uid == thiz.first.uid }
-
-//        this.C = it.B
-//        a -> b -> c oraz b -> c -> d  ==>  a -> b -> c -> d ->
-                val appendable = chains.firstOrNull { thiz.last.uid == it.penultimate.uid }
-
-                if (preppendable != null) {
-                    println("${preppendable.first.uid} => ${thiz.dump()}")
-                    thiz.preppend(preppendable.first)
-                    changed = true
-                }
-                if (appendable != null) {
-                    println("${thiz.dump()} => ${appendable.last.uid}")
-                    thiz.append(appendable.last)
-                    changed = true
-                }
-            }
-        } while (changed)
-
-        println("== All chains ==")
-        chains.forEach {
-            println(it.dump())
-        }
-
-        println("== To delete ==")
-
-        val toBeDelated = mutableListOf<Chain>()
-
-        chains.forEach { ten ->
-            chains.forEach { tamten ->
-                val same = toBeDelated.any {
-                    it.contains(ten) && it.size == ten.size
-                }
-                if (ten != tamten && tamten.contains(ten) && !same) {
-                    toBeDelated.add(ten)
-                }
-            }
-        }
-
-        toBeDelated.forEach {
-            chains.remove(it)
-        }
-
-        println("== Cleaned chains ==")
-        chains.forEach {
-            println(it.dump())
-        }
-
-    }
-
-    private fun graphViz(newRegs: List<FlowNode>) {
+    private fun graphViz(newRegs: List<FlowNode>, nazwa: String) {
         // bin\dot -Tpng graph.dot > output.png
-        val ostream = OutputStreamWriter(FileOutputStream(File("src/main/wolin/graph.dot")))
+        val ostream = OutputStreamWriter(FileOutputStream(File("src/main/wolin/$nazwa.dot")))
         ostream.write(
             "digraph mygraph{\n" +
                     " node [shape=plaintext]\n"
@@ -256,18 +285,80 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
 
         newRegs.forEach {
             if (it.incomingLeft != null) {
+                val label = "${it.opcode}\nv=[${it.incomingLeft?.ref}],..."
                 ostream.write("\"{${it.incomingLeft!!.node.contents!!.getUid()}}\" -> \"{${it.contents!!.getUid()}}\"")
-                if (it.incomingLeft?.ref != "") ostream.write("[label=\"${it.incomingLeft!!.ref}\"]")
+                ostream.write("[label=\"${label}\"]")
             }
             if (it.incomingRight != null) {
+                val label = "${it.opcode}\nv=...,[${it.incomingRight?.ref}]"
                 ostream.write("\"{${it.incomingRight!!.node.contents!!.getUid()}}\" -> \"{${it.contents!!.getUid()}}\"")
-                if (it.incomingRight?.ref != "") ostream.write("[label=\"${it.incomingRight!!.ref}\"]")
+                ostream.write("[label=\"${label}\"]")
             }
         }
 
         ostream.write("}\n")
         ostream.close()
     }
+
+    fun sposób2() {
+        //        1. odszukać REDUNDANT, który nie jest entry i który ma tylko jedno wejście "BETTER"
+        do {
+            val redundant = newRegs.firstOrNull {
+                it.isNotEntry && it.isSimple && !isMutable(it) //&& it.goesInto.size > 0
+            }
+
+            redundant?.incomingLeft?.let { better ->
+                newRegs.filter { it.uid == redundant.uid }.forEach {
+                    it.replaceWith(better, newRegs)
+                    println("REPLACE ${redundant.uid} with ${better.node.uid}")
+                }
+                newRegs.removeIf { it.redundant }
+            }
+        } while (redundant != null)
+
+        // "backwards" replace
+        newRegs
+            .filter { !it.isSimple && it.goesInto.size == 1 && !isMutable(it) }
+            .forEach { redundant ->
+                //1. znajdź composite REDUNDANT, które idzie do jednego nołda BETTER
+                val better = redundant.goesInto.first()
+                redundant.revReplaceWith(better, newRegs)
+                println("BK REPLACE ${redundant.uid} with ${better.node.uid}")
+            }
+
+        newRegs.removeIf { it.redundant }
+
+        // todo musimy zastąpić w każdym miejscu
+        //
+        /*
+
+        18 w 19:
+
+        add SP(4)<__wolin_reg19>[ubyte*] = what[ubyte*], i[uword] // long index, single byte per element array (tutaj)
+        let SP(2)<__wolin_reg18>[ubyte*] = SP(0)<__wolin_reg19>[ubyte*] // przez sprawdzacz typow - non-fast array
+        let char[ubyte] = &SP(0)<__wolin_reg18>[ubyte*] // przez sprawdzacz typow - process assignment
+
+        add SP(4)<__wolin_reg19>[ubyte*] = what[ubyte*], i[uword] // long index, single byte per element array (tutaj)
+        let char[ubyte] = &SP(0)<__wolin_reg19>[ubyte*] // przez sprawdzacz typow - process assignment
+
+        czyli szukamy, gdzie 18 występuje w left lub right i zastępujemy 19
+
+        PLUS
+
+        jeżeli podmieniliśmy rejestr, do którego podstawiamy, to musimy go dodac jako nowy root
+
+        LET B = A
+        ADD B = 5, 6
+
+        daje
+
+        ADD A = 5,6
+        plus nowy root A
+
+         */
+
+    }
+
 
     fun replaceRedundantRemoveAllocs(ctx: PseudoAsmParser.PseudoAsmFileContext, finalState: WolinStateObject) {
         println("== looking for registers ==")
@@ -283,13 +374,13 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                 val arg1Uid = (line.arg()?.getOrNull(0) as ParserRuleContext?)?.getUid()
                 val arg2Uid = (line.arg()?.getOrNull(1) as ParserRuleContext?)?.getUid()
 
-                if ((opcode == "alloc" || opcode == "free") && redundantRegs.any{ it.uid == arg1Uid}) {
+                if ((opcode == "alloc" || opcode == "free") && redundantRegs.any { it.uid == arg1Uid }) {
                     println("usuwam: ${line.text}")
                     line.children.clear()
                 } else {
-                    val arg1Pair = replacablePairs.firstOrNull { it.first.uid == arg1Uid}
-                    val arg2Pair = replacablePairs.firstOrNull { it.first.uid == arg2Uid}
-                    val targetPair = replacablePairs.firstOrNull { it.first.uid == targetUid}
+                    val arg1Pair = replacablePairs.firstOrNull { it.first.uid == arg1Uid }
+                    val arg2Pair = replacablePairs.firstOrNull { it.first.uid == arg2Uid }
+                    val targetPair = replacablePairs.firstOrNull { it.first.uid == targetUid }
 
                     if (arg1Pair != null) {
                         line.arg(0).children = arg1Pair.second.contents!!.children
