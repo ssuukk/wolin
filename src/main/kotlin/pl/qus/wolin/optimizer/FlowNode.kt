@@ -46,15 +46,15 @@ class FlowNode (
             throw java.lang.Exception("Can't replace complex reg")
 
         val inRef = incomingLeft?.ref
-        val outRef = better.ref
-
-        //better.ref = combineRefs(inRef ?: "", outRef)
+        val outRef = goesInto.firstOrNull()?.ref
 
         // szukamy teraz rejestrów, które szły do redundant
-        all.filter { it.goesInto.any { it.node == this } && it != better.node }.forEach { goesIntoRedundant ->
-            goesIntoRedundant.goesInto.filter { it.node == this }.forEach {
+        all.filter { it.goesInto.any { it.node == this } /*&& it != better.node*/ }.forEach { inputToRedundant ->
+            inputToRedundant.goesInto.filter { it.node == this }.forEach {
                 // teraz idą do lepszego
-                it.node = better.node
+                it.node = this.goesInto.first().node
+                it.ref = combineRefs(inRef ?: "", outRef ?: "")
+                println("tu!")
             }
         }
 
@@ -62,14 +62,14 @@ class FlowNode (
         all.filter { it.incomingLeft?.node == this }.forEach {
             // teraz mają better za źródło
             it.incomingLeft?.node = better.node
+            it.incomingLeft?.ref = combineRefs(inRef ?: "", outRef ?: "")
         }
 
         all.filter { it.incomingRight?.node == this }.forEach {
             // teraz mają better za źródło
             it.incomingRight?.node = better.node
+            it.incomingRight?.ref = combineRefs(inRef ?: "", outRef ?: "")
         }
-
-        better.node.goesInto = this.goesInto
 
         redundant = true
     }
@@ -79,18 +79,31 @@ class FlowNode (
         better.node.incomingLeft = incomingLeft
         better.node.incomingRight = incomingRight
 
-        val inRef = incomingLeft?.ref
-        val outRef = better.ref
+        
+        val fromRedundantRef = this.goesInto.first().ref
 
-        better.ref = combineRefs(inRef ?: "", outRef)
+        val leftToRedundantRef = this.incomingLeft?.ref
+        val rightToRedundantRef = this.incomingRight?.ref
 
         // szukamy teraz rejestrów, które szły do redundant
-        all.filter { it.goesInto.any { it.node == this } && it != better.node }.forEach { goesIntoRedundant ->
-            goesIntoRedundant.goesInto.filter { it.node == this }.forEach {
+        all.filter { it.goesInto.any { it.node == this } && it != better.node }.forEach { inputToRedundant ->
+            inputToRedundant.goesInto.filter { it.node == this }.forEach {
                 // teraz idą do lepszego
                 it.node = better.node
             }
         }
+
+        better.node.incomingLeft?.ref = combineRefs(fromRedundantRef, leftToRedundantRef ?: "")
+        better.node.incomingRight?.ref = combineRefs(fromRedundantRef, rightToRedundantRef ?: "")
+
+        better.node.incomingLeft?.node?.goesInto?.firstOrNull { it.node.uid == better.node.uid }?.let {
+            it.ref = better.node.incomingLeft?.ref ?: ""
+        }
+
+        better.node.incomingRight?.node?.goesInto?.firstOrNull { it.node.uid == better.node.uid }?.let {
+            it.ref = better.node.incomingRight?.ref ?: ""
+        }
+
 
         redundant = true
     }

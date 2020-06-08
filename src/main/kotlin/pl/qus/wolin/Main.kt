@@ -292,7 +292,9 @@ label xxxx
         if(newOpt) {
             val newOpt = NewOptimizerProcessor(finalState)
             newOpt.buildFlowTree(asmContext)
-            newOpt.replaceRedundantRemoveAllocs(asmContext, finalState)
+            newOpt.testOpt()
+            //newOpt.optimizeGraph()
+            //newOpt.replaceRedundantRemoveAllocs(asmContext, finalState)
             newOpt.removeIdentities(asmContext)
         }
         else {
