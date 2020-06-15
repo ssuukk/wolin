@@ -7,16 +7,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 
-class Chain(var elements: List<FlowNode> = listOf()) {
-    val first get() = elements.first()
-    val last get() = elements.last()
-    val second get() = elements[1]
-    val penultimate get() = elements[elements.size - 2]
-    val size get() = elements.size
-
-    fun dump(): String = elements.joinToString(" -> ") { it.uid!! }
-}
-
 class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     val newRegs = mutableListOf<FlowNode>()
 
@@ -129,12 +119,12 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
         ostream.close()
     }
 
-    fun stdRemove(redundant: FlowNode):Boolean {
+    fun stdRemove(redundant: FlowNode): Boolean {
         var changed = false
         redundant.incomingLeft?.let { better ->
-            newRegs.filter { it.uid == redundant.uid }.forEach {
-                println("REPLACE ${redundant.uid} with ${better.node.uid}")
-                it.replaceWith(better, newRegs)
+            newRegs.filter { it.uid == redundant.uid }.forEach { red ->
+                println("REPLACE ${red.uid} with ${better.node.uid}")
+                red.replaceWith(better, newRegs)
                 changed = true
             }
         }
@@ -159,42 +149,42 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     }
 
     fun optimizeGraph() {
-            do {
-                val redundant = newRegs.firstOrNull {
-                    it.isNotEntry && it.isSimple && !isMutable(it) //&& it.goesInto.size > 0
+        do {
+            val redundant = newRegs.firstOrNull {
+                it.isNotEntry && it.isSimple && !isMutable(it) //&& it.goesInto.size > 0
+            }
+
+            if (redundant != null) {
+                stdRemove(redundant)
+
+                newRegs.filter { it.redundant }.forEach {
+                    println("DEL ${it.uid}")
                 }
 
-                if(redundant != null) {
-                    stdRemove(redundant)
-
-                    newRegs.filter {it.redundant }.forEach {
-                        println("DEL ${it.uid}")
-                    }
-
-                    newRegs.removeIf {
-                        it.redundant
-                    }
+                newRegs.removeIf {
+                    it.redundant
                 }
-            } while (redundant != null)
+            }
+        } while (redundant != null)
 
-            // "backwards" replace
-            do {
-                val redundant = newRegs.firstOrNull {
-                    !it.isSimple && it.goesInto.size == 1 && !isMutable(it)
+        // "backwards" replace
+        do {
+            val redundant = newRegs.firstOrNull {
+                !it.isSimple && it.goesInto.size == 1 && !isMutable(it)
+            }
+
+            if (redundant != null) {
+                revRemove(redundant)
+
+                newRegs.filter { it.redundant }.forEach {
+                    println("DEL ${it.uid}")
                 }
 
-                if(redundant != null) {
-                    revRemove(redundant)
-
-                    newRegs.filter {it.redundant }.forEach {
-                        println("DEL ${it.uid}")
-                    }
-
-                    newRegs.removeIf {
-                        it.redundant
-                    }
+                newRegs.removeIf {
+                    it.redundant
                 }
-            } while (redundant != null)
+            }
+        } while (redundant != null)
 
         /*
 
