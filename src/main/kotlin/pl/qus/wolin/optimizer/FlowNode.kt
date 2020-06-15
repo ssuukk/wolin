@@ -52,9 +52,11 @@ class FlowNode (
         all.filter { it.goesInto.any { it.node == this } /*&& it != better.node*/ }.forEach { inputToRedundant ->
             inputToRedundant.goesInto.filter { it.node == this }.forEach {
                 // teraz idą do lepszego
-                it.node = this.goesInto.first().node
-                it.ref = combineRefs(inRef ?: "", outRef ?: "")
-                println("tu!")
+                val goesInto = this.goesInto.firstOrNull()?.node
+                if(goesInto != null) {
+                    it.node = goesInto
+                    it.ref = combineRefs(inRef ?: "", outRef ?: "")
+                }
             }
         }
 

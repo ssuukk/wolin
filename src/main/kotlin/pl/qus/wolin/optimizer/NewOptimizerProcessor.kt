@@ -15,33 +15,12 @@ class Chain(var elements: List<FlowNode> = listOf()) {
     val size get() = elements.size
 
     fun dump(): String = elements.joinToString(" -> ") { it.uid!! }
-
-
-    fun getReplacementPair(): Pair<FlowNode, FlowNode> {
-        //pierwszy element wstawiamy do kodu w miejscu, gdzie pojawia się przedostatni
-        (1..elements.size - 2).forEach {
-            elements[it].redundant = true
-        }
-        return Pair(penultimate, first)
-    }
-
-//    fun getReplacementRef(): String {
-//        (0..elements.size-2).forEach { i->
-//            val ten = elements[i]
-//            val nast = elements[1+1]
-//        }
-//    }
 }
 
 class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     val newRegs = mutableListOf<FlowNode>()
-    //val chains = mutableListOf<Chain>()
 
     val nonAssignOpcodes = listOf("bne", "beq", "label", "setup", "string")
-
-//    fun buildTestTree() {
-//        val reg1 =
-//    }
 
     fun buildFlowTree(
         ctx: PseudoAsmParser.PseudoAsmFileContext
@@ -154,11 +133,10 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
         var changed = false
         redundant.incomingLeft?.let { better ->
             newRegs.filter { it.uid == redundant.uid }.forEach {
-                it.replaceWith(better, newRegs)
                 println("REPLACE ${redundant.uid} with ${better.node.uid}")
+                it.replaceWith(better, newRegs)
                 changed = true
             }
-            newRegs.removeIf { it.redundant }
         }
         return changed
     }
@@ -168,18 +146,16 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
 
         //1. znajdź composite REDUNDANT, które idzie do jednego nołda BETTER
         val better = redundant.goesInto.first()
-        redundant.revReplaceWith(better, newRegs)
         println("BK REPLACE ${redundant.uid} with ${better.node.uid}")
+        redundant.revReplaceWith(better, newRegs)
         changed = true
 
         return changed
     }
 
     fun testOpt() {
-        val redundant4 = newRegs.first { it.uid == "__wolin_reg4" }
-        stdRemove(redundant4)
-        val redundant5 = newRegs.first { it.uid == "__wolin_reg5" }
-        revRemove(redundant5)
+        val redundant4 = newRegs.first { it.uid == "__wolin_reg17" }
+        println("tu!")
     }
 
     fun optimizeGraph() {
@@ -190,7 +166,14 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
 
                 if(redundant != null) {
                     stdRemove(redundant)
-                    newRegs.removeIf { it.redundant }
+
+                    newRegs.filter {it.redundant }.forEach {
+                        println("DEL ${it.uid}")
+                    }
+
+                    newRegs.removeIf {
+                        it.redundant
+                    }
                 }
             } while (redundant != null)
 
@@ -202,7 +185,14 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
 
                 if(redundant != null) {
                     revRemove(redundant)
-                    newRegs.removeIf { it.redundant }
+
+                    newRegs.filter {it.redundant }.forEach {
+                        println("DEL ${it.uid}")
+                    }
+
+                    newRegs.removeIf {
+                        it.redundant
+                    }
                 }
             } while (redundant != null)
 
