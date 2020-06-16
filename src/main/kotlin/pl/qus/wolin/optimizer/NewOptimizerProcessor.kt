@@ -36,15 +36,17 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                 val leftContext = line.arg(0)
                 val rightContext = line.arg(1)
 
+
                 val leftRef = leftContext?.operand()?.referencer()?.firstOrNull()?.text ?: ""
                 val rightRef = rightContext?.operand()?.referencer()?.firstOrNull()?.text ?: ""
 
+                // TODO - źle contents jest brane z alloc/free i nie posiada ani typu, ani wektora
                 val leftNode =
                     if (leftContext == null) null
                     else
                         obtain(leftContext).apply {
                             referenced = referenced || opcode != "free" && opcode != "alloc"
-                            contents = leftContext
+                            //contents = if(contents == null && opcode != "free" && opcode != "alloc") leftContext else contents
                         }
 
                 val rightNode =
@@ -52,7 +54,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                     else {
                         obtain(rightContext).apply {
                             referenced = true
-                            contents = rightContext
+                            //contents = rightContext
                         }
                     }
 
@@ -75,6 +77,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                 }
             }
         }
+
 
         // create tree
         newRegs.forEach {
@@ -223,6 +226,9 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     }
 
     fun obtain(c: ParserRuleContext): FlowNode {
+        if(c.getUid()=="__wolin_reg18") {
+            println("tu!")
+        }
         val existing = newRegs.lastOrNull { it.uid == c.getUid() }
         return if (existing != null)
             existing
@@ -234,6 +240,9 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     }
 
     fun obtainTarget(c: ParserRuleContext, opcode: String): FlowNode {
+        if(c.getUid()=="__wolin_reg18") {
+            println("tu!")
+        }
         val existing = newRegs.lastOrNull { it.uid == c.getUid() }
         return if (existing != null && (existing.incomingLeft == null || existing.incomingLeft?.ref == "&"))
             existing.apply { this.opcode = opcode } // pierwsze przypisanie

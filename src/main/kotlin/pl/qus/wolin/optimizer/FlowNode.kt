@@ -169,7 +169,7 @@ class FlowNode (
             incomingRight?.node?.goesInto?.add(toMe)
         }
 
-        val meInVariablary = finalState.variablary.values.firstOrNull { it.name == this.contents!!.getUid() }
+        val meInVariablary = finalState.variablary.values.firstOrNull { it.name == this.contents?.getUid() }
 
 //        if(incomingLeft != null) {
 //            type = Type.NODE

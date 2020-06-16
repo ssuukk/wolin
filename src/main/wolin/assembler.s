@@ -95,9 +95,9 @@ __wolin_pl_qus_wolin_print:
     inx
 
 
-; 11: alloc SP<__wolin_reg9> , #1 
+; 11: alloc SP<__wolin_reg9>[bool] , #1 
 
-    dex
+    .byte SP
 
 ; 13: label __wolin_lab_loop_start_1 
 
@@ -160,11 +160,9 @@ __wolin_lab_loop_start_1:
     sta (__wolin_spf),y
 
 
-; 22: alloc SP<__wolin_reg18> , #2 
+; 22: alloc SP<__wolin_reg18>[ubyte*] , #2 
 
-
-    dex
-    dex
+    .byte 1,2,3,4
 
 ; 24: let SPF(0)<pl.qus.wolin.print..char>[ubyte] = &SP(0)<__wolin_reg18>[ubyte*] 
 
@@ -174,7 +172,7 @@ __wolin_lab_loop_start_1:
     sta (__wolin_spf),y
 
 
-; 25: free SP<__wolin_reg18> , #2 
+; 25: free SP<__wolin_reg18>[ubyte*] , #2 
 
 
     inx
@@ -188,7 +186,7 @@ __wolin_lab_loop_start_1:
 
 __wolin_lab_loop_end_1:
 
-; 29: free SP<__wolin_reg9> , #1 
+; 29: free SP<__wolin_reg9>[bool] , #1 
 
     inx
 
