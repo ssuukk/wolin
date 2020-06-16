@@ -388,6 +388,9 @@ class WolinStateObject(val pass: Pass) {
             else if(deref == RegOper.AMPRESAND && !register.type.isPointer) RegOper.VALUE
             else deref
 
+        if(finalDeref == RegOper.AMPRESAND)
+            register.dontOptimize = true
+
         return when (finalDeref) {
             RegOper.AMPRESAND -> "&"
             RegOper.VALUE -> ""

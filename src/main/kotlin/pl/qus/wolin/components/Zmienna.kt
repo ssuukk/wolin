@@ -15,6 +15,7 @@ class Zmienna(
 )
 
 {
+    var dontOptimize: Boolean = false
     var intValue: Long = 0L
     var stringValue: String = ""
     var floatValue: Float = 0f

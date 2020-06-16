@@ -1634,14 +1634,14 @@ class WolinVisitor(
                             )
                         } else {
                             state.currentReg.type = zmienna.type.copy()
-                            state.currentReg.type.pointer = true
+                            //state.currentReg.type.pointer = true
                             checkTypeAndAddAssignment(
                                 ctx,
                                 state.currentReg,
                                 zmienna,
                                 "simple id from var",
                                 RegOper.VALUE,
-                                RegOper.STAR
+                                RegOper.VALUE
                             )
                         }
            //         }

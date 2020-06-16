@@ -36,7 +36,7 @@ let SP(0)<__wolin_reg6>[ubyte*] = SPF(2)<pl.qus.wolin.print.what>[ubyte*] // prz
 // switchType to:ubyte* by type from pl.qus.wolin.print.what
 //  PRAWA strona array access, czyli indeks w nawiasach
 alloc SP<__wolin_reg7>, #2 // For calculating index
-let SP(0)<__wolin_reg7>[ubyte*] = *SPF(1)<pl.qus.wolin.print..i>[ubyte] // przez sprawdzacz typow - simple id from var
+let SP(0)<__wolin_reg7>[ubyte] = SPF(1)<pl.qus.wolin.print..i>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.print..i
 // FORCE TOP: __wolin_reg7: uword = 0 /* For calculating index */ -> uword
 add SP(4)<__wolin_reg5>[ubyte*] = SP(2)<__wolin_reg6>[ubyte*], SP(0)<__wolin_reg7>[uword] // long index, single byte per element array (tutaj)
@@ -57,17 +57,16 @@ free SP<__wolin_reg3>, #2 // for declaration varchar:ubyte=what[i]
 alloc SP<__wolin_reg9>, #1 // for while condition
 _scope_ loop,1
 label __wolin_lab_loop_start_1
-alloc SP<__wolin_reg10>, #2 // LEFT equality check: evalneq
-let SP(0)<__wolin_reg10>[ubyte*] = *SPF(0)<pl.qus.wolin.print..char>[ubyte] // przez sprawdzacz typow - simple id from var
+alloc SP<__wolin_reg10>, #1 // LEFT equality check: evalneq
+let SP(0)<__wolin_reg10>[ubyte] = SPF(0)<pl.qus.wolin.print..char>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.print..char
-// top type already set: __wolin_reg10: ubyte* = 0 /* LEFT equality check: evalneq */
 alloc SP<__wolin_reg11>, #1 // RIGHT equality check: evalneq
 // switchType to:ubyte by parse literal constant
 let SP(0)<__wolin_reg11>[ubyte] = #0[ubyte] // atomic ex
 // top type already set: __wolin_reg11: ubyte = 0 /* RIGHT equality check: evalneq */
-evalneq SP(3)<__wolin_reg9>[bool] = &SP(1)<__wolin_reg10>[ubyte*], SP(0)<__wolin_reg11>[ubyte] // two sides
+evalneq SP(2)<__wolin_reg9>[bool] = SP(1)<__wolin_reg10>[ubyte], SP(0)<__wolin_reg11>[ubyte] // two sides
 free SP<__wolin_reg11>, #1 // RIGHT equality check: evalneq
-free SP<__wolin_reg10>, #2 // LEFT equality check: evalneq
+free SP<__wolin_reg10>, #1 // LEFT equality check: evalneq
 // top type already set: __wolin_reg9: bool = 0 /* for while condition */
 bne SP(0)<__wolin_reg9>[bool] = #1[bool], __wolin_lab_loop_end_1<label_po_if>[uword]
 // switchType to:unit by function return type 1
@@ -76,14 +75,14 @@ bne SP(0)<__wolin_reg9>[bool] = #1[bool], __wolin_lab_loop_end_1<label_po_if>[uw
 // Arg: 0: pl.qus.wolin.chrout.char: ubyte = 0 /*  */
 save SP
 // == FN_CALL: ARG #0 (char) pl.qus.wolin.chrout
-alloc SP<__wolin_reg14>, #2 // for call argument 0
+alloc SP<__wolin_reg14>, #1 // for call argument 0
 // Prze visit vALUE
 //  obliczenia dla parametru char
-let SP(0)<__wolin_reg14>[ubyte*] = *SPF(0)<pl.qus.wolin.print..char>[ubyte] // przez sprawdzacz typow - simple id from var
+let SP(0)<__wolin_reg14>[ubyte] = SPF(0)<pl.qus.wolin.print..char>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.print..char
 // po visit value
-save &SP(0)<__wolin_reg14>[ubyte*] // CPU.A
-free SP<__wolin_reg14>, #2 // for call argument 0, type = ubyte
+save SP(0)<__wolin_reg14>[ubyte] // CPU.A
+free SP<__wolin_reg14>, #1 // for call argument 0, type = ubyte
 // switchType to:unit by function return type 2
 restore CPU.A[ubyte]
 // switchType to:unit by function call
@@ -104,11 +103,10 @@ free SP<__wolin_reg15>, #2 // for blockLevel expression
 // == ASSIGNMENT PUSH =======================================
 // 
 // == ASSIGNMENT LEFT =======================================
-alloc SP<__wolin_reg17>, #2 // ASSIGNMENT target
-// (do assignLeftSideVar przypisano __wolin_reg17: ubyte* = 0 /* ASSIGNMENT target */)
-let SP(0)<__wolin_reg17>[ubyte*] = *SPF(0)<pl.qus.wolin.print..char>[ubyte] // przez sprawdzacz typow - simple id from var
+alloc SP<__wolin_reg17>, #1 // ASSIGNMENT target
+// (do assignLeftSideVar przypisano __wolin_reg17: ubyte = 0 /* ASSIGNMENT target */)
+let SP(0)<__wolin_reg17>[ubyte] = SPF(0)<pl.qus.wolin.print..char>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.print..char
-// top type already set: __wolin_reg17: ubyte* = 0 /* ASSIGNMENT target */
 // == ASSIGNMENT RIGHT =======================================
 alloc SP<__wolin_reg18>, #2 // ASSIGNMENT value
 // (do assignRightSideFinalVar 1 przypisano __wolin_reg18: ubyte* = 0 /* ASSIGNMENT value */)
@@ -119,7 +117,7 @@ let SP(0)<__wolin_reg20>[ubyte*] = SPF(2)<pl.qus.wolin.print.what>[ubyte*] // pr
 // switchType to:ubyte* by type from pl.qus.wolin.print.what
 //  PRAWA strona array access, czyli indeks w nawiasach
 alloc SP<__wolin_reg21>, #2 // For calculating index
-let SP(0)<__wolin_reg21>[ubyte*] = *SPF(1)<pl.qus.wolin.print..i>[ubyte] // przez sprawdzacz typow - simple id from var
+let SP(0)<__wolin_reg21>[ubyte] = SPF(1)<pl.qus.wolin.print..i>[ubyte] // przez sprawdzacz typow - simple id from var
 // switchType to:ubyte by type from pl.qus.wolin.print..i
 // FORCE TOP: __wolin_reg21: uword = 0 /* For calculating index */ -> uword
 add SP(4)<__wolin_reg19>[ubyte*] = SP(2)<__wolin_reg20>[ubyte*], SP(0)<__wolin_reg21>[uword] // long index, single byte per element array (tutaj)
@@ -132,9 +130,9 @@ free SP<__wolin_reg20>, #2 // array variable
 //  non-fast array, changing top reg to ptr
 let SP(2)<__wolin_reg18>[ubyte*] = SP(0)<__wolin_reg19>[ubyte*] // przez sprawdzacz typow - non-fast array
 free SP<__wolin_reg19>, #2 // arr_deref
-let &SP(2)<__wolin_reg17>[ubyte*] = &SP(0)<__wolin_reg18>[ubyte*] // przez sprawdzacz typow - process assignment
+let SP(2)<__wolin_reg17>[ubyte] = &SP(0)<__wolin_reg18>[ubyte*] // przez sprawdzacz typow - process assignment
 free SP<__wolin_reg18>, #2 // ASSIGNMENT value, type = ubyte*
-free SP<__wolin_reg17>, #2 // ASSIGNMENT target
+free SP<__wolin_reg17>, #1 // ASSIGNMENT target
 // == ASSIGNMENT END =======================================
 // == ASSIGNMENT POP =======================================
 // 

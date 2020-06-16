@@ -281,7 +281,7 @@ label xxxx
         outStream: OutputStream,
         finalState: WolinStateObject
     ) {
-        val newOpt = false
+        val newOpt = true
 
         val asmLexer = PseudoAsmLexer(ANTLRInputStream(asmStream))
         val asmTokens = CommonTokenStream(asmLexer)
@@ -293,8 +293,8 @@ label xxxx
             val newOpt = NewOptimizerProcessor(finalState)
             newOpt.buildFlowTree(asmContext)
             newOpt.optimizeGraph()
-            //newOpt.testOpt()
-            //newOpt.replaceRedundantRemoveAllocs(asmContext, finalState)
+            newOpt.replaceRedundantAllocs(asmContext, finalState)
+            newOpt.replacePairs(asmContext, finalState)
             newOpt.removeIdentities(asmContext)
         }
         else {

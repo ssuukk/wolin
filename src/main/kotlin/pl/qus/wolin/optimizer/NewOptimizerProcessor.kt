@@ -7,8 +7,15 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 
+class ReplacementPair(
+    val thiz: FlowNode,
+    val withThat: FlowNode
+)
+
 class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     val newRegs = mutableListOf<FlowNode>()
+    val redundantRegs = mutableListOf<FlowNode>()
+    val pairs = mutableListOf<ReplacementPair>()
 
     val nonAssignOpcodes = listOf("bne", "beq", "label", "setup", "string")
 
@@ -22,13 +29,15 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
 
                 val opcode = line.instrukcja().simpleIdentifier().text
 
+                if (opcode == "label" || opcode == "setup" || opcode == "function")
+                    continue
+
                 val targetContext = line.target(0)
                 val leftContext = line.arg(0)
                 val rightContext = line.arg(1)
 
                 val leftRef = leftContext?.operand()?.referencer()?.firstOrNull()?.text ?: ""
                 val rightRef = rightContext?.operand()?.referencer()?.firstOrNull()?.text ?: ""
-                val targetRef = targetContext?.operand()?.referencer()?.firstOrNull()?.text ?: ""
 
                 val leftNode =
                     if (leftContext == null) null
@@ -73,93 +82,35 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
             it.walkDownToSource(finalState)
         }
 
-        graphViz(newRegs, "first")
+        graphViz(newRegs, "initial")
 
-//
-//        newRegs.filter { !it.referenced }.forEach {
-//            it.redundant = true
-//        }
-//
-//        newRegs.filter { it.redundant }.forEach {
-//            println("Redundant:${it.uid}")
-//        }
-//
-//        newRegs.removeAll { it.redundant }
-
-    }
-
-    private fun isMutable(b: FlowNode): Boolean {
-        val zmienna = finalState.variablary.values.firstOrNull { it.name == b.uid }
-        val incoming = newRegs.count { it.uid == b.uid && it.incomingLeft?.ref == "" }
-        return if (zmienna != null) !zmienna.immutable else (incoming > 1)
-    }
-
-    private fun graphViz(newRegs: List<FlowNode>, nazwa: String) {
-        // bin\dot -Tpng graph.dot > output.png
-        val ostream = OutputStreamWriter(FileOutputStream(File("src/main/wolin/$nazwa.dot")))
-        ostream.write(
-            "digraph mygraph{\n" +
-                    " node [shape=plaintext]\n"
-        )
-
-        newRegs.forEach {
-            if (it.incomingLeft != null) {
-                val label = "${it.opcode}\nv=[${it.incomingLeft?.ref}],..."
-                ostream.write("\"{${it.incomingLeft!!.node.contents!!.getUid()}}\" -> \"{${it.contents!!.getUid()}}\"")
-                ostream.write("[label=\"${label}\"]")
-            }
-            if (it.incomingRight != null) {
-                val label = "${it.opcode}\nv=...,[${it.incomingRight?.ref}]"
-                ostream.write("\"{${it.incomingRight!!.node.contents!!.getUid()}}\" -> \"{${it.contents!!.getUid()}}\"")
-                ostream.write("[label=\"${label}\"]")
-            }
+        newRegs.filter { !it.referenced }.forEach {
+            it.redundant = true
         }
 
-        ostream.write("}\n")
-        ostream.close()
-    }
+        redundantRegs.addAll(newRegs.filter { it.redundant })
 
-    fun stdRemove(redundant: FlowNode): Boolean {
-        var changed = false
-        redundant.incomingLeft?.let { better ->
-            newRegs.filter { it.uid == redundant.uid }.forEach { red ->
-                println("REPLACE ${red.uid} with ${better.node.uid}")
-                red.replaceWith(better, newRegs)
-                changed = true
-            }
+        newRegs.removeIf {
+            it.redundant
         }
-        return changed
-    }
-
-    fun revRemove(redundant: FlowNode): Boolean {
-        var changed = false
-
-        //1. znajdź composite REDUNDANT, które idzie do jednego nołda BETTER
-        val better = redundant.goesInto.first()
-        println("BK REPLACE ${redundant.uid} with ${better.node.uid}")
-        redundant.revReplaceWith(better, newRegs)
-        changed = true
-
-        return changed
-    }
-
-    fun testOpt() {
-        val redundant4 = newRegs.first { it.uid == "__wolin_reg17" }
-        println("tu!")
     }
 
     fun optimizeGraph() {
         do {
             val redundant = newRegs.firstOrNull {
-                it.isNotEntry && it.isSimple && !isMutable(it) //&& it.goesInto.size > 0
+                it.isNotEntry && it.hasOneInput && !isMutable(it) && optimizeAllowed(it)
             }
 
             if (redundant != null) {
-                stdRemove(redundant)
-
-                newRegs.filter { it.redundant }.forEach {
-                    println("DEL ${it.uid}")
+                redundant.incomingLeft?.let { better ->
+                    newRegs.filter { it.uid == redundant.uid }.forEach { red ->
+                        println("REPLACE ${red.uid} with ${better.node.uid}")
+                        red.replaceWith(better, newRegs, isMutable(better.node))
+                        pairs.add(ReplacementPair(red, better.node))
+                    }
                 }
+
+                redundantRegs.addAll(newRegs.filter { it.redundant })
 
                 newRegs.removeIf {
                     it.redundant
@@ -170,15 +121,15 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
         // "backwards" replace
         do {
             val redundant = newRegs.firstOrNull {
-                !it.isSimple && it.goesInto.size == 1 && !isMutable(it)
+                !it.hasOneInput && it.goesInto.size == 1 && !isMutable(it) && optimizeAllowed(it)
             }
 
             if (redundant != null) {
-                revRemove(redundant)
+                val better = redundant.goesInto.first()
+                println("BK REPLACE ${redundant.uid} with ${better.node.uid}")
+                pairs.add(redundant.revReplaceWith(better, newRegs, isMutable(better.node)))
 
-                newRegs.filter { it.redundant }.forEach {
-                    println("DEL ${it.uid}")
-                }
+                redundantRegs.addAll(newRegs.filter { it.redundant })
 
                 newRegs.removeIf {
                     it.redundant
@@ -186,74 +137,68 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
             }
         } while (redundant != null)
 
-        /*
-
-        18 w 19:
-
-        add SP(4)<__wolin_reg19>[ubyte*] = what[ubyte*], i[uword] // long index, single byte per element array (tutaj)
-        let SP(2)<__wolin_reg18>[ubyte*] = SP(0)<__wolin_reg19>[ubyte*] // przez sprawdzacz typow - non-fast array
-        let char[ubyte] = &SP(0)<__wolin_reg18>[ubyte*] // przez sprawdzacz typow - process assignment
-
-        add SP(4)<__wolin_reg19>[ubyte*] = what[ubyte*], i[uword] // long index, single byte per element array (tutaj)
-        let char[ubyte] = &SP(0)<__wolin_reg19>[ubyte*] // przez sprawdzacz typow - process assignment
-
-        czyli szukamy, gdzie 18 występuje w left lub right i zastępujemy 19
-
-        PLUS
-
-        jeżeli podmieniliśmy rejestr, do którego podstawiamy, to musimy go dodac jako nowy root
-
-        LET B = A
-        ADD B = 5, 6
-
-        daje
-
-        ADD A = 5,6
-        plus nowy root A
-
-         */
-
         graphViz(newRegs, "optimized")
     }
 
+    private fun isMutable(b: FlowNode): Boolean {
+        val zmienna = finalState.variablary.values.firstOrNull { it.name == b.uid }
+        val incoming = newRegs.count { it.uid == b.uid && it.incomingLeft?.ref == "" }
+        return if (zmienna != null) !zmienna.immutable else (incoming > 1)
+    }
 
-//    fun replaceRedundantRemoveAllocs(ctx: PseudoAsmParser.PseudoAsmFileContext, finalState: WolinStateObject) {
-//        println("== looking for registers ==")
-//        val redundantRegs = newRegs.filter { it.redundant }
-//
-//        ctx.linia()?.iterator()?.let { linie ->
-//            while (linie.hasNext()) {
-//                val line = linie.next()
-//
-//                val opcode = line.instrukcja().simpleIdentifier().text
-//                val targetUid = (line.target()?.firstOrNull() as ParserRuleContext?)?.getUid()
-//                val arg1Uid = (line.arg()?.getOrNull(0) as ParserRuleContext?)?.getUid()
-//                val arg2Uid = (line.arg()?.getOrNull(1) as ParserRuleContext?)?.getUid()
-//
-//                if ((opcode == "alloc" || opcode == "free") && redundantRegs.any { it.uid == arg1Uid }) {
-//                    println("usuwam: ${line.text}")
-//                    line.children.clear()
-//                } else {
-//                    val arg1Pair = replacablePairs.firstOrNull { it.first.uid == arg1Uid }
-//                    val arg2Pair = replacablePairs.firstOrNull { it.first.uid == arg2Uid }
-//                    val targetPair = replacablePairs.firstOrNull { it.first.uid == targetUid }
-//
-//                    if (arg1Pair != null) {
-//                        line.arg(0).children = arg1Pair.second.contents!!.children
-//                    }
-//
-//                    if (arg2Pair != null) {
-//                        line.arg(1).children = arg2Pair.second.contents!!.children
-//                    }
-//
-//                    if (targetPair != null) {
-//                        line.target(0).children = targetPair.second.contents!!.children
-//                    }
-//                }
-//            }
-//        }
-//    }
+    private fun optimizeAllowed(b: FlowNode): Boolean {
+        val zmienna = finalState.variablary.values.firstOrNull { it.name == b.uid }
+        return if (zmienna != null) !zmienna.dontOptimize else true
+    }
 
+
+    fun replaceRedundantAllocs(ctx: PseudoAsmParser.PseudoAsmFileContext, finalState: WolinStateObject) {
+        println("== looking for allocs of redundant registers ==")
+
+        ctx.linia()?.iterator()?.let { linie ->
+            while (linie.hasNext()) {
+                val line = linie.next()
+
+                val opcode = line.instrukcja().simpleIdentifier().text
+                val targetUid = (line.target()?.firstOrNull() as ParserRuleContext?)?.getUid()
+                val arg1Uid = (line.arg()?.getOrNull(0) as ParserRuleContext?)?.getUid()
+                val arg2Uid = (line.arg()?.getOrNull(1) as ParserRuleContext?)?.getUid()
+
+                if ((opcode == "alloc" || opcode == "free") && redundantRegs.any { it.uid == arg1Uid }) {
+                    println("usuwam: ${line.text}")
+                    line.children.clear()
+                }
+            }
+        }
+    }
+
+    fun replacePairs(ctx: PseudoAsmParser.PseudoAsmFileContext, finalState: WolinStateObject) {
+        pairs.forEach { pair ->
+
+            ctx.linia()?.iterator()?.let { linie ->
+                while (linie.hasNext()) {
+                    val line = linie.next()
+
+                    //val opcode = line.instrukcja().simpleIdentifier().text
+                    val targetUid = (line.target()?.firstOrNull() as ParserRuleContext?)?.getUid()
+                    val arg1Uid = (line.arg()?.getOrNull(0) as ParserRuleContext?)?.getUid()
+                    val arg2Uid = (line.arg()?.getOrNull(1) as ParserRuleContext?)?.getUid()
+
+                    if(targetUid == pair.thiz.uid) {
+                        line.target(0).children = pair.withThat.contents!!.children
+                    }
+
+                    if(arg1Uid == pair.thiz.uid) {
+                        line.arg(0).children = pair.withThat.contents!!.children
+                    }
+
+                    if(arg2Uid == pair.thiz.uid) {
+                        line.arg(1).children = pair.withThat.contents!!.children
+                    }
+                }
+            }
+        }
+    }
 
     fun removeIdentities(ctx: PseudoAsmParser.PseudoAsmFileContext) {
         println("== looking for registers ==")
@@ -293,11 +238,38 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
         return if (existing != null && (existing.incomingLeft == null || existing.incomingLeft?.ref == "&"))
             existing.apply { this.opcode = opcode } // pierwsze przypisanie
         else {
-            val nowy = FlowNode(contents = c, nodeNum = existing?.nodeNum?.inc() ?: 0).apply { this.opcode = opcode }
+            val nowy =
+                FlowNode(contents = c, nodeNum = existing?.nodeNum?.inc() ?: 0).apply { this.opcode = opcode }
             newRegs.add(nowy)
             nowy
         }
     }
+
+    private fun graphViz(newRegs: List<FlowNode>, nazwa: String) {
+        // bin\dot -Tpng graph.dot > output.png
+        val ostream = OutputStreamWriter(FileOutputStream(File("src/main/wolin/$nazwa.dot")))
+        ostream.write(
+            "digraph mygraph{\n" +
+                    " node [shape=plaintext]\n"
+        )
+
+        newRegs.forEach {
+            if (it.incomingLeft != null) {
+                val label = "${it.opcode}\nv=[${it.incomingLeft?.ref}],..."
+                ostream.write("\"{${it.incomingLeft!!.node.contents!!.getUid()}}\" -> \"{${it.contents!!.getUid()}}\"")
+                ostream.write("[label=\"${label}\"]")
+            }
+            if (it.incomingRight != null) {
+                val label = "${it.opcode}\nv=...,[${it.incomingRight?.ref}]"
+                ostream.write("\"{${it.incomingRight!!.node.contents!!.getUid()}}\" -> \"{${it.contents!!.getUid()}}\"")
+                ostream.write("[label=\"${label}\"]")
+            }
+        }
+
+        ostream.write("}\n")
+        ostream.close()
+    }
+
 }
 
 

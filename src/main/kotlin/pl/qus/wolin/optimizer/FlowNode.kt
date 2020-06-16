@@ -30,7 +30,7 @@ class FlowNode (
 ) {
     enum class Type {ENTRY, EXIT, NODE}
 
-    val isSimple get() = incomingRight == null
+    val hasOneInput get() = incomingRight == null
     val isNode get() = type == Type.NODE
     val isNotEntry get() = type != Type.ENTRY
     val isNotExit get() = type != Type.EXIT
@@ -41,7 +41,7 @@ class FlowNode (
     val goesIntoOne get(): Boolean = goesInto.count { it.ref == ""} == 1
 
 
-    fun replaceWith(better: DestPair, all: MutableList<FlowNode>) {
+    fun replaceWith(better: DestPair, all: MutableList<FlowNode>, isMutable: Boolean) {
         if(incomingRight != null)
             throw java.lang.Exception("Can't replace complex reg")
 
@@ -52,8 +52,13 @@ class FlowNode (
         all.filter { it.goesInto.any { it.node.uid == this.uid } /*&& it != better.node*/ }.forEach { comingToRedundant ->
             // usuwamy z nich, że szły do redundant:
             comingToRedundant.goesInto.removeIf { it.node.uid == this.uid }
-            // ale dodajemy te, do których szedł redundant
-            comingToRedundant.goesInto.addAll(this.goesInto)
+            if(comingToRedundant.uid == better.node.uid) {
+                // 1. jeżeli comingToRedundant == better, to dodajemy do niego:
+                comingToRedundant.goesInto.addAll(this.goesInto)
+            } else {
+                // 2. else comingToRedundant.goesInto = better
+                comingToRedundant.goesInto = mutableListOf(better)
+            }
         }
 
         // szukamy rejestrów, które miały redundant za źródło
@@ -62,7 +67,6 @@ class FlowNode (
             it.incomingLeft?.node = better.node
             it.incomingLeft?.ref = combineRefs(inRef ?: "", outRef ?: "")
         }
-
         all.filter { it.incomingRight?.node?.uid == this.uid }.forEach {
             // teraz mają better za źródło
             it.incomingRight?.node = better.node
@@ -72,11 +76,12 @@ class FlowNode (
         redundant = true
     }
 
-    fun revReplaceWith(better: DestPair, all: MutableList<FlowNode>) {
+    fun revReplaceWith(better: DestPair, all: MutableList<FlowNode>, isMutable: Boolean): ReplacementPair {
         // skopiować przychodzące
+
+        // TODO jeżeli mutable - utworzyć nowe entry
         better.node.incomingLeft = incomingLeft
         better.node.incomingRight = incomingRight
-
 
         val fromRedundantRef = this.goesInto.first().ref
 
@@ -91,19 +96,38 @@ class FlowNode (
             }
         }
 
-        better.node.incomingLeft?.ref = combineRefs(fromRedundantRef, leftToRedundantRef ?: "")
-        better.node.incomingRight?.ref = combineRefs(fromRedundantRef, rightToRedundantRef ?: "")
+        // jeżeli this goes into better...
 
-        better.node.incomingLeft?.node?.goesInto?.firstOrNull { it.node.uid == better.node.uid }?.let {
-            it.ref = better.node.incomingLeft?.ref ?: ""
+        val finalBetter = if(isMutable) {
+            val new = FlowNode(contents = better.node.contents).apply {
+                all.add(this)
+            }
+
+            new.incomingLeft = this.incomingLeft
+            new.incomingRight = this.incomingRight
+            new.goesInto = better.node.goesInto
+
+            new
+        } else {
+
+            better.node.incomingLeft?.ref = combineRefs(fromRedundantRef, leftToRedundantRef ?: "")
+
+            better.node.incomingRight?.ref = combineRefs(fromRedundantRef, rightToRedundantRef ?: "")
+
+            better.node.incomingLeft?.node?.goesInto?.firstOrNull { it.node.uid == better.node.uid }?.let {
+                it.ref = better.node.incomingLeft?.ref ?: ""
+            }
+
+            better.node.incomingRight?.node?.goesInto?.firstOrNull { it.node.uid == better.node.uid }?.let {
+                it.ref = better.node.incomingRight?.ref ?: ""
+            }
+
+            better.node
         }
-
-        better.node.incomingRight?.node?.goesInto?.firstOrNull { it.node.uid == better.node.uid }?.let {
-            it.ref = better.node.incomingRight?.ref ?: ""
-        }
-
 
         redundant = true
+
+        return ReplacementPair(this, finalBetter)
     }
 
     private fun combineRefs(inRef: String, outRef: String): String {
@@ -118,11 +142,11 @@ class FlowNode (
         else if(outRef != "" && inRef == "")
             outRef
         else
-            throw Exception("Podwojna referenca/dereferencja")
+            throw Exception("Podwojna referenca/dereferencja in=$inRef out=$outRef")
     }
 
     override fun toString(): String {
-        return "'${contents!!.getUid()}' ${type.name} re'd=$referenced ${contents?.text} <- ${incomingLeft?.node?.contents?.text} + ${incomingRight?.node?.contents?.text}"
+        return "${goesInto.size} <- ${contents!!.getUid()} ${type.name} <- ${incomingLeft?.node?.uid} + ${incomingRight?.node?.uid}"
     }
 
     fun walkDownToSource(finalState: WolinStateObject) {
