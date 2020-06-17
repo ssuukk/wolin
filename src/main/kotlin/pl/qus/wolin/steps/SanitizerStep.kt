@@ -1,22 +1,35 @@
-package pl.qus.wolin.pl.qus.wolin
+package pl.qus.wolin.pl.qus.wolin.steps
 
-import pl.qus.wolin.Pass
+import org.antlr.v4.runtime.ANTLRInputStream
+import org.antlr.v4.runtime.CommonTokenStream
+import pl.qus.wolin.PseudoAsmLexer
 import pl.qus.wolin.PseudoAsmParser
-import pl.qus.wolin.WolinStateObject
 import pl.qus.wolin.WolinVisitor
 import pl.qus.wolin.components.Funkcja
+import java.io.BufferedWriter
+import java.io.InputStream
 import java.io.OutputStream
 
-class StackOpsSanitizer(outStream: OutputStream) {
-    val wolinState = WolinStateObject(Pass.TRANSLATION)
-    var insideFunction: Funkcja? = null
+class SanitizerStep: CompilerProcess() {
+    private var insideFunction: Funkcja? = null
 
-    var functionCode = mutableListOf<PseudoAsmParser.LiniaContext>()
-
-    private val writer = outStream.bufferedWriter()
+    private var functionCode = mutableListOf<PseudoAsmParser.LiniaContext>()
 
 
-    fun startWork(ctx: PseudoAsmParser.PseudoAsmFileContext) {
+    override fun process(istream: InputStream, ostream: OutputStream) {
+        val asmLexer = PseudoAsmLexer(ANTLRInputStream(istream))
+        val asmTokens = CommonTokenStream(asmLexer)
+        val asmParser = PseudoAsmParser(asmTokens)
+        val asmContext = asmParser.pseudoAsmFile()
+        val writer = ostream.bufferedWriter()
+
+        startWork(asmContext, writer)
+
+
+    }
+
+
+    private fun startWork(ctx: PseudoAsmParser.PseudoAsmFileContext, writer: BufferedWriter) {
         val i = ctx.linia()?.iterator()
 
         while(i?.hasNext() == true) {
@@ -25,11 +38,11 @@ class StackOpsSanitizer(outStream: OutputStream) {
 
             if(linia.instrukcja().text == "function") {
                 val nazwaFunkcji = linia.arg(0).text
-                insideFunction = wolinState.findFunctionByLabel(nazwaFunkcji)
+                insideFunction = state!!.findFunctionByLabel(nazwaFunkcji)
                 //println("mamy funkcję: $prawdziwaFunkcja")
             } else if(linia.instrukcja().text == "endfunction") {
                 shuffleAllocs()
-                processVectors()
+                processVectors(writer)
                 insideFunction = null
             }
 
@@ -44,6 +57,8 @@ class StackOpsSanitizer(outStream: OutputStream) {
         writer.flush()
         writer.close()
     }
+
+
 
     private fun shuffleAllocs() {
         // 1. znaleźć alloc/free, które są w pętli i przenieść je poza pętle
@@ -173,13 +188,13 @@ _endscope_ loop , 1
 
     }
 
-    private fun processVectors() {
+    private fun processVectors(writer: BufferedWriter) {
         var pendingFreeFunction = false
         var calledFunction : Funkcja? = null
 
         writer.newLine()
 
-        wolinState.fnDeclAllocStackAndRet(insideFunction!!)
+        state!!.fnDeclAllocStackAndRet(insideFunction!!)
 
 
 
@@ -191,7 +206,7 @@ _endscope_ loop , 1
             if(pendingFreeFunction) {
                 println("po wywolaniu ${calledFunction?.labelName}, usuwam stos, ktory normalnie by sama usunela")
                 // było wywołanie funkcji, a ta funkcja skasowała swój stos, mogła pozostać zwrotka!
-                wolinState.fnCallReleaseArgs(calledFunction!!)
+                state!!.fnCallReleaseArgs(calledFunction!!)
                 pendingFreeFunction = false
             }
 
@@ -199,21 +214,20 @@ _endscope_ loop , 1
             if(linia.instrukcja().text == "call") {
                 if(calledFunction == null) {
                     val nazwaFunkcji = linia.arg(0).operand()!!.value().text
-                    calledFunction = wolinState.findFunctionByLabel(nazwaFunkcji)
+                    calledFunction = state!!.findFunctionByLabel(nazwaFunkcji)
                 }
                 println("funkcja wywoluje: ${calledFunction?.labelName}")
                 pendingFreeFunction = true
             } else if (linia.instrukcja().text == "alloc" && linia.arg(0).operand().value().addressed().text == "SPF") {
                 // będzie wywołanie funkcji, zapamiętajmy, jakiej
                 val nazwaFunkcji = linia.arg(0).operand().name(0).identifier().text
-                calledFunction = wolinState.findFunctionByLabel(nazwaFunkcji)
-                wolinState.fnCallAllocRetAndArgs(calledFunction!!)
+                calledFunction = state!!.findFunctionByLabel(nazwaFunkcji)
+                state!!.fnCallAllocRetAndArgs(calledFunction!!)
                 println("funkcja wywola: ${calledFunction?.labelName} i allokuje jej stos")
             } else if (linia.instrukcja().text == "free" && linia.arg(0).operand().value().addressed().text == "SPF") {
                 // to jest zwalnianie parametrów funkcji, w której jesteśmy!
                 // ALBO zwalnianie zwrotki wywołanej funkcji!
-                val nazwaFunkcji = linia.arg(0).operand().name(0).identifier().text
-                when (nazwaFunkcji) {
+                when (linia.arg(0).operand().name(0).identifier().text) {
                     insideFunction!!.labelName -> {
                         println("koniec funkcji przetwarzanej, zwalnianie jej stosu (${insideFunction?.labelName})")
                     }
@@ -230,7 +244,7 @@ _endscope_ loop , 1
 
         functionCode.clear()
 
-        //wolinState.fnDeclFreeStackAndRet(insideFunction!!)
-        wolinState.callStack.clear() // nic już nas nie obchodzi stos funckji
+        //state.fnDeclFreeStackAndRet(insideFunction!!)
+        state!!.callStack.clear() // nic już nas nie obchodzi stos funckji
     }
 }

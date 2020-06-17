@@ -42,13 +42,13 @@ fun createRegFromAlloc(template: PseudoAsmParser.LiniaContext): Register? {
     } else null
 }
 
-fun copy(ctx: ParseTree): ParseTree {
+fun copyTree(ctx: ParseTree): ParseTree {
     return when (ctx) {
         is ParserRuleContext -> {
             val nowa = ctx.javaClass.getDeclaredConstructor(ParserRuleContext::class.java, Int::class.java)
                 .newInstance(ctx.parent, ctx.invokingState) // dodać argsy
             nowa.copyFrom(ctx)
-            nowa.children = ctx.children?.map { copy(it) }?.toMutableList()
+            nowa.children = ctx.children?.map { copyTree(it) }?.toMutableList()
 
             nowa
         }

@@ -11,6 +11,11 @@ class ReplacementPair(
     val thiz: FlowNode,
     val withThat: FlowNode
 )
+{
+    override fun toString(): String {
+        return "${thiz.uid}->${withThat.uid}"
+    }
+}
 
 class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     val newRegs = mutableListOf<FlowNode>()
@@ -46,7 +51,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                     else
                         obtain(leftContext).apply {
                             referenced = referenced || opcode != "free" && opcode != "alloc"
-                            //contents = if(contents == null && opcode != "free" && opcode != "alloc") leftContext else contents
+                            contents = if(leftContext.operand().children.size > contents?.children?.get(0)?.childCount ?: 0) leftContext else contents
                         }
 
                 val rightNode =
@@ -54,7 +59,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                     else {
                         obtain(rightContext).apply {
                             referenced = true
-                            //contents = rightContext
+                            contents = if(rightContext.operand().children.size > contents?.children?.get(0)?.childCount ?: 0) leftContext else contents
                         }
                     }
 
@@ -72,7 +77,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                     }
                 } else if (opcode == "alloc" || opcode == "free") {
                     obtain(line.arg(0)).apply {
-                        contents = line.arg(0)
+                        contents = if(contents==null) line.arg(0) else contents
                     }
                 }
             }
@@ -155,8 +160,13 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     }
 
 
-    fun replaceRedundantAllocs(ctx: PseudoAsmParser.PseudoAsmFileContext, finalState: WolinStateObject) {
+    fun removeRedundantAllocs(ctx: PseudoAsmParser.PseudoAsmFileContext, finalState: WolinStateObject) {
         println("== looking for allocs of redundant registers ==")
+
+        // a może tak
+        // 1. usuwamy alloc/free rejestrów better
+        // 2. alloc/free rejestrów redundant zastępujemy przez better - pytanie, czy zawsze better jest rejestrem
+        // 3. jeżeli coś zostało z redundant, to usuwamy
 
         ctx.linia()?.iterator()?.let { linie ->
             while (linie.hasNext()) {
@@ -178,26 +188,41 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     fun replacePairs(ctx: PseudoAsmParser.PseudoAsmFileContext, finalState: WolinStateObject) {
         pairs.forEach { pair ->
 
+            println("Pair: ${pair}")
+
             ctx.linia()?.iterator()?.let { linie ->
                 while (linie.hasNext()) {
-                    val line = linie.next()
+                    var matched = false
 
-                    //val opcode = line.instrukcja().simpleIdentifier().text
-                    val targetUid = (line.target()?.firstOrNull() as ParserRuleContext?)?.getUid()
-                    val arg1Uid = (line.arg()?.getOrNull(0) as ParserRuleContext?)?.getUid()
-                    val arg2Uid = (line.arg()?.getOrNull(1) as ParserRuleContext?)?.getUid()
+                    val line = linie.next()
+                    val test = line.text
+
+                    if(pair.thiz.uid == "__wolin_reg6" && line.text.contains(pair.thiz.uid!!)) {
+                        println("Should match ${line.text}")
+                    }
+
+
+                    val targetUid = (line.children.filter { it is PseudoAsmParser.TargetContext }.firstOrNull() as ParserRuleContext?)?.getUid()
+                    val arg1Uid = (line.children.filter { it is PseudoAsmParser.ArgContext }.getOrNull(0) as ParserRuleContext?)?.getUid()
+                    val arg2Uid = (line.children.filter { it is PseudoAsmParser.ArgContext }.getOrNull(1) as ParserRuleContext?)?.getUid()
+
+//                    val targetUid = (line.target()?.firstOrNull() as ParserRuleContext?)?.getUid()
+//                    val arg1Uid = (line.arg()?.getOrNull(0) as ParserRuleContext?)?.getUid()
+//                    val arg2Uid = (line.arg()?.getOrNull(1) as ParserRuleContext?)?.getUid()
+
 
                     if(targetUid == pair.thiz.uid) {
-                        line.target(0).children = pair.withThat.contents!!.children
+                        (line.children.filterIsInstance<PseudoAsmParser.TargetContext>().firstOrNull())?.children = pair.withThat.contents!!.children
                     }
 
                     if(arg1Uid == pair.thiz.uid) {
-                        line.arg(0).children = pair.withThat.contents!!.children
+                        (line.children.filterIsInstance<PseudoAsmParser.ArgContext>().getOrNull(0))?.children = pair.withThat.contents!!.children
                     }
 
                     if(arg2Uid == pair.thiz.uid) {
-                        line.arg(1).children = pair.withThat.contents!!.children
+                        (line.children.filterIsInstance<PseudoAsmParser.ArgContext>().getOrNull(1))?.children = pair.withThat.contents!!.children
                     }
+
                 }
             }
         }
@@ -226,29 +251,26 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     }
 
     fun obtain(c: ParserRuleContext): FlowNode {
-        if(c.getUid()=="__wolin_reg18") {
-            println("tu!")
-        }
         val existing = newRegs.lastOrNull { it.uid == c.getUid() }
         return if (existing != null)
             existing
         else {
-            val nowy = FlowNode(contents = c)
+            val nowy = FlowNode().apply { contents = c }
             newRegs.add(nowy)
             nowy
         }
     }
 
     fun obtainTarget(c: ParserRuleContext, opcode: String): FlowNode {
-        if(c.getUid()=="__wolin_reg18") {
-            println("tu!")
-        }
         val existing = newRegs.lastOrNull { it.uid == c.getUid() }
         return if (existing != null && (existing.incomingLeft == null || existing.incomingLeft?.ref == "&"))
             existing.apply { this.opcode = opcode } // pierwsze przypisanie
         else {
             val nowy =
-                FlowNode(contents = c, nodeNum = existing?.nodeNum?.inc() ?: 0).apply { this.opcode = opcode }
+                FlowNode(nodeNum = existing?.nodeNum?.inc() ?: 0).apply {
+                    contents = c
+                    this.opcode = opcode
+                }
             newRegs.add(nowy)
             nowy
         }

@@ -3,7 +3,7 @@ package pl.qus.wolin.pl.qus.wolin.optimizer
 import org.antlr.v4.runtime.ParserRuleContext
 import pl.qus.wolin.WolinStateObject
 import pl.qus.wolin.components.FieldType
-import tornadofx.urlEncoded
+import pl.qus.wolin.copyTree
 
 class DestPair(
     var node: FlowNode,
@@ -16,8 +16,6 @@ class DestPair(
     }
 }
 class FlowNode (
-    var contents: ParserRuleContext? = null,
-
     var incomingLeft: DestPair? = null,
     var incomingRight: DestPair? = null,
     var goesInto: MutableList<DestPair> = mutableListOf(),
@@ -29,6 +27,11 @@ class FlowNode (
     var redundant: Boolean = false
 ) {
     enum class Type {ENTRY, EXIT, NODE}
+
+    var contents: ParserRuleContext? = null
+        set(value) {
+            field = copyTree(value as ParserRuleContext) as ParserRuleContext
+        }
 
     val hasOneInput get() = incomingRight == null
     val isNode get() = type == Type.NODE
@@ -99,7 +102,8 @@ class FlowNode (
         // jeżeli this goes into better...
 
         val finalBetter = if(isMutable) {
-            val new = FlowNode(contents = better.node.contents).apply {
+            val new = FlowNode().apply {
+                contents = better.node.contents
                 all.add(this)
             }
 

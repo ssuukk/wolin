@@ -66,105 +66,62 @@ __wolin_this_ptr_hi := 176+1
 
 __wolin_pl_qus_wolin_print:
 
-; 9: let SPF(1)<pl.qus.wolin.print..i>[ubyte] = #0[ubyte] 
+; 9: let SPF(1)<pl.qus.wolin.print..i>[ubyte] = SP(0)<__wolin_reg2>[ubyte] 
 
 
+    lda 0,x
     ldy #1
-    lda #0
     sta (__wolin_spf),y
 
-; 10: add SPF(0)<pl.qus.wolin.print..char>[ubyte] = SPF(2)<pl.qus.wolin.print.what>[ubyte*] , SPF(1)<pl.qus.wolin.print..i>[ubyte] 
-
+; 12: alloc SP<__wolin_reg9> , #1 
 
     dex
-    dex
-    clc
-    ldy #2
-    lda (__wolin_spf), y
-    ldy #1
-    adc (__wolin_spf), y
-    sta 0,x
-    ldy #2+1
-    lda (__wolin_spf), y
-    adc #0
-    sta 1,x
-    ldy #0
-    lda (0,x)
-    sta (__wolin_spf), y
-    inx
-    inx
 
-
-; 11: alloc SP<__wolin_reg9>[bool] , #1 
-
-    .byte SP
-
-; 13: label __wolin_lab_loop_start_1 
+; 14: label __wolin_lab_loop_start_1 
 
 __wolin_lab_loop_start_1:
 
-; 14: evalneq SP(2)<__wolin_reg9>[bool] = SPF(0)<pl.qus.wolin.print..char>[ubyte] , #0[ubyte] 
-
-
-    lda #1 ; rozne
-    sta 2,x
-    ldy #0
-    lda (__wolin_spf), y
-    bne :+
-    lda #0 ; jednak rowne
-    sta 2,x
-:
-
-; 15: bne SP(0)<__wolin_reg9>[bool] = #1[bool] , __wolin_lab_loop_end_1<label_po_if>[uword] 
+; 16: bne SP(0)<__wolin_reg9>[bool] = #1[bool] , __wolin_lab_loop_end_1<label_po_if>[uword] 
 
 
     lda 0,x
     beq __wolin_lab_loop_end_1
 
-; 16: save SP 
+; 17: save SP 
 
 
     txa
     pha
 
-; 17: save SPF(0)<pl.qus.wolin.print..char>[ubyte] 
+; 18: save SP(0)<__wolin_reg14>[ubyte] 
 
 
-    ldy #0
-    lda (__wolin_spf),y
+    lda 0,x
     pha
 
 
-; 18: restore CPU.A[ubyte] 
+; 19: restore CPU.A[ubyte] 
 
 
     pla
 
-; 19: call __wolin_pl_qus_wolin_chrout[uword] 
+; 20: call __wolin_pl_qus_wolin_chrout[uword] 
 
     jsr __wolin_pl_qus_wolin_chrout
 
-; 20: restore SP 
+; 21: restore SP 
 
 
     pla
     tax
 
-; 21: add SPF(1)<pl.qus.wolin.print..i>[ubyte] = SPF(1)<pl.qus.wolin.print..i>[ubyte] , #1[ubyte] 
+; 23: alloc SP<__wolin_reg18> , #2 
 
 
-    clc
-    ldy #1
-    lda #1
-    adc (__wolin_spf),y
-    sta (__wolin_spf),y
+    dex
+    dex
 
-
-; 22: alloc SP<__wolin_reg18>[ubyte*] , #2 
-
-    .byte 1,2,3,4
-
-; 24: let SPF(0)<pl.qus.wolin.print..char>[ubyte] = &SP(0)<__wolin_reg18>[ubyte*] 
+; 26: let SPF(0)<pl.qus.wolin.print..char>[ubyte] = &SP(0)<__wolin_reg18>[ubyte*] 
 
 
     lda (0,x)
@@ -172,25 +129,19 @@ __wolin_lab_loop_start_1:
     sta (__wolin_spf),y
 
 
-; 25: free SP<__wolin_reg18>[ubyte*] , #2 
-
-
-    inx
-    inx
-
-; 26: goto __wolin_lab_loop_start_1[uword] 
+; 28: goto __wolin_lab_loop_start_1[uword] 
 
     jmp __wolin_lab_loop_start_1
 
-; 28: label __wolin_lab_loop_end_1 
+; 30: label __wolin_lab_loop_end_1 
 
 __wolin_lab_loop_end_1:
 
-; 29: free SP<__wolin_reg9>[bool] , #1 
+; 31: free SP<__wolin_reg9> , #1 
 
     inx
 
-; 30: free SPF<__wolin_pl_qus_wolin_print> , #4 
+; 32: free SPF<__wolin_pl_qus_wolin_print> , #4 
 
 
     clc
@@ -201,15 +152,15 @@ __wolin_lab_loop_end_1:
     inc __wolin_spf+1
 :
 
-; 31: endfunction 
+; 33: endfunction 
 
     rts
 
-; 32: function __wolin_pl_qus_wolin_main 
+; 34: function __wolin_pl_qus_wolin_main 
 
 __wolin_pl_qus_wolin_main:
 
-; 33: alloc SPF<__wolin_pl_qus_wolin_print> , #4 
+; 35: alloc SPF<__wolin_pl_qus_wolin_print> , #4 
 
 
     sec
@@ -220,25 +171,15 @@ __wolin_pl_qus_wolin_main:
     dec __wolin_spf+1
 :
 
-; 34: let SPF(2)<pl.qus.wolin.print.what>[ubyte*] = #__wolin_lab_stringConst_0[uword] 
-
-
-    lda #<__wolin_lab_stringConst_0
-    ldy #2
-    sta (__wolin_spf),y
-    lda #>__wolin_lab_stringConst_0
-    iny
-    sta (__wolin_spf),y
-
-; 35: call __wolin_pl_qus_wolin_print[uword] 
+; 37: call __wolin_pl_qus_wolin_print[uword] 
 
     jsr __wolin_pl_qus_wolin_print
 
-; 36: endfunction 
+; 38: endfunction 
 
     rts
 
-; 37: string __wolin_lab_stringConst_0[uword] = $"dupa" 
+; 39: string __wolin_lab_stringConst_0[uword] = $"dupa" 
 
 
 __wolin_lab_stringConst_0:

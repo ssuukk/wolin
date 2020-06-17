@@ -13,7 +13,6 @@ enum class Pass {
 }
 
 class WolinVisitor(
-    private val nazwaPliku: String,
     pass: Pass,
     private val tokenStream: CommonTokenStream
 ) : KotlinParserBaseVisitor<WolinStateObject>() {

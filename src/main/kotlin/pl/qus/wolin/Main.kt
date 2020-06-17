@@ -2,10 +2,10 @@ package pl.qus.wolin
 
 import org.antlr.v4.runtime.ANTLRInputStream
 import org.antlr.v4.runtime.CommonTokenStream
-import pl.qus.wolin.exception.NoRuleException
-import pl.qus.wolin.pl.qus.wolin.StackOpsSanitizer
-import pl.qus.wolin.pl.qus.wolin.optimizer.NewOptimizerProcessor
-import pl.qus.wolin.pl.qus.wolin.optimizer.OptimizerProcessor
+import pl.qus.wolin.pl.qus.wolin.steps.OptimizerStep
+import pl.qus.wolin.pl.qus.wolin.steps.PseudoAsmStep
+import pl.qus.wolin.pl.qus.wolin.steps.SanitizerStep
+import pl.qus.wolin.pl.qus.wolin.steps.TargetStep
 import java.io.*
 import java.lang.StringBuilder
 import java.net.ServerSocket
@@ -232,131 +232,25 @@ label xxxx
 
      */
 
+
     @JvmStatic
     fun main(args: Array<String>) {
 
         //server()
 
-        val finalState = wolinIntoPseudoAsm(FileInputStream(File("src/main/wolin/test.ktk")))
+        val asm = PseudoAsmStep().apply {
+            this.inputName = "test.ktk"
+            this.outputName = "pseudoasm.qasm"
+            execute()
+        }
 
-        optimizePseudoAsm(
-            FileInputStream(File("src/main/wolin/assembler.asm")),
-            FileOutputStream(File("src/main/wolin/assembler_optX.asm")),
-            finalState
-        )
+        val opt = asm.chain(OptimizerStep(), "pseudoasm_optimized1.qasm")
 
-        sanitizePseudoAsmStackOps(
-            FileInputStream(File("src/main/wolin/assembler_optX.asm")),
-            FileOutputStream(File("src/main/wolin/assembler_opt1.asm")),
-            finalState
-        )
+        val san = opt.chain(SanitizerStep(), "pseudoasm_sanitized.qasm")
 
-        // tu jeszcze raz optimizer, żeby skonsolidować alloce
-
-        pseudoAsmToTargetAsm(
-            FileInputStream(File("src/main/wolin/assembler_opt1.asm")),
-            FileInputStream(File("src/main/wolin/template.asm"))
-        )
+        val targ = san.chain(TargetStep(), "assembler.s")
 
         //launch<MyApp>(args)
-    }
-
-    private fun sanitizePseudoAsmStackOps(
-        asmStream: InputStream,
-        outStream: OutputStream,
-        finalState: WolinStateObject
-    ) {
-        val asmLexer = PseudoAsmLexer(ANTLRInputStream(asmStream))
-        val asmTokens = CommonTokenStream(asmLexer)
-        val asmParser = PseudoAsmParser(asmTokens)
-        val asmContext = asmParser.pseudoAsmFile()
-        val sanitizer = StackOpsSanitizer(outStream)
-        finalState.copyInto(sanitizer.wolinState)
-        sanitizer.startWork(asmContext)
-
-    }
-
-    private fun optimizePseudoAsm(
-        asmStream: InputStream,
-        outStream: OutputStream,
-        finalState: WolinStateObject
-    ) {
-        val newOpt = true
-
-        val asmLexer = PseudoAsmLexer(ANTLRInputStream(asmStream))
-        val asmTokens = CommonTokenStream(asmLexer)
-        val asmParser = PseudoAsmParser(asmTokens)
-        val asmContext = asmParser.pseudoAsmFile()
-        val optimizer = OptimizerProcessor()
-
-        if(newOpt) {
-            val newOpt = NewOptimizerProcessor(finalState)
-            newOpt.buildFlowTree(asmContext)
-            newOpt.optimizeGraph()
-            newOpt.replaceRedundantAllocs(asmContext, finalState)
-            newOpt.replacePairs(asmContext, finalState)
-            newOpt.removeIdentities(asmContext)
-        }
-        else {
-            // zebrać wszystkie rejestry
-            optimizer.gatherAllSPRegs(asmContext)
-            // sprawdzić które kwalifikują się do usunięcia
-            optimizer.markSingleAssignmentRegs(asmContext)
-            // tu można wygenerować ponownie plik tekstowy, pewnie nawet trzeba, tu się przesuwa funkcyjne rejestry
-            optimizer.replaceSingleAssignmentRegWithItsValue(asmContext)
-            // sprawdzić, czy dany rejestr występuje tylko jako free/alloc +ew. let rejestr =, tylko odflaguje
-            optimizer.markRegIfStillUsed(asmContext)
-            // usuwa oflagowane rejestry
-            optimizer.removeAndShiftArgs(asmContext)
-
-            optimizer.optimizeReverseAssigns(asmContext)
-            optimizer.replaceSingleAssignmentRegWithItsValue(asmContext)
-            optimizer.markRegIfStillUsed(asmContext)
-            optimizer.removeAndShiftArgs(asmContext)
-
-            optimizer.sanitizeDerefs(asmContext)
-            //optimizer.consolidateAllocs(asmContext)
-        }
-
-        outStream.use {
-            asmContext.linia().iterator().forEach {
-                val linia = it.children.map{ it.text }.joinToString(" ")
-                outStream.write(linia.toByteArray())
-            }
-        }
-    }
-
-    private fun pseudoAsmToTargetAsm(asmStream: InputStream, templateStream: InputStream) {
-        val asmLexer = PseudoAsmLexer(ANTLRInputStream(asmStream))
-        val asmTokens = CommonTokenStream(asmLexer)
-        val asmParser = PseudoAsmParser(asmTokens)
-        val asmContext = asmParser.pseudoAsmFile()
-
-        val templateLexer = PseudoAsmLexer(ANTLRInputStream(templateStream))
-        val templateTokens = CommonTokenStream(templateLexer)
-        val templateParser = PseudoAsmParser(templateTokens)
-        val templateContext = templateParser.pseudoAsmFile()
-        val templateVisitor = RuleMatcherVisitor()
-
-        asmContext.linia().forEach {
-            templateVisitor.state.assemblerLine = it
-            try {
-                templateVisitor.visit(templateContext)
-            } catch (ex: NoRuleException) {
-                println("No rule for parsing:${ex.message}")
-            } catch (ex: Exception) {
-                println("Syntax error in rule file translateAsm")
-                throw ex
-            } finally {
-                asmFileLine++
-            }
-        }
-
-        val ostream = BufferedOutputStream(FileOutputStream(File("src/main/wolin/assembler.s")))
-
-        ostream.use {
-            it.write(templateVisitor.state.dumpCode().toByteArray())
-        }
     }
 
 
@@ -373,11 +267,11 @@ label xxxx
         // Specify our entry point
         val fileContext = parser.kotlinFile()
 
-        val symbolsVisitor = WolinVisitor("test", Pass.SYMBOLS, tokens)
+        val symbolsVisitor = WolinVisitor(Pass.SYMBOLS, tokens)
 
-        val declarationVisitor = WolinVisitor("test", Pass.DECLARATION, tokens)
+        val declarationVisitor = WolinVisitor(Pass.DECLARATION, tokens)
 
-        val translationVisitor = WolinVisitor("test", Pass.TRANSLATION, tokens)
+        val translationVisitor = WolinVisitor(Pass.TRANSLATION, tokens)
 
         //try {
 
@@ -412,10 +306,6 @@ label xxxx
             it.write(wynik.dumpCode().toByteArray())
         }
 
-        //println(wynik.dumpCode())
-//        } catch (ex: Exception) {
-//            println(ex.message)
-//        }
         return translationVisitor.state
     }
 
@@ -423,91 +313,207 @@ label xxxx
         val hostName = "127.0.0.1"
         val portNumber = 64128
 
-            val serverSocket = ServerSocket(64128)
-            val echoSocket = serverSocket.accept()
-            val out = PrintWriter (echoSocket.getOutputStream(), true);
+        val serverSocket = ServerSocket(64128)
+        val echoSocket = serverSocket.accept()
+        val out = PrintWriter(echoSocket.getOutputStream(), true);
 
-            val builder = StringBuilder()
+        val builder = StringBuilder()
 
-            var localServer: Thread? = null
+        var localServer: Thread? = null
 
-            InputStreamReader(echoSocket.getInputStream()).use {
-                println("Soket otwarty!")
-                var connected = false
-                do {
-                    var b = it.read()
-                    if(b == 0x1b) {
-                        b = it.read() xor 0x20
-                    }
+        InputStreamReader(echoSocket.getInputStream()).use {
+            println("Soket otwarty!")
+            var connected = false
+            do {
+                var b = it.read()
+                if (b == 0x1b) {
+                    b = it.read() xor 0x20
+                }
 
-                    val linia = builder.toString()
+                val linia = builder.toString()
 
-                    val tokeny = linia.split(" ")
-                    val token = tokeny[0]
+                val tokeny = linia.split(" ")
+                val token = tokeny[0]
 
-                    when {
-                        b==13 -> {
-                            //builder.append(b.toChar())
-                            println("Przyszła linia: '${linia}'")
-                            builder.clear()
-                            when (token) {
-                                "ATI" -> {
-                                    out.println("JAM JEST MODEM WIELKI")
-                                }
-                                "AT" -> {
-                                    out.println("OK")
-                                }
-                                "ATD" -> {
-                                    println("otworzyc: ${tokeny[1]}\n")
-                                    val url = URL("http://${tokeny[1]}/")
-                                    val uistream = BufferedReader(InputStreamReader(url.openStream()))
+                when {
+                    b == 13 -> {
+                        //builder.append(b.toChar())
+                        println("Przyszła linia: '${linia}'")
+                        builder.clear()
+                        when (token) {
+                            "ATI" -> {
+                                out.println("JAM JEST MODEM WIELKI")
+                            }
+                            "AT" -> {
+                                out.println("OK")
+                            }
+                            "ATD" -> {
+                                println("otworzyc: ${tokeny[1]}\n")
+                                val url = URL("http://${tokeny[1]}/")
+                                val uistream = BufferedReader(InputStreamReader(url.openStream()))
 
-                                    connected = true
-                                    localServer = Thread {
-                                        while(connected) {
-                                            val char = uistream.readLine()
-                                            out.println(char)
-                                            print(char)
-                                            Thread.sleep(1000)
-                                        }
+                                connected = true
+                                localServer = Thread {
+                                    while (connected) {
+                                        val char = uistream.readLine()
+                                        out.println(char)
+                                        print(char)
+                                        Thread.sleep(1000)
                                     }
+                                }
 
-                                    localServer?.start()
+                                localServer?.start()
 
-                                }
-                                "" -> {
-                                    println("pusta")
-                                }
-                                else -> {
-                                    println("Nieznana komenda")
-                                    out.println("?syntax  error")
-                                }
                             }
-                        }
-                        b<32 -> {
-                            builder.append("<$b>")
-                        }
-                        b>=32 -> {
-                            //println("${b.toChar()}")
-                            builder.append(b.toChar())
-                            if(builder.toString()=="+++") {
-                                out.println("coming back")
-                                builder.clear()
-                                connected = false
+                            "" -> {
+                                println("pusta")
                             }
-                        }
-                        else -> {
-                            //print("nic ")
+                            else -> {
+                                println("Nieznana komenda")
+                                out.println("?syntax  error")
+                            }
                         }
                     }
+                    b < 32 -> {
+                        builder.append("<$b>")
+                    }
+                    b >= 32 -> {
+                        //println("${b.toChar()}")
+                        builder.append(b.toChar())
+                        if (builder.toString() == "+++") {
+                            out.println("coming back")
+                            builder.clear()
+                            connected = false
+                        }
+                    }
+                    else -> {
+                        //print("nic ")
+                    }
+                }
 
 
+            } while (echoSocket.isBound)
 
-                } while(echoSocket.isBound)
-
-                println("Rozlaczone!")
-            }
+            println("Rozlaczone!")
+        }
     }
 }
 
 var asmFileLine = 1
+
+
+//    private fun sanitizePseudoAsmStackOps(
+//        asmStream: InputStream,
+//        outStream: OutputStream,
+//        finalState: WolinStateObject
+//    ) {
+//        val asmLexer = PseudoAsmLexer(ANTLRInputStream(asmStream))
+//        val asmTokens = CommonTokenStream(asmLexer)
+//        val asmParser = PseudoAsmParser(asmTokens)
+//        val asmContext = asmParser.pseudoAsmFile()
+//        val sanitizer = StackOpsSanitizer(outStream)
+//        finalState.copyInto(sanitizer.wolinState)
+//        sanitizer.startWork(asmContext)
+//    }
+
+//        sanitizePseudoAsmStackOps(
+//            FileInputStream(File("src/main/wolin/assembler_optX.asm")),
+//            FileOutputStream(File("src/main/wolin/assembler_opt1.asm")),
+//            finalState
+//        )
+
+//        optimizePseudoAsm(
+//            FileInputStream(File("src/main/wolin/assembler.asm")),
+//            FileOutputStream(File("src/main/wolin/assembler_optX.asm")),
+//            finalState
+//        )
+
+//    private fun optimizePseudoAsm(
+//        asmStream: InputStream,
+//        outStream: OutputStream,
+//        finalState: WolinStateObject
+//    ) {
+//        val newOpt = true
+//
+//        val asmLexer = PseudoAsmLexer(ANTLRInputStream(asmStream))
+//        val asmTokens = CommonTokenStream(asmLexer)
+//        val asmParser = PseudoAsmParser(asmTokens)
+//        val asmContext = asmParser.pseudoAsmFile()
+//        val optimizer = OptimizerProcessor()
+//
+//        if(newOpt) {
+//            val newOpt = NewOptimizerProcessor(finalState)
+//            newOpt.buildFlowTree(asmContext)
+//            newOpt.optimizeGraph()
+//            newOpt.removeRedundantAllocs(asmContext, finalState)
+//            newOpt.replacePairs(asmContext, finalState)
+//            newOpt.removeIdentities(asmContext)
+//        }
+//        else {
+//            // zebrać wszystkie rejestry
+//            optimizer.gatherAllSPRegs(asmContext)
+//            // sprawdzić które kwalifikują się do usunięcia
+//            optimizer.markSingleAssignmentRegs(asmContext)
+//            // tu można wygenerować ponownie plik tekstowy, pewnie nawet trzeba, tu się przesuwa funkcyjne rejestry
+//            optimizer.replaceSingleAssignmentRegWithItsValue(asmContext)
+//            // sprawdzić, czy dany rejestr występuje tylko jako free/alloc +ew. let rejestr =, tylko odflaguje
+//            optimizer.markRegIfStillUsed(asmContext)
+//            // usuwa oflagowane rejestry
+//            optimizer.removeAndShiftArgs(asmContext)
+//
+//            optimizer.optimizeReverseAssigns(asmContext)
+//            optimizer.replaceSingleAssignmentRegWithItsValue(asmContext)
+//            optimizer.markRegIfStillUsed(asmContext)
+//            optimizer.removeAndShiftArgs(asmContext)
+//
+//            optimizer.sanitizeDerefs(asmContext)
+//            //optimizer.consolidateAllocs(asmContext)
+//        }
+//
+//        outStream.use {
+//            asmContext.linia().iterator().forEach {
+//                val linia = it.children.map{ it.text }.joinToString(" ")
+//                outStream.write(linia.toByteArray())
+//            }
+//        }
+//    }
+
+//        pseudoAsmToTargetAsm(
+//            FileInputStream(File("src/main/wolin/assembler_opt1.asm")),
+//            FileInputStream(File("src/main/wolin/template.asm"))
+//        )
+
+
+//    private fun pseudoAsmToTargetAsm(asmStream: InputStream, templateStream: InputStream) {
+//        val asmLexer = PseudoAsmLexer(ANTLRInputStream(asmStream))
+//        val asmTokens = CommonTokenStream(asmLexer)
+//        val asmParser = PseudoAsmParser(asmTokens)
+//        val asmContext = asmParser.pseudoAsmFile()
+//
+//        val templateLexer = PseudoAsmLexer(ANTLRInputStream(templateStream))
+//        val templateTokens = CommonTokenStream(templateLexer)
+//        val templateParser = PseudoAsmParser(templateTokens)
+//        val templateContext = templateParser.pseudoAsmFile()
+//        val templateVisitor = RuleMatcherVisitor()
+//
+//        asmContext.linia().forEach {
+//            templateVisitor.state.assemblerLine = it
+//            try {
+//                templateVisitor.visit(templateContext)
+//            } catch (ex: NoRuleException) {
+//                println("No rule for parsing:${ex.message}")
+//            } catch (ex: Exception) {
+//                println("Syntax error in rule file translateAsm")
+//                throw ex
+//            } finally {
+//                asmFileLine++
+//            }
+//        }
+//
+//        val ostream = BufferedOutputStream(FileOutputStream(File("src/main/wolin/assembler.s")))
+//
+//        ostream.use {
+//            it.write(templateVisitor.state.dumpCode().toByteArray())
+//        }
+//    }
+
