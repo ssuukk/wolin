@@ -90,7 +90,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
             it.walkDownToSource(finalState)
         }
 
-        graphViz(newRegs, "initial")
+        dumpIntoGraphVizFile(newRegs, "initial")
 
         newRegs.filter { !it.referenced }.forEach {
             it.redundant = true
@@ -145,7 +145,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
             }
         } while (redundant != null)
 
-        graphViz(newRegs, "optimized")
+        dumpIntoGraphVizFile(newRegs, "optimized")
     }
 
     private fun isMutable(b: FlowNode): Boolean {
@@ -173,9 +173,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                 val line = linie.next()
 
                 val opcode = line.instrukcja().simpleIdentifier().text
-                val targetUid = (line.target()?.firstOrNull() as ParserRuleContext?)?.getUid()
                 val arg1Uid = (line.arg()?.getOrNull(0) as ParserRuleContext?)?.getUid()
-                val arg2Uid = (line.arg()?.getOrNull(1) as ParserRuleContext?)?.getUid()
 
                 if ((opcode == "alloc" || opcode == "free") && redundantRegs.any { it.uid == arg1Uid }) {
                     println("usuwam: ${line.text}")
@@ -192,24 +190,11 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
 
             ctx.linia()?.iterator()?.let { linie ->
                 while (linie.hasNext()) {
-                    var matched = false
-
                     val line = linie.next()
-                    val test = line.text
-
-                    if(pair.thiz.uid == "__wolin_reg6" && line.text.contains(pair.thiz.uid!!)) {
-                        println("Should match ${line.text}")
-                    }
-
 
                     val targetUid = (line.children.filter { it is PseudoAsmParser.TargetContext }.firstOrNull() as ParserRuleContext?)?.getUid()
                     val arg1Uid = (line.children.filter { it is PseudoAsmParser.ArgContext }.getOrNull(0) as ParserRuleContext?)?.getUid()
                     val arg2Uid = (line.children.filter { it is PseudoAsmParser.ArgContext }.getOrNull(1) as ParserRuleContext?)?.getUid()
-
-//                    val targetUid = (line.target()?.firstOrNull() as ParserRuleContext?)?.getUid()
-//                    val arg1Uid = (line.arg()?.getOrNull(0) as ParserRuleContext?)?.getUid()
-//                    val arg2Uid = (line.arg()?.getOrNull(1) as ParserRuleContext?)?.getUid()
-
 
                     if(targetUid == pair.thiz.uid) {
                         (line.children.filterIsInstance<PseudoAsmParser.TargetContext>().firstOrNull())?.children = pair.withThat.contents!!.children
@@ -276,7 +261,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
         }
     }
 
-    private fun graphViz(newRegs: List<FlowNode>, nazwa: String) {
+    private fun dumpIntoGraphVizFile(newRegs: List<FlowNode>, nazwa: String) {
         // bin\dot -Tpng graph.dot > output.png
         val ostream = OutputStreamWriter(FileOutputStream(File("src/main/wolin/$nazwa.dot")))
         ostream.write(

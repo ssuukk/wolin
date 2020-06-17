@@ -238,17 +238,13 @@ label xxxx
 
         //server()
 
-        val asm = PseudoAsmStep().apply {
+        PseudoAsmStep().apply {
             this.inputName = "test.ktk"
             this.outputName = "pseudoasm.qasm"
             execute()
         }
-
-        val opt = asm.chain(OptimizerStep(), "pseudoasm_optimized1.qasm")
-
-        val san = opt.chain(SanitizerStep(), "pseudoasm_sanitized.qasm")
-
-        val targ = san.chain(TargetStep(), "assembler.s")
+            .chain(OptimizerStep(), "pseudoasm_optimized1.qasm")
+            .chain(TargetStep(), "assembler.s")
 
         //launch<MyApp>(args)
     }

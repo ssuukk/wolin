@@ -4,7 +4,6 @@ import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.antlr.v4.runtime.tree.TerminalNodeImpl
-import pl.qus.wolin.pl.qus.wolin.optimizer.Register
 
 
 fun extractStackTypeFromOperand(ctx: PseudoAsmParser.OperandContext): String? {
@@ -25,21 +24,6 @@ private fun extractAllocSize(template: PseudoAsmParser.LiniaContext, stack: Stri
 fun extractSPVectorFromOperand(ctx: PseudoAsmParser.OperandContext): Int {
     val wektor = ctx.value()?.addressed()?.index(0)?.text
     return Integer.parseInt(wektor)
-}
-
-fun createRegFromAlloc(template: PseudoAsmParser.LiniaContext): Register? {
-    val stos = template.arg(0)?.operand()?.value()?.addressed()?.identifier()?.simpleIdentifier(0)?.text // SP
-    val nazwa = template.arg(0)?.operand()?.name(0)?.identifier()?.simpleIdentifier(0)?.text // __wolin_reg3
-    val wielkość = template.arg(1)?.operand()?.value()?.immediate()?.IntegerLiteral()?.text
-
-    return if (stos == "SP") {
-        val reg = Register()
-
-        reg.numer = Integer.parseInt(nazwa!!.substring(11))
-        reg.wielkość = Integer.parseInt(wielkość!!)
-        reg.name = nazwa
-        reg
-    } else null
 }
 
 fun copyTree(ctx: ParseTree): ParseTree {
