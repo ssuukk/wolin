@@ -696,6 +696,7 @@ functionModifier
     | EXTERNAL
     | SUSPEND
     | INTERRUPT
+    | CC65
     ;
 
 propertyModifier
@@ -770,6 +771,8 @@ simpleIdentifier
     | DYNAMIC
     | ENUM
     | EXTERNAL
+    | INTERRUPT
+    | CC65
     | FINAL
     | FINALLY
     | GETTER

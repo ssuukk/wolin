@@ -13,8 +13,9 @@ class Funkcja(
     var lambdaBody: KotlinParser.StatementsContext? = null // dla lambd
 ) {
 
+    var iscc65: Boolean = false
     var isExternal: Boolean = false
-    var startReg: Int = -1
+    //var startReg: Int = -1
 
     var fullReturnType: Zmienna? = null
 
@@ -31,10 +32,11 @@ class Funkcja(
         get() = fields.filter { it.fieldType != FieldType.ARGUMENT }
 
     val labelName: String get() =
-//        if(location != 0)
-//            "__wolin__system_${location.hex()}"
-//        else
-            "__wolin_${fullName.replace(".", "_")}"
+        when {
+            isExternal -> fullName.split(".").last()
+            iscc65 -> "_"+fullName.split(".").last()
+            else -> "__wolin_${fullName.replace(".", "_")}"
+        }
     var fields: MutableList<Zmienna> = mutableListOf()
 
     //val calledFunctions = mutableListOf<Funkcja>()

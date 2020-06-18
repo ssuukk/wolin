@@ -1681,6 +1681,7 @@ class WolinVisitor(
         val lokacjaAdres = Zmienna("", allocation = AllocType.FIXED, fieldType = FieldType.DUMMY)
 
         val isExternal = ctx.modifierList()?.modifier()?.any { it.text == "external" } == true
+        val iscc65 = ctx.modifierList()?.modifier()?.any { it.text == "cc65" } == true
 
         state.switchType(Typ.unit, "function declaration")
 
@@ -1699,6 +1700,7 @@ class WolinVisitor(
             nowa.fullName = functionName
             nowa.isInterrupt = isInterrupt
             nowa.isExternal = isExternal
+            nowa.iscc65 = iscc65
 
             val zwrotka = state.createVar(nowa.returnName, ctx.type(0), null, FieldType.ARGUMENT)
 
@@ -1712,7 +1714,7 @@ class WolinVisitor(
         }
 
         state.currentFunction = nowaFunkcja
-        nowaFunkcja.startReg = state.stackVarCounter
+        //nowaFunkcja.startReg = state.stackVarCounter
 
         if (state.currentClass != null && state.pass == Pass.SYMBOLS) {
             val thisArg = state.createAndRegisterVar(
@@ -1731,12 +1733,14 @@ class WolinVisitor(
         if (nowaFunkcja.isInterrupt && nowaFunkcja.arguments.isNotEmpty())
             błędzik(ctx, "Arguments not allowed for interrupt function!")
 
+        state.fnReturnToVariablary(nowaFunkcja)
+
         val body = ctx.functionBody()
 
         if (body != null && nowaFunkcja.location != 0)
             throw Exception("Fixed address function ${nowaFunkcja.fullName} with a body!")
 
-        if (body != null && nowaFunkcja.isExternal)
+        if (body != null && (nowaFunkcja.isExternal|| nowaFunkcja.iscc65))
             throw Exception("External function ${nowaFunkcja.fullName} with a body!")
 
 
@@ -1748,7 +1752,7 @@ class WolinVisitor(
         """.trimMargin()
             )
 
-            if(state.currentFunction?.isExternal == true)
+            if(state.currentFunction?.isExternal == true || state.currentFunction?.iscc65 == true)
                 state.code("import ${state.currentFunction!!.labelName}")
             else
                 state.code("function ${state.currentFunction!!.labelName}")
@@ -2561,9 +2565,24 @@ class WolinVisitor(
             }
         }
 
+        if(prototyp.iscc65) {
+            state.code("save SP // save SP, as X might be trashed by cc65 call")
+        }
+
         state.code(state.getFunctionCallCode(prototyp.fullName))
 
-        if (prototyp.arguments.any { it.allocation == AllocType.FIXED && it.locationTxt == "CPU.X" }) {
+        // TODO dla external C robimy tu:
+        if(prototyp.iscc65) {
+            if(!prototyp.type.isUnit) {
+                val zwrotka = state.findStackVector(state.callStack, prototyp.returnName).second
+                if(prototyp.type.sizeOnStack == 1)
+                    state.code("let ${state.varToAsm(zwrotka)} = CPU.A // only for cc65 external functions!")
+                else if(prototyp.type.sizeOnStack == 2)
+                    state.code("let ${state.varToAsm(zwrotka)} = CPU.AX // only for cc65 external functions!")
+            }
+            state.code("restore SP // restore SP, as X might be trashed by cc65 call")
+        }
+        else if (prototyp.arguments.any { it.allocation == AllocType.FIXED && it.locationTxt == "CPU.X" }) {
             state.code("restore CPU.X // restore SP, as X is used by native call")
         }
 

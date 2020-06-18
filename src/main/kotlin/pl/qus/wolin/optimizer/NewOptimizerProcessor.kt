@@ -106,7 +106,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     fun optimizeGraph() {
         do {
             val redundant = newRegs.firstOrNull {
-                it.isNotEntry && it.hasOneInput && !isMutable(it) && optimizeAllowed(it)
+                it.isNotEntry && it.isNotEntry && it.hasOneInput && !isMutable(it) && optimizeAllowed(it)
             }
 
             if (redundant != null) {
@@ -155,6 +155,9 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     }
 
     private fun optimizeAllowed(b: FlowNode): Boolean {
+        if(b.uid!!.contains("returnValue")) {
+            println("tu")
+        }
         val zmienna = finalState.variablary.values.firstOrNull { it.name == b.uid }
         return if (zmienna != null) !zmienna.dontOptimize else true
     }

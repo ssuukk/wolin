@@ -539,6 +539,22 @@ class WolinStateObject(val pass: Pass) {
         return funkcja
     }
 
+    fun fnReturnToVariablary(funkcja: Funkcja) {
+        val retZmienna =
+            Zmienna(
+                funkcja.returnName,
+                false,
+                null,
+                AllocType.NORMAL,
+                fieldType = FieldType.LOCAL,
+                typexxx = funkcja.type
+            ).apply {
+                dontOptimize = true
+            }
+
+        toVariablary(retZmienna)
+    }
+
     fun fnCallAllocRetAndArgs(funkcja: Funkcja) {
 
         if (pass == Pass.SYMBOLS) return

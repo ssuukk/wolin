@@ -6,6 +6,7 @@ import pl.qus.wolin.pl.qus.wolin.steps.OptimizerStep
 import pl.qus.wolin.pl.qus.wolin.steps.PseudoAsmStep
 import pl.qus.wolin.pl.qus.wolin.steps.SanitizerStep
 import pl.qus.wolin.pl.qus.wolin.steps.TargetStep
+import tornadofx.launch
 import java.io.*
 import java.lang.StringBuilder
 import java.net.ServerSocket

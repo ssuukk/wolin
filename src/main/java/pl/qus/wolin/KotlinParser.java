@@ -36,19 +36,19 @@ public class KotlinParser extends Parser {
 		PARAM=107, SETPARAM=108, DELEGATE=109, DYNAMIC=110, PUBLIC=111, PRIVATE=112, 
 		PROTECTED=113, INTERNAL=114, ENUM=115, SEALED=116, ANNOTATION=117, DATA=118, 
 		INNER=119, TAILREC=120, OPERATOR=121, INLINE=122, INFIX=123, EXTERNAL=124, 
-		SUSPEND=125, INTERRUPT=126, OVERRIDE=127, ABSTRACT=128, FINAL=129, OPEN=130, 
-		CONST=131, LATEINIT=132, VARARG=133, NOINLINE=134, CROSSINLINE=135, REIFIED=136, 
-		QUOTE_OPEN=137, TRIPLE_QUOTE_OPEN=138, RealLiteral=139, FloatLiteral=140, 
-		DoubleLiteral=141, LongLiteral=142, IntegerLiteral=143, HexLiteral=144, 
-		BinLiteral=145, BooleanLiteral=146, NullLiteral=147, Identifier=148, LabelReference=149, 
-		LabelDefinition=150, FieldIdentifier=151, CharacterLiteral=152, UNICODE_CLASS_LL=153, 
-		UNICODE_CLASS_LM=154, UNICODE_CLASS_LO=155, UNICODE_CLASS_LT=156, UNICODE_CLASS_LU=157, 
-		UNICODE_CLASS_ND=158, UNICODE_CLASS_NL=159, Inside_Comment=160, Inside_WS=161, 
-		Inside_NL=162, QUOTE_CLOSE=163, LineStrRef=164, LineStrText=165, LineStrEscapedChar=166, 
-		LineStrExprStart=167, TRIPLE_QUOTE_CLOSE=168, MultiLineStringQuote=169, 
-		MultiLineStrRef=170, MultiLineStrText=171, MultiLineStrEscapedChar=172, 
-		MultiLineStrExprStart=173, MultiLineNL=174, StrExpr_IN=175, StrExpr_Comment=176, 
-		StrExpr_WS=177, StrExpr_NL=178;
+		SUSPEND=125, INTERRUPT=126, CC65=127, OVERRIDE=128, ABSTRACT=129, FINAL=130, 
+		OPEN=131, CONST=132, LATEINIT=133, VARARG=134, NOINLINE=135, CROSSINLINE=136, 
+		REIFIED=137, QUOTE_OPEN=138, TRIPLE_QUOTE_OPEN=139, RealLiteral=140, FloatLiteral=141, 
+		DoubleLiteral=142, LongLiteral=143, IntegerLiteral=144, HexLiteral=145, 
+		BinLiteral=146, BooleanLiteral=147, NullLiteral=148, Identifier=149, LabelReference=150, 
+		LabelDefinition=151, FieldIdentifier=152, CharacterLiteral=153, UNICODE_CLASS_LL=154, 
+		UNICODE_CLASS_LM=155, UNICODE_CLASS_LO=156, UNICODE_CLASS_LT=157, UNICODE_CLASS_LU=158, 
+		UNICODE_CLASS_ND=159, UNICODE_CLASS_NL=160, Inside_Comment=161, Inside_WS=162, 
+		Inside_NL=163, QUOTE_CLOSE=164, LineStrRef=165, LineStrText=166, LineStrEscapedChar=167, 
+		LineStrExprStart=168, TRIPLE_QUOTE_CLOSE=169, MultiLineStringQuote=170, 
+		MultiLineStrRef=171, MultiLineStrText=172, MultiLineStrEscapedChar=173, 
+		MultiLineStrExprStart=174, MultiLineNL=175, StrExpr_IN=176, StrExpr_Comment=177, 
+		StrExpr_WS=178, StrExpr_NL=179;
 	public static final int
 		RULE_kotlinFile = 0, RULE_script = 1, RULE_preamble = 2, RULE_fileAnnotations = 3, 
 		RULE_fileAnnotation = 4, RULE_packageHeader = 5, RULE_importList = 6, 
@@ -154,9 +154,9 @@ public class KotlinParser extends Parser {
 		"'@delegate'", "'dynamic'", "'public'", "'private'", "'protected'", "'internal'", 
 		"'enum'", "'sealed'", "'annotation'", "'data'", "'inner'", "'tailrec'", 
 		"'operator'", "'inline'", "'infix'", "'external'", "'suspend'", "'interrupt'", 
-		"'override'", "'abstract'", "'final'", "'open'", "'const'", "'lateinit'", 
-		"'vararg'", "'noinline'", "'crossinline'", "'reified'", null, "'\"\"\"'", 
-		null, null, null, null, null, null, null, null, "'null'"
+		"'cc65'", "'override'", "'abstract'", "'final'", "'open'", "'const'", 
+		"'lateinit'", "'vararg'", "'noinline'", "'crossinline'", "'reified'", 
+		null, "'\"\"\"'", null, null, null, null, null, null, null, null, "'null'"
 	};
 	private static final String[] _SYMBOLIC_NAMES = {
 		null, "ShebangLine", "DelimitedComment", "LineComment", "WS", "NL", "RESERVED", 
@@ -176,18 +176,18 @@ public class KotlinParser extends Parser {
 		"PROPERTY", "GET", "SET", "GETTER", "SETTER", "RECEIVER", "PARAM", "SETPARAM", 
 		"DELEGATE", "DYNAMIC", "PUBLIC", "PRIVATE", "PROTECTED", "INTERNAL", "ENUM", 
 		"SEALED", "ANNOTATION", "DATA", "INNER", "TAILREC", "OPERATOR", "INLINE", 
-		"INFIX", "EXTERNAL", "SUSPEND", "INTERRUPT", "OVERRIDE", "ABSTRACT", "FINAL", 
-		"OPEN", "CONST", "LATEINIT", "VARARG", "NOINLINE", "CROSSINLINE", "REIFIED", 
-		"QUOTE_OPEN", "TRIPLE_QUOTE_OPEN", "RealLiteral", "FloatLiteral", "DoubleLiteral", 
-		"LongLiteral", "IntegerLiteral", "HexLiteral", "BinLiteral", "BooleanLiteral", 
-		"NullLiteral", "Identifier", "LabelReference", "LabelDefinition", "FieldIdentifier", 
-		"CharacterLiteral", "UNICODE_CLASS_LL", "UNICODE_CLASS_LM", "UNICODE_CLASS_LO", 
-		"UNICODE_CLASS_LT", "UNICODE_CLASS_LU", "UNICODE_CLASS_ND", "UNICODE_CLASS_NL", 
-		"Inside_Comment", "Inside_WS", "Inside_NL", "QUOTE_CLOSE", "LineStrRef", 
-		"LineStrText", "LineStrEscapedChar", "LineStrExprStart", "TRIPLE_QUOTE_CLOSE", 
-		"MultiLineStringQuote", "MultiLineStrRef", "MultiLineStrText", "MultiLineStrEscapedChar", 
-		"MultiLineStrExprStart", "MultiLineNL", "StrExpr_IN", "StrExpr_Comment", 
-		"StrExpr_WS", "StrExpr_NL"
+		"INFIX", "EXTERNAL", "SUSPEND", "INTERRUPT", "CC65", "OVERRIDE", "ABSTRACT", 
+		"FINAL", "OPEN", "CONST", "LATEINIT", "VARARG", "NOINLINE", "CROSSINLINE", 
+		"REIFIED", "QUOTE_OPEN", "TRIPLE_QUOTE_OPEN", "RealLiteral", "FloatLiteral", 
+		"DoubleLiteral", "LongLiteral", "IntegerLiteral", "HexLiteral", "BinLiteral", 
+		"BooleanLiteral", "NullLiteral", "Identifier", "LabelReference", "LabelDefinition", 
+		"FieldIdentifier", "CharacterLiteral", "UNICODE_CLASS_LL", "UNICODE_CLASS_LM", 
+		"UNICODE_CLASS_LO", "UNICODE_CLASS_LT", "UNICODE_CLASS_LU", "UNICODE_CLASS_ND", 
+		"UNICODE_CLASS_NL", "Inside_Comment", "Inside_WS", "Inside_NL", "QUOTE_CLOSE", 
+		"LineStrRef", "LineStrText", "LineStrEscapedChar", "LineStrExprStart", 
+		"TRIPLE_QUOTE_CLOSE", "MultiLineStringQuote", "MultiLineStrRef", "MultiLineStrText", 
+		"MultiLineStrEscapedChar", "MultiLineStrExprStart", "MultiLineNL", "StrExpr_IN", 
+		"StrExpr_Comment", "StrExpr_WS", "StrExpr_NL"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
@@ -320,7 +320,7 @@ public class KotlinParser extends Parser {
 			}
 			setState(323);
 			_la = _input.LA(1);
-			if (((((_la - 42)) & ~0x3f) == 0 && ((1L << (_la - 42)) & ((1L << (AT - 42)) | (1L << (FILE - 42)) | (1L << (CLASS - 42)) | (1L << (INTERFACE - 42)) | (1L << (FUN - 42)) | (1L << (OBJECT - 42)) | (1L << (VAL - 42)) | (1L << (VAR - 42)) | (1L << (TYPE_ALIAS - 42)) | (1L << (IN - 42)) | (1L << (OUT - 42)) | (1L << (FIELD - 42)) | (1L << (PROPERTY - 42)) | (1L << (GET - 42)) | (1L << (SET - 42)))) != 0) || ((((_la - 106)) & ~0x3f) == 0 && ((1L << (_la - 106)) & ((1L << (RECEIVER - 106)) | (1L << (PARAM - 106)) | (1L << (SETPARAM - 106)) | (1L << (DELEGATE - 106)) | (1L << (PUBLIC - 106)) | (1L << (PRIVATE - 106)) | (1L << (PROTECTED - 106)) | (1L << (INTERNAL - 106)) | (1L << (ENUM - 106)) | (1L << (SEALED - 106)) | (1L << (ANNOTATION - 106)) | (1L << (DATA - 106)) | (1L << (INNER - 106)) | (1L << (TAILREC - 106)) | (1L << (OPERATOR - 106)) | (1L << (INLINE - 106)) | (1L << (INFIX - 106)) | (1L << (EXTERNAL - 106)) | (1L << (SUSPEND - 106)) | (1L << (INTERRUPT - 106)) | (1L << (OVERRIDE - 106)) | (1L << (ABSTRACT - 106)) | (1L << (FINAL - 106)) | (1L << (OPEN - 106)) | (1L << (CONST - 106)) | (1L << (LATEINIT - 106)) | (1L << (VARARG - 106)) | (1L << (NOINLINE - 106)) | (1L << (CROSSINLINE - 106)) | (1L << (REIFIED - 106)) | (1L << (LabelReference - 106)))) != 0)) {
+			if (((((_la - 42)) & ~0x3f) == 0 && ((1L << (_la - 42)) & ((1L << (AT - 42)) | (1L << (FILE - 42)) | (1L << (CLASS - 42)) | (1L << (INTERFACE - 42)) | (1L << (FUN - 42)) | (1L << (OBJECT - 42)) | (1L << (VAL - 42)) | (1L << (VAR - 42)) | (1L << (TYPE_ALIAS - 42)) | (1L << (IN - 42)) | (1L << (OUT - 42)) | (1L << (FIELD - 42)) | (1L << (PROPERTY - 42)) | (1L << (GET - 42)) | (1L << (SET - 42)))) != 0) || ((((_la - 106)) & ~0x3f) == 0 && ((1L << (_la - 106)) & ((1L << (RECEIVER - 106)) | (1L << (PARAM - 106)) | (1L << (SETPARAM - 106)) | (1L << (DELEGATE - 106)) | (1L << (PUBLIC - 106)) | (1L << (PRIVATE - 106)) | (1L << (PROTECTED - 106)) | (1L << (INTERNAL - 106)) | (1L << (ENUM - 106)) | (1L << (SEALED - 106)) | (1L << (ANNOTATION - 106)) | (1L << (DATA - 106)) | (1L << (INNER - 106)) | (1L << (TAILREC - 106)) | (1L << (OPERATOR - 106)) | (1L << (INLINE - 106)) | (1L << (INFIX - 106)) | (1L << (EXTERNAL - 106)) | (1L << (SUSPEND - 106)) | (1L << (INTERRUPT - 106)) | (1L << (CC65 - 106)) | (1L << (OVERRIDE - 106)) | (1L << (ABSTRACT - 106)) | (1L << (FINAL - 106)) | (1L << (OPEN - 106)) | (1L << (CONST - 106)) | (1L << (LATEINIT - 106)) | (1L << (VARARG - 106)) | (1L << (NOINLINE - 106)) | (1L << (CROSSINLINE - 106)) | (1L << (REIFIED - 106)) | (1L << (LabelReference - 106)))) != 0)) {
 				{
 				setState(309);
 				topLevelObject();
@@ -352,7 +352,7 @@ public class KotlinParser extends Parser {
 					} while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER );
 					setState(316);
 					_la = _input.LA(1);
-					if (((((_la - 42)) & ~0x3f) == 0 && ((1L << (_la - 42)) & ((1L << (AT - 42)) | (1L << (FILE - 42)) | (1L << (CLASS - 42)) | (1L << (INTERFACE - 42)) | (1L << (FUN - 42)) | (1L << (OBJECT - 42)) | (1L << (VAL - 42)) | (1L << (VAR - 42)) | (1L << (TYPE_ALIAS - 42)) | (1L << (IN - 42)) | (1L << (OUT - 42)) | (1L << (FIELD - 42)) | (1L << (PROPERTY - 42)) | (1L << (GET - 42)) | (1L << (SET - 42)))) != 0) || ((((_la - 106)) & ~0x3f) == 0 && ((1L << (_la - 106)) & ((1L << (RECEIVER - 106)) | (1L << (PARAM - 106)) | (1L << (SETPARAM - 106)) | (1L << (DELEGATE - 106)) | (1L << (PUBLIC - 106)) | (1L << (PRIVATE - 106)) | (1L << (PROTECTED - 106)) | (1L << (INTERNAL - 106)) | (1L << (ENUM - 106)) | (1L << (SEALED - 106)) | (1L << (ANNOTATION - 106)) | (1L << (DATA - 106)) | (1L << (INNER - 106)) | (1L << (TAILREC - 106)) | (1L << (OPERATOR - 106)) | (1L << (INLINE - 106)) | (1L << (INFIX - 106)) | (1L << (EXTERNAL - 106)) | (1L << (SUSPEND - 106)) | (1L << (INTERRUPT - 106)) | (1L << (OVERRIDE - 106)) | (1L << (ABSTRACT - 106)) | (1L << (FINAL - 106)) | (1L << (OPEN - 106)) | (1L << (CONST - 106)) | (1L << (LATEINIT - 106)) | (1L << (VARARG - 106)) | (1L << (NOINLINE - 106)) | (1L << (CROSSINLINE - 106)) | (1L << (REIFIED - 106)) | (1L << (LabelReference - 106)))) != 0)) {
+					if (((((_la - 42)) & ~0x3f) == 0 && ((1L << (_la - 42)) & ((1L << (AT - 42)) | (1L << (FILE - 42)) | (1L << (CLASS - 42)) | (1L << (INTERFACE - 42)) | (1L << (FUN - 42)) | (1L << (OBJECT - 42)) | (1L << (VAL - 42)) | (1L << (VAR - 42)) | (1L << (TYPE_ALIAS - 42)) | (1L << (IN - 42)) | (1L << (OUT - 42)) | (1L << (FIELD - 42)) | (1L << (PROPERTY - 42)) | (1L << (GET - 42)) | (1L << (SET - 42)))) != 0) || ((((_la - 106)) & ~0x3f) == 0 && ((1L << (_la - 106)) & ((1L << (RECEIVER - 106)) | (1L << (PARAM - 106)) | (1L << (SETPARAM - 106)) | (1L << (DELEGATE - 106)) | (1L << (PUBLIC - 106)) | (1L << (PRIVATE - 106)) | (1L << (PROTECTED - 106)) | (1L << (INTERNAL - 106)) | (1L << (ENUM - 106)) | (1L << (SEALED - 106)) | (1L << (ANNOTATION - 106)) | (1L << (DATA - 106)) | (1L << (INNER - 106)) | (1L << (TAILREC - 106)) | (1L << (OPERATOR - 106)) | (1L << (INLINE - 106)) | (1L << (INFIX - 106)) | (1L << (EXTERNAL - 106)) | (1L << (SUSPEND - 106)) | (1L << (INTERRUPT - 106)) | (1L << (CC65 - 106)) | (1L << (OVERRIDE - 106)) | (1L << (ABSTRACT - 106)) | (1L << (FINAL - 106)) | (1L << (OPEN - 106)) | (1L << (CONST - 106)) | (1L << (LATEINIT - 106)) | (1L << (VARARG - 106)) | (1L << (NOINLINE - 106)) | (1L << (CROSSINLINE - 106)) | (1L << (REIFIED - 106)) | (1L << (LabelReference - 106)))) != 0)) {
 						{
 						setState(315);
 						topLevelObject();
@@ -467,7 +467,7 @@ public class KotlinParser extends Parser {
 			}
 			setState(354);
 			_la = _input.LA(1);
-			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NL) | (1L << LPAREN) | (1L << LSQUARE) | (1L << LCURL) | (1L << ADD) | (1L << SUB) | (1L << INCR) | (1L << DECR) | (1L << EXCL) | (1L << COLONCOLON) | (1L << Q_COLONCOLON) | (1L << AT) | (1L << RETURN_AT) | (1L << CONTINUE_AT) | (1L << BREAK_AT) | (1L << FILE))) != 0) || ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (OBJECT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (THIS - 65)) | (1L << (SUPER - 65)) | (1L << (WHERE - 65)) | (1L << (IF - 65)) | (1L << (WHEN - 65)) | (1L << (TRY - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (FOR - 65)) | (1L << (DO - 65)) | (1L << (WHILE - 65)) | (1L << (THROW - 65)) | (1L << (RETURN - 65)) | (1L << (CONTINUE - 65)) | (1L << (BREAK - 65)) | (1L << (OUT - 65)) | (1L << (FIELD - 65)) | (1L << (PROPERTY - 65)) | (1L << (GET - 65)) | (1L << (SET - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (RECEIVER - 65)) | (1L << (PARAM - 65)) | (1L << (SETPARAM - 65)) | (1L << (DELEGATE - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (QUOTE_OPEN - 129)) | (1L << (TRIPLE_QUOTE_OPEN - 129)) | (1L << (RealLiteral - 129)) | (1L << (LongLiteral - 129)) | (1L << (IntegerLiteral - 129)) | (1L << (HexLiteral - 129)) | (1L << (BinLiteral - 129)) | (1L << (BooleanLiteral - 129)) | (1L << (NullLiteral - 129)) | (1L << (Identifier - 129)) | (1L << (LabelReference - 129)) | (1L << (LabelDefinition - 129)) | (1L << (CharacterLiteral - 129)))) != 0)) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NL) | (1L << LPAREN) | (1L << LSQUARE) | (1L << LCURL) | (1L << ADD) | (1L << SUB) | (1L << INCR) | (1L << DECR) | (1L << EXCL) | (1L << COLONCOLON) | (1L << Q_COLONCOLON) | (1L << AT) | (1L << RETURN_AT) | (1L << CONTINUE_AT) | (1L << BREAK_AT) | (1L << FILE))) != 0) || ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (OBJECT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (THIS - 65)) | (1L << (SUPER - 65)) | (1L << (WHERE - 65)) | (1L << (IF - 65)) | (1L << (WHEN - 65)) | (1L << (TRY - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (FOR - 65)) | (1L << (DO - 65)) | (1L << (WHILE - 65)) | (1L << (THROW - 65)) | (1L << (RETURN - 65)) | (1L << (CONTINUE - 65)) | (1L << (BREAK - 65)) | (1L << (OUT - 65)) | (1L << (FIELD - 65)) | (1L << (PROPERTY - 65)) | (1L << (GET - 65)) | (1L << (SET - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (RECEIVER - 65)) | (1L << (PARAM - 65)) | (1L << (SETPARAM - 65)) | (1L << (DELEGATE - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (QUOTE_OPEN - 129)) | (1L << (TRIPLE_QUOTE_OPEN - 129)) | (1L << (RealLiteral - 129)) | (1L << (LongLiteral - 129)) | (1L << (IntegerLiteral - 129)) | (1L << (HexLiteral - 129)) | (1L << (BinLiteral - 129)) | (1L << (BooleanLiteral - 129)) | (1L << (NullLiteral - 129)) | (1L << (Identifier - 129)) | (1L << (LabelReference - 129)) | (1L << (LabelDefinition - 129)) | (1L << (CharacterLiteral - 129)))) != 0)) {
 				{
 				setState(340);
 				expression();
@@ -744,7 +744,7 @@ public class KotlinParser extends Parser {
 							setState(375); 
 							_errHandler.sync(this);
 							_la = _input.LA(1);
-						} while ( ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0) );
+						} while ( ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0) );
 						setState(377);
 						match(RSQUARE);
 						}
@@ -776,6 +776,8 @@ public class KotlinParser extends Parser {
 					case INFIX:
 					case EXTERNAL:
 					case SUSPEND:
+					case INTERRUPT:
+					case CC65:
 					case OVERRIDE:
 					case ABSTRACT:
 					case FINAL:
@@ -870,7 +872,7 @@ public class KotlinParser extends Parser {
 				{
 				setState(390);
 				_la = _input.LA(1);
-				if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+				if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 					{
 					setState(389);
 					modifierList();
@@ -1100,6 +1102,7 @@ public class KotlinParser extends Parser {
 			case EXTERNAL:
 			case SUSPEND:
 			case INTERRUPT:
+			case CC65:
 			case OVERRIDE:
 			case ABSTRACT:
 			case FINAL:
@@ -1345,7 +1348,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(426);
 			_la = _input.LA(1);
-			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 				{
 				setState(425);
 				modifierList();
@@ -1579,7 +1582,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(496);
 			_la = _input.LA(1);
-			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 				{
 				setState(495);
 				modifierList();
@@ -1667,7 +1670,7 @@ public class KotlinParser extends Parser {
 			match(LPAREN);
 			setState(518);
 			_la = _input.LA(1);
-			if (((((_la - 42)) & ~0x3f) == 0 && ((1L << (_la - 42)) & ((1L << (AT - 42)) | (1L << (FILE - 42)) | (1L << (IMPORT - 42)) | (1L << (VAL - 42)) | (1L << (VAR - 42)) | (1L << (CONSTRUCTOR - 42)) | (1L << (BY - 42)) | (1L << (COMPANION - 42)) | (1L << (INIT - 42)) | (1L << (WHERE - 42)) | (1L << (CATCH - 42)) | (1L << (FINALLY - 42)) | (1L << (IN - 42)) | (1L << (OUT - 42)) | (1L << (FIELD - 42)) | (1L << (PROPERTY - 42)) | (1L << (GET - 42)) | (1L << (SET - 42)) | (1L << (GETTER - 42)) | (1L << (SETTER - 42)))) != 0) || ((((_la - 106)) & ~0x3f) == 0 && ((1L << (_la - 106)) & ((1L << (RECEIVER - 106)) | (1L << (PARAM - 106)) | (1L << (SETPARAM - 106)) | (1L << (DELEGATE - 106)) | (1L << (DYNAMIC - 106)) | (1L << (PUBLIC - 106)) | (1L << (PRIVATE - 106)) | (1L << (PROTECTED - 106)) | (1L << (INTERNAL - 106)) | (1L << (ENUM - 106)) | (1L << (SEALED - 106)) | (1L << (ANNOTATION - 106)) | (1L << (DATA - 106)) | (1L << (INNER - 106)) | (1L << (TAILREC - 106)) | (1L << (OPERATOR - 106)) | (1L << (INLINE - 106)) | (1L << (INFIX - 106)) | (1L << (EXTERNAL - 106)) | (1L << (SUSPEND - 106)) | (1L << (INTERRUPT - 106)) | (1L << (OVERRIDE - 106)) | (1L << (ABSTRACT - 106)) | (1L << (FINAL - 106)) | (1L << (OPEN - 106)) | (1L << (CONST - 106)) | (1L << (LATEINIT - 106)) | (1L << (VARARG - 106)) | (1L << (NOINLINE - 106)) | (1L << (CROSSINLINE - 106)) | (1L << (REIFIED - 106)) | (1L << (Identifier - 106)) | (1L << (LabelReference - 106)))) != 0)) {
+			if (((((_la - 42)) & ~0x3f) == 0 && ((1L << (_la - 42)) & ((1L << (AT - 42)) | (1L << (FILE - 42)) | (1L << (IMPORT - 42)) | (1L << (VAL - 42)) | (1L << (VAR - 42)) | (1L << (CONSTRUCTOR - 42)) | (1L << (BY - 42)) | (1L << (COMPANION - 42)) | (1L << (INIT - 42)) | (1L << (WHERE - 42)) | (1L << (CATCH - 42)) | (1L << (FINALLY - 42)) | (1L << (IN - 42)) | (1L << (OUT - 42)) | (1L << (FIELD - 42)) | (1L << (PROPERTY - 42)) | (1L << (GET - 42)) | (1L << (SET - 42)) | (1L << (GETTER - 42)) | (1L << (SETTER - 42)))) != 0) || ((((_la - 106)) & ~0x3f) == 0 && ((1L << (_la - 106)) & ((1L << (RECEIVER - 106)) | (1L << (PARAM - 106)) | (1L << (SETPARAM - 106)) | (1L << (DELEGATE - 106)) | (1L << (DYNAMIC - 106)) | (1L << (PUBLIC - 106)) | (1L << (PRIVATE - 106)) | (1L << (PROTECTED - 106)) | (1L << (INTERNAL - 106)) | (1L << (ENUM - 106)) | (1L << (SEALED - 106)) | (1L << (ANNOTATION - 106)) | (1L << (DATA - 106)) | (1L << (INNER - 106)) | (1L << (TAILREC - 106)) | (1L << (OPERATOR - 106)) | (1L << (INLINE - 106)) | (1L << (INFIX - 106)) | (1L << (EXTERNAL - 106)) | (1L << (SUSPEND - 106)) | (1L << (INTERRUPT - 106)) | (1L << (CC65 - 106)) | (1L << (OVERRIDE - 106)) | (1L << (ABSTRACT - 106)) | (1L << (FINAL - 106)) | (1L << (OPEN - 106)) | (1L << (CONST - 106)) | (1L << (LATEINIT - 106)) | (1L << (VARARG - 106)) | (1L << (NOINLINE - 106)) | (1L << (CROSSINLINE - 106)) | (1L << (REIFIED - 106)) | (1L << (Identifier - 106)) | (1L << (LabelReference - 106)))) != 0)) {
 				{
 				setState(510);
 				classParameter();
@@ -2191,7 +2194,7 @@ public class KotlinParser extends Parser {
 			setState(595);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((((_la - 42)) & ~0x3f) == 0 && ((1L << (_la - 42)) & ((1L << (AT - 42)) | (1L << (FILE - 42)) | (1L << (CLASS - 42)) | (1L << (INTERFACE - 42)) | (1L << (FUN - 42)) | (1L << (OBJECT - 42)) | (1L << (VAL - 42)) | (1L << (VAR - 42)) | (1L << (TYPE_ALIAS - 42)) | (1L << (CONSTRUCTOR - 42)) | (1L << (COMPANION - 42)) | (1L << (INIT - 42)) | (1L << (IN - 42)) | (1L << (OUT - 42)) | (1L << (FIELD - 42)) | (1L << (PROPERTY - 42)) | (1L << (GET - 42)) | (1L << (SET - 42)))) != 0) || ((((_la - 106)) & ~0x3f) == 0 && ((1L << (_la - 106)) & ((1L << (RECEIVER - 106)) | (1L << (PARAM - 106)) | (1L << (SETPARAM - 106)) | (1L << (DELEGATE - 106)) | (1L << (PUBLIC - 106)) | (1L << (PRIVATE - 106)) | (1L << (PROTECTED - 106)) | (1L << (INTERNAL - 106)) | (1L << (ENUM - 106)) | (1L << (SEALED - 106)) | (1L << (ANNOTATION - 106)) | (1L << (DATA - 106)) | (1L << (INNER - 106)) | (1L << (TAILREC - 106)) | (1L << (OPERATOR - 106)) | (1L << (INLINE - 106)) | (1L << (INFIX - 106)) | (1L << (EXTERNAL - 106)) | (1L << (SUSPEND - 106)) | (1L << (INTERRUPT - 106)) | (1L << (OVERRIDE - 106)) | (1L << (ABSTRACT - 106)) | (1L << (FINAL - 106)) | (1L << (OPEN - 106)) | (1L << (CONST - 106)) | (1L << (LATEINIT - 106)) | (1L << (VARARG - 106)) | (1L << (NOINLINE - 106)) | (1L << (CROSSINLINE - 106)) | (1L << (REIFIED - 106)) | (1L << (LabelReference - 106)))) != 0)) {
+			while (((((_la - 42)) & ~0x3f) == 0 && ((1L << (_la - 42)) & ((1L << (AT - 42)) | (1L << (FILE - 42)) | (1L << (CLASS - 42)) | (1L << (INTERFACE - 42)) | (1L << (FUN - 42)) | (1L << (OBJECT - 42)) | (1L << (VAL - 42)) | (1L << (VAR - 42)) | (1L << (TYPE_ALIAS - 42)) | (1L << (CONSTRUCTOR - 42)) | (1L << (COMPANION - 42)) | (1L << (INIT - 42)) | (1L << (IN - 42)) | (1L << (OUT - 42)) | (1L << (FIELD - 42)) | (1L << (PROPERTY - 42)) | (1L << (GET - 42)) | (1L << (SET - 42)))) != 0) || ((((_la - 106)) & ~0x3f) == 0 && ((1L << (_la - 106)) & ((1L << (RECEIVER - 106)) | (1L << (PARAM - 106)) | (1L << (SETPARAM - 106)) | (1L << (DELEGATE - 106)) | (1L << (PUBLIC - 106)) | (1L << (PRIVATE - 106)) | (1L << (PROTECTED - 106)) | (1L << (INTERNAL - 106)) | (1L << (ENUM - 106)) | (1L << (SEALED - 106)) | (1L << (ANNOTATION - 106)) | (1L << (DATA - 106)) | (1L << (INNER - 106)) | (1L << (TAILREC - 106)) | (1L << (OPERATOR - 106)) | (1L << (INLINE - 106)) | (1L << (INFIX - 106)) | (1L << (EXTERNAL - 106)) | (1L << (SUSPEND - 106)) | (1L << (INTERRUPT - 106)) | (1L << (CC65 - 106)) | (1L << (OVERRIDE - 106)) | (1L << (ABSTRACT - 106)) | (1L << (FINAL - 106)) | (1L << (OPEN - 106)) | (1L << (CONST - 106)) | (1L << (LATEINIT - 106)) | (1L << (VARARG - 106)) | (1L << (NOINLINE - 106)) | (1L << (CROSSINLINE - 106)) | (1L << (REIFIED - 106)) | (1L << (LabelReference - 106)))) != 0)) {
 				{
 				{
 				setState(592);
@@ -2481,7 +2484,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(632);
 			_la = _input.LA(1);
-			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 				{
 				setState(631);
 				modifierList();
@@ -2735,7 +2738,7 @@ public class KotlinParser extends Parser {
 			}
 			setState(692);
 			_la = _input.LA(1);
-			if (((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0)) {
+			if (((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0)) {
 				{
 				setState(691);
 				enumEntries();
@@ -2781,7 +2784,7 @@ public class KotlinParser extends Parser {
 				setState(710);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				while (((((_la - 42)) & ~0x3f) == 0 && ((1L << (_la - 42)) & ((1L << (AT - 42)) | (1L << (FILE - 42)) | (1L << (CLASS - 42)) | (1L << (INTERFACE - 42)) | (1L << (FUN - 42)) | (1L << (OBJECT - 42)) | (1L << (VAL - 42)) | (1L << (VAR - 42)) | (1L << (TYPE_ALIAS - 42)) | (1L << (CONSTRUCTOR - 42)) | (1L << (COMPANION - 42)) | (1L << (INIT - 42)) | (1L << (IN - 42)) | (1L << (OUT - 42)) | (1L << (FIELD - 42)) | (1L << (PROPERTY - 42)) | (1L << (GET - 42)) | (1L << (SET - 42)))) != 0) || ((((_la - 106)) & ~0x3f) == 0 && ((1L << (_la - 106)) & ((1L << (RECEIVER - 106)) | (1L << (PARAM - 106)) | (1L << (SETPARAM - 106)) | (1L << (DELEGATE - 106)) | (1L << (PUBLIC - 106)) | (1L << (PRIVATE - 106)) | (1L << (PROTECTED - 106)) | (1L << (INTERNAL - 106)) | (1L << (ENUM - 106)) | (1L << (SEALED - 106)) | (1L << (ANNOTATION - 106)) | (1L << (DATA - 106)) | (1L << (INNER - 106)) | (1L << (TAILREC - 106)) | (1L << (OPERATOR - 106)) | (1L << (INLINE - 106)) | (1L << (INFIX - 106)) | (1L << (EXTERNAL - 106)) | (1L << (SUSPEND - 106)) | (1L << (INTERRUPT - 106)) | (1L << (OVERRIDE - 106)) | (1L << (ABSTRACT - 106)) | (1L << (FINAL - 106)) | (1L << (OPEN - 106)) | (1L << (CONST - 106)) | (1L << (LATEINIT - 106)) | (1L << (VARARG - 106)) | (1L << (NOINLINE - 106)) | (1L << (CROSSINLINE - 106)) | (1L << (REIFIED - 106)) | (1L << (LabelReference - 106)))) != 0)) {
+				while (((((_la - 42)) & ~0x3f) == 0 && ((1L << (_la - 42)) & ((1L << (AT - 42)) | (1L << (FILE - 42)) | (1L << (CLASS - 42)) | (1L << (INTERFACE - 42)) | (1L << (FUN - 42)) | (1L << (OBJECT - 42)) | (1L << (VAL - 42)) | (1L << (VAR - 42)) | (1L << (TYPE_ALIAS - 42)) | (1L << (CONSTRUCTOR - 42)) | (1L << (COMPANION - 42)) | (1L << (INIT - 42)) | (1L << (IN - 42)) | (1L << (OUT - 42)) | (1L << (FIELD - 42)) | (1L << (PROPERTY - 42)) | (1L << (GET - 42)) | (1L << (SET - 42)))) != 0) || ((((_la - 106)) & ~0x3f) == 0 && ((1L << (_la - 106)) & ((1L << (RECEIVER - 106)) | (1L << (PARAM - 106)) | (1L << (SETPARAM - 106)) | (1L << (DELEGATE - 106)) | (1L << (PUBLIC - 106)) | (1L << (PRIVATE - 106)) | (1L << (PROTECTED - 106)) | (1L << (INTERNAL - 106)) | (1L << (ENUM - 106)) | (1L << (SEALED - 106)) | (1L << (ANNOTATION - 106)) | (1L << (DATA - 106)) | (1L << (INNER - 106)) | (1L << (TAILREC - 106)) | (1L << (OPERATOR - 106)) | (1L << (INLINE - 106)) | (1L << (INFIX - 106)) | (1L << (EXTERNAL - 106)) | (1L << (SUSPEND - 106)) | (1L << (INTERRUPT - 106)) | (1L << (CC65 - 106)) | (1L << (OVERRIDE - 106)) | (1L << (ABSTRACT - 106)) | (1L << (FINAL - 106)) | (1L << (OPEN - 106)) | (1L << (CONST - 106)) | (1L << (LATEINIT - 106)) | (1L << (VARARG - 106)) | (1L << (NOINLINE - 106)) | (1L << (CROSSINLINE - 106)) | (1L << (REIFIED - 106)) | (1L << (LabelReference - 106)))) != 0)) {
 					{
 					{
 					setState(707);
@@ -2892,7 +2895,7 @@ public class KotlinParser extends Parser {
 				setState(732); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-			} while ( ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0) );
+			} while ( ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0) );
 			setState(735);
 			switch ( getInterpreter().adaptivePredict(_input,78,_ctx) ) {
 			case 1:
@@ -3104,7 +3107,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(766);
 			_la = _input.LA(1);
-			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 				{
 				setState(765);
 				modifierList();
@@ -3380,7 +3383,7 @@ public class KotlinParser extends Parser {
 			match(LPAREN);
 			setState(864);
 			_la = _input.LA(1);
-			if (((((_la - 42)) & ~0x3f) == 0 && ((1L << (_la - 42)) & ((1L << (AT - 42)) | (1L << (FILE - 42)) | (1L << (IMPORT - 42)) | (1L << (CONSTRUCTOR - 42)) | (1L << (BY - 42)) | (1L << (COMPANION - 42)) | (1L << (INIT - 42)) | (1L << (WHERE - 42)) | (1L << (CATCH - 42)) | (1L << (FINALLY - 42)) | (1L << (IN - 42)) | (1L << (OUT - 42)) | (1L << (FIELD - 42)) | (1L << (PROPERTY - 42)) | (1L << (GET - 42)) | (1L << (SET - 42)) | (1L << (GETTER - 42)) | (1L << (SETTER - 42)))) != 0) || ((((_la - 106)) & ~0x3f) == 0 && ((1L << (_la - 106)) & ((1L << (RECEIVER - 106)) | (1L << (PARAM - 106)) | (1L << (SETPARAM - 106)) | (1L << (DELEGATE - 106)) | (1L << (DYNAMIC - 106)) | (1L << (PUBLIC - 106)) | (1L << (PRIVATE - 106)) | (1L << (PROTECTED - 106)) | (1L << (INTERNAL - 106)) | (1L << (ENUM - 106)) | (1L << (SEALED - 106)) | (1L << (ANNOTATION - 106)) | (1L << (DATA - 106)) | (1L << (INNER - 106)) | (1L << (TAILREC - 106)) | (1L << (OPERATOR - 106)) | (1L << (INLINE - 106)) | (1L << (INFIX - 106)) | (1L << (EXTERNAL - 106)) | (1L << (SUSPEND - 106)) | (1L << (INTERRUPT - 106)) | (1L << (OVERRIDE - 106)) | (1L << (ABSTRACT - 106)) | (1L << (FINAL - 106)) | (1L << (OPEN - 106)) | (1L << (CONST - 106)) | (1L << (LATEINIT - 106)) | (1L << (VARARG - 106)) | (1L << (NOINLINE - 106)) | (1L << (CROSSINLINE - 106)) | (1L << (REIFIED - 106)) | (1L << (Identifier - 106)) | (1L << (LabelReference - 106)))) != 0)) {
+			if (((((_la - 42)) & ~0x3f) == 0 && ((1L << (_la - 42)) & ((1L << (AT - 42)) | (1L << (FILE - 42)) | (1L << (IMPORT - 42)) | (1L << (CONSTRUCTOR - 42)) | (1L << (BY - 42)) | (1L << (COMPANION - 42)) | (1L << (INIT - 42)) | (1L << (WHERE - 42)) | (1L << (CATCH - 42)) | (1L << (FINALLY - 42)) | (1L << (IN - 42)) | (1L << (OUT - 42)) | (1L << (FIELD - 42)) | (1L << (PROPERTY - 42)) | (1L << (GET - 42)) | (1L << (SET - 42)) | (1L << (GETTER - 42)) | (1L << (SETTER - 42)))) != 0) || ((((_la - 106)) & ~0x3f) == 0 && ((1L << (_la - 106)) & ((1L << (RECEIVER - 106)) | (1L << (PARAM - 106)) | (1L << (SETPARAM - 106)) | (1L << (DELEGATE - 106)) | (1L << (DYNAMIC - 106)) | (1L << (PUBLIC - 106)) | (1L << (PRIVATE - 106)) | (1L << (PROTECTED - 106)) | (1L << (INTERNAL - 106)) | (1L << (ENUM - 106)) | (1L << (SEALED - 106)) | (1L << (ANNOTATION - 106)) | (1L << (DATA - 106)) | (1L << (INNER - 106)) | (1L << (TAILREC - 106)) | (1L << (OPERATOR - 106)) | (1L << (INLINE - 106)) | (1L << (INFIX - 106)) | (1L << (EXTERNAL - 106)) | (1L << (SUSPEND - 106)) | (1L << (INTERRUPT - 106)) | (1L << (CC65 - 106)) | (1L << (OVERRIDE - 106)) | (1L << (ABSTRACT - 106)) | (1L << (FINAL - 106)) | (1L << (OPEN - 106)) | (1L << (CONST - 106)) | (1L << (LATEINIT - 106)) | (1L << (VARARG - 106)) | (1L << (NOINLINE - 106)) | (1L << (CROSSINLINE - 106)) | (1L << (REIFIED - 106)) | (1L << (Identifier - 106)) | (1L << (LabelReference - 106)))) != 0)) {
 				{
 				setState(856);
 				functionValueParameter();
@@ -3677,7 +3680,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(892);
 			_la = _input.LA(1);
-			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 				{
 				setState(891);
 				modifierList();
@@ -3851,7 +3854,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(937);
 			_la = _input.LA(1);
-			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 				{
 				setState(936);
 				modifierList();
@@ -3876,7 +3879,7 @@ public class KotlinParser extends Parser {
 			}
 			setState(947);
 			_la = _input.LA(1);
-			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 				{
 				setState(946);
 				modifierList();
@@ -4052,7 +4055,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(985);
 			_la = _input.LA(1);
-			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 				{
 				setState(984);
 				modifierList();
@@ -4178,6 +4181,8 @@ public class KotlinParser extends Parser {
 			case INFIX:
 			case EXTERNAL:
 			case SUSPEND:
+			case INTERRUPT:
+			case CC65:
 			case OVERRIDE:
 			case ABSTRACT:
 			case FINAL:
@@ -4505,7 +4510,7 @@ public class KotlinParser extends Parser {
 				{
 				setState(1080);
 				_la = _input.LA(1);
-				if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+				if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 					{
 					setState(1079);
 					modifierList();
@@ -4521,7 +4526,7 @@ public class KotlinParser extends Parser {
 				{
 				setState(1084);
 				_la = _input.LA(1);
-				if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+				if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 					{
 					setState(1083);
 					modifierList();
@@ -4715,7 +4720,7 @@ public class KotlinParser extends Parser {
 				{
 				setState(1131);
 				_la = _input.LA(1);
-				if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+				if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 					{
 					setState(1130);
 					modifierList();
@@ -4731,7 +4736,7 @@ public class KotlinParser extends Parser {
 				{
 				setState(1135);
 				_la = _input.LA(1);
-				if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+				if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 					{
 					setState(1134);
 					modifierList();
@@ -4892,7 +4897,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(1168);
 			_la = _input.LA(1);
-			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
+			if (_la==AT || _la==FILE || ((((_la - 96)) & ~0x3f) == 0 && ((1L << (_la - 96)) & ((1L << (IN - 96)) | (1L << (OUT - 96)) | (1L << (FIELD - 96)) | (1L << (PROPERTY - 96)) | (1L << (GET - 96)) | (1L << (SET - 96)) | (1L << (RECEIVER - 96)) | (1L << (PARAM - 96)) | (1L << (SETPARAM - 96)) | (1L << (DELEGATE - 96)) | (1L << (PUBLIC - 96)) | (1L << (PRIVATE - 96)) | (1L << (PROTECTED - 96)) | (1L << (INTERNAL - 96)) | (1L << (ENUM - 96)) | (1L << (SEALED - 96)) | (1L << (ANNOTATION - 96)) | (1L << (DATA - 96)) | (1L << (INNER - 96)) | (1L << (TAILREC - 96)) | (1L << (OPERATOR - 96)) | (1L << (INLINE - 96)) | (1L << (INFIX - 96)) | (1L << (EXTERNAL - 96)) | (1L << (SUSPEND - 96)) | (1L << (INTERRUPT - 96)) | (1L << (CC65 - 96)) | (1L << (OVERRIDE - 96)) | (1L << (ABSTRACT - 96)) | (1L << (FINAL - 96)) | (1L << (OPEN - 96)) | (1L << (CONST - 96)) | (1L << (LATEINIT - 96)) | (1L << (VARARG - 96)) | (1L << (NOINLINE - 96)) | (1L << (CROSSINLINE - 96)) | (1L << (REIFIED - 96)) | (1L << (LabelReference - 96)))) != 0)) {
 				{
 				setState(1167);
 				modifierList();
@@ -5772,7 +5777,7 @@ public class KotlinParser extends Parser {
 			match(LSQUARE);
 			setState(1332);
 			_la = _input.LA(1);
-			if (((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0)) {
+			if (((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0)) {
 				{
 				setState(1331);
 				userType();
@@ -6246,6 +6251,8 @@ public class KotlinParser extends Parser {
 			case INFIX:
 			case EXTERNAL:
 			case SUSPEND:
+			case INTERRUPT:
+			case CC65:
 			case OVERRIDE:
 			case ABSTRACT:
 			case FINAL:
@@ -8521,6 +8528,8 @@ public class KotlinParser extends Parser {
 			case INFIX:
 			case EXTERNAL:
 			case SUSPEND:
+			case INTERRUPT:
+			case CC65:
 			case OVERRIDE:
 			case ABSTRACT:
 			case FINAL:
@@ -8736,6 +8745,8 @@ public class KotlinParser extends Parser {
 			case INFIX:
 			case EXTERNAL:
 			case SUSPEND:
+			case INTERRUPT:
+			case CC65:
 			case OVERRIDE:
 			case ABSTRACT:
 			case FINAL:
@@ -8832,7 +8843,7 @@ public class KotlinParser extends Parser {
 			setState(1787);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0)) {
+			while (((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0)) {
 				{
 				{
 				setState(1784);
@@ -8924,7 +8935,7 @@ public class KotlinParser extends Parser {
 			match(LSQUARE);
 			setState(1810);
 			_la = _input.LA(1);
-			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NL) | (1L << LPAREN) | (1L << LSQUARE) | (1L << LCURL) | (1L << ADD) | (1L << SUB) | (1L << INCR) | (1L << DECR) | (1L << EXCL) | (1L << COLONCOLON) | (1L << Q_COLONCOLON) | (1L << AT) | (1L << RETURN_AT) | (1L << CONTINUE_AT) | (1L << BREAK_AT) | (1L << FILE))) != 0) || ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (OBJECT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (THIS - 65)) | (1L << (SUPER - 65)) | (1L << (WHERE - 65)) | (1L << (IF - 65)) | (1L << (WHEN - 65)) | (1L << (TRY - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (FOR - 65)) | (1L << (DO - 65)) | (1L << (WHILE - 65)) | (1L << (THROW - 65)) | (1L << (RETURN - 65)) | (1L << (CONTINUE - 65)) | (1L << (BREAK - 65)) | (1L << (OUT - 65)) | (1L << (FIELD - 65)) | (1L << (PROPERTY - 65)) | (1L << (GET - 65)) | (1L << (SET - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (RECEIVER - 65)) | (1L << (PARAM - 65)) | (1L << (SETPARAM - 65)) | (1L << (DELEGATE - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (QUOTE_OPEN - 129)) | (1L << (TRIPLE_QUOTE_OPEN - 129)) | (1L << (RealLiteral - 129)) | (1L << (LongLiteral - 129)) | (1L << (IntegerLiteral - 129)) | (1L << (HexLiteral - 129)) | (1L << (BinLiteral - 129)) | (1L << (BooleanLiteral - 129)) | (1L << (NullLiteral - 129)) | (1L << (Identifier - 129)) | (1L << (LabelReference - 129)) | (1L << (LabelDefinition - 129)) | (1L << (CharacterLiteral - 129)))) != 0)) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NL) | (1L << LPAREN) | (1L << LSQUARE) | (1L << LCURL) | (1L << ADD) | (1L << SUB) | (1L << INCR) | (1L << DECR) | (1L << EXCL) | (1L << COLONCOLON) | (1L << Q_COLONCOLON) | (1L << AT) | (1L << RETURN_AT) | (1L << CONTINUE_AT) | (1L << BREAK_AT) | (1L << FILE))) != 0) || ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (OBJECT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (THIS - 65)) | (1L << (SUPER - 65)) | (1L << (WHERE - 65)) | (1L << (IF - 65)) | (1L << (WHEN - 65)) | (1L << (TRY - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (FOR - 65)) | (1L << (DO - 65)) | (1L << (WHILE - 65)) | (1L << (THROW - 65)) | (1L << (RETURN - 65)) | (1L << (CONTINUE - 65)) | (1L << (BREAK - 65)) | (1L << (OUT - 65)) | (1L << (FIELD - 65)) | (1L << (PROPERTY - 65)) | (1L << (GET - 65)) | (1L << (SET - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (RECEIVER - 65)) | (1L << (PARAM - 65)) | (1L << (SETPARAM - 65)) | (1L << (DELEGATE - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (QUOTE_OPEN - 129)) | (1L << (TRIPLE_QUOTE_OPEN - 129)) | (1L << (RealLiteral - 129)) | (1L << (LongLiteral - 129)) | (1L << (IntegerLiteral - 129)) | (1L << (HexLiteral - 129)) | (1L << (BinLiteral - 129)) | (1L << (BooleanLiteral - 129)) | (1L << (NullLiteral - 129)) | (1L << (Identifier - 129)) | (1L << (LabelReference - 129)) | (1L << (LabelDefinition - 129)) | (1L << (CharacterLiteral - 129)))) != 0)) {
 				{
 				setState(1802);
 				expression();
@@ -9005,7 +9016,7 @@ public class KotlinParser extends Parser {
 			match(LPAREN);
 			setState(1823);
 			_la = _input.LA(1);
-			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NL) | (1L << LPAREN) | (1L << LSQUARE) | (1L << LCURL) | (1L << MULT) | (1L << ADD) | (1L << SUB) | (1L << INCR) | (1L << DECR) | (1L << EXCL) | (1L << COLONCOLON) | (1L << Q_COLONCOLON) | (1L << AT) | (1L << RETURN_AT) | (1L << CONTINUE_AT) | (1L << BREAK_AT) | (1L << FILE))) != 0) || ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (OBJECT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (THIS - 65)) | (1L << (SUPER - 65)) | (1L << (WHERE - 65)) | (1L << (IF - 65)) | (1L << (WHEN - 65)) | (1L << (TRY - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (FOR - 65)) | (1L << (DO - 65)) | (1L << (WHILE - 65)) | (1L << (THROW - 65)) | (1L << (RETURN - 65)) | (1L << (CONTINUE - 65)) | (1L << (BREAK - 65)) | (1L << (OUT - 65)) | (1L << (FIELD - 65)) | (1L << (PROPERTY - 65)) | (1L << (GET - 65)) | (1L << (SET - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (RECEIVER - 65)) | (1L << (PARAM - 65)) | (1L << (SETPARAM - 65)) | (1L << (DELEGATE - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (QUOTE_OPEN - 129)) | (1L << (TRIPLE_QUOTE_OPEN - 129)) | (1L << (RealLiteral - 129)) | (1L << (LongLiteral - 129)) | (1L << (IntegerLiteral - 129)) | (1L << (HexLiteral - 129)) | (1L << (BinLiteral - 129)) | (1L << (BooleanLiteral - 129)) | (1L << (NullLiteral - 129)) | (1L << (Identifier - 129)) | (1L << (LabelReference - 129)) | (1L << (LabelDefinition - 129)) | (1L << (CharacterLiteral - 129)))) != 0)) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NL) | (1L << LPAREN) | (1L << LSQUARE) | (1L << LCURL) | (1L << MULT) | (1L << ADD) | (1L << SUB) | (1L << INCR) | (1L << DECR) | (1L << EXCL) | (1L << COLONCOLON) | (1L << Q_COLONCOLON) | (1L << AT) | (1L << RETURN_AT) | (1L << CONTINUE_AT) | (1L << BREAK_AT) | (1L << FILE))) != 0) || ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (OBJECT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (THIS - 65)) | (1L << (SUPER - 65)) | (1L << (WHERE - 65)) | (1L << (IF - 65)) | (1L << (WHEN - 65)) | (1L << (TRY - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (FOR - 65)) | (1L << (DO - 65)) | (1L << (WHILE - 65)) | (1L << (THROW - 65)) | (1L << (RETURN - 65)) | (1L << (CONTINUE - 65)) | (1L << (BREAK - 65)) | (1L << (OUT - 65)) | (1L << (FIELD - 65)) | (1L << (PROPERTY - 65)) | (1L << (GET - 65)) | (1L << (SET - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (RECEIVER - 65)) | (1L << (PARAM - 65)) | (1L << (SETPARAM - 65)) | (1L << (DELEGATE - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (QUOTE_OPEN - 129)) | (1L << (TRIPLE_QUOTE_OPEN - 129)) | (1L << (RealLiteral - 129)) | (1L << (LongLiteral - 129)) | (1L << (IntegerLiteral - 129)) | (1L << (HexLiteral - 129)) | (1L << (BinLiteral - 129)) | (1L << (BooleanLiteral - 129)) | (1L << (NullLiteral - 129)) | (1L << (Identifier - 129)) | (1L << (LabelReference - 129)) | (1L << (LabelDefinition - 129)) | (1L << (CharacterLiteral - 129)))) != 0)) {
 				{
 				setState(1815);
 				valueArgument();
@@ -9238,6 +9249,8 @@ public class KotlinParser extends Parser {
 			case INFIX:
 			case EXTERNAL:
 			case SUSPEND:
+			case INTERRUPT:
+			case CC65:
 			case OVERRIDE:
 			case ABSTRACT:
 			case FINAL:
@@ -9697,7 +9710,7 @@ public class KotlinParser extends Parser {
 			setState(1915);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((((_la - 164)) & ~0x3f) == 0 && ((1L << (_la - 164)) & ((1L << (LineStrRef - 164)) | (1L << (LineStrText - 164)) | (1L << (LineStrEscapedChar - 164)) | (1L << (LineStrExprStart - 164)))) != 0)) {
+			while (((((_la - 165)) & ~0x3f) == 0 && ((1L << (_la - 165)) & ((1L << (LineStrRef - 165)) | (1L << (LineStrText - 165)) | (1L << (LineStrEscapedChar - 165)) | (1L << (LineStrExprStart - 165)))) != 0)) {
 				{
 				setState(1913);
 				switch (_input.LA(1)) {
@@ -9794,7 +9807,7 @@ public class KotlinParser extends Parser {
 			setState(1927);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((((_la - 137)) & ~0x3f) == 0 && ((1L << (_la - 137)) & ((1L << (QUOTE_OPEN - 137)) | (1L << (MultiLineStringQuote - 137)) | (1L << (MultiLineStrRef - 137)) | (1L << (MultiLineStrText - 137)) | (1L << (MultiLineStrEscapedChar - 137)) | (1L << (MultiLineStrExprStart - 137)))) != 0)) {
+			while (((((_la - 138)) & ~0x3f) == 0 && ((1L << (_la - 138)) & ((1L << (QUOTE_OPEN - 138)) | (1L << (MultiLineStringQuote - 138)) | (1L << (MultiLineStrRef - 138)) | (1L << (MultiLineStrText - 138)) | (1L << (MultiLineStrEscapedChar - 138)) | (1L << (MultiLineStrExprStart - 138)))) != 0)) {
 				{
 				setState(1925);
 				switch (_input.LA(1)) {
@@ -9879,7 +9892,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(1932);
 			_la = _input.LA(1);
-			if ( !(((((_la - 164)) & ~0x3f) == 0 && ((1L << (_la - 164)) & ((1L << (LineStrRef - 164)) | (1L << (LineStrText - 164)) | (1L << (LineStrEscapedChar - 164)))) != 0)) ) {
+			if ( !(((((_la - 165)) & ~0x3f) == 0 && ((1L << (_la - 165)) & ((1L << (LineStrRef - 165)) | (1L << (LineStrText - 165)) | (1L << (LineStrEscapedChar - 165)))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			} else {
 				consume();
@@ -9979,7 +9992,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(1938);
 			_la = _input.LA(1);
-			if ( !(((((_la - 170)) & ~0x3f) == 0 && ((1L << (_la - 170)) & ((1L << (MultiLineStrRef - 170)) | (1L << (MultiLineStrText - 170)) | (1L << (MultiLineStrEscapedChar - 170)))) != 0)) ) {
+			if ( !(((((_la - 171)) & ~0x3f) == 0 && ((1L << (_la - 171)) & ((1L << (MultiLineStrRef - 171)) | (1L << (MultiLineStrText - 171)) | (1L << (MultiLineStrEscapedChar - 171)))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			} else {
 				consume();
@@ -10282,7 +10295,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(1999);
 			_la = _input.LA(1);
-			if (_la==LPAREN || ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0)) {
+			if (_la==LPAREN || ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0)) {
 				{
 				setState(1998);
 				lambdaParameter();
@@ -10416,6 +10429,8 @@ public class KotlinParser extends Parser {
 			case INFIX:
 			case EXTERNAL:
 			case SUSPEND:
+			case INTERRUPT:
+			case CC65:
 			case OVERRIDE:
 			case ABSTRACT:
 			case FINAL:
@@ -10646,7 +10661,7 @@ public class KotlinParser extends Parser {
 			match(LSQUARE);
 			setState(2067);
 			_la = _input.LA(1);
-			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NL) | (1L << LPAREN) | (1L << LSQUARE) | (1L << LCURL) | (1L << ADD) | (1L << SUB) | (1L << INCR) | (1L << DECR) | (1L << EXCL) | (1L << COLONCOLON) | (1L << Q_COLONCOLON) | (1L << AT) | (1L << RETURN_AT) | (1L << CONTINUE_AT) | (1L << BREAK_AT) | (1L << FILE))) != 0) || ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (OBJECT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (THIS - 65)) | (1L << (SUPER - 65)) | (1L << (WHERE - 65)) | (1L << (IF - 65)) | (1L << (WHEN - 65)) | (1L << (TRY - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (FOR - 65)) | (1L << (DO - 65)) | (1L << (WHILE - 65)) | (1L << (THROW - 65)) | (1L << (RETURN - 65)) | (1L << (CONTINUE - 65)) | (1L << (BREAK - 65)) | (1L << (OUT - 65)) | (1L << (FIELD - 65)) | (1L << (PROPERTY - 65)) | (1L << (GET - 65)) | (1L << (SET - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (RECEIVER - 65)) | (1L << (PARAM - 65)) | (1L << (SETPARAM - 65)) | (1L << (DELEGATE - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (QUOTE_OPEN - 129)) | (1L << (TRIPLE_QUOTE_OPEN - 129)) | (1L << (RealLiteral - 129)) | (1L << (LongLiteral - 129)) | (1L << (IntegerLiteral - 129)) | (1L << (HexLiteral - 129)) | (1L << (BinLiteral - 129)) | (1L << (BooleanLiteral - 129)) | (1L << (NullLiteral - 129)) | (1L << (Identifier - 129)) | (1L << (LabelReference - 129)) | (1L << (LabelDefinition - 129)) | (1L << (CharacterLiteral - 129)))) != 0)) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NL) | (1L << LPAREN) | (1L << LSQUARE) | (1L << LCURL) | (1L << ADD) | (1L << SUB) | (1L << INCR) | (1L << DECR) | (1L << EXCL) | (1L << COLONCOLON) | (1L << Q_COLONCOLON) | (1L << AT) | (1L << RETURN_AT) | (1L << CONTINUE_AT) | (1L << BREAK_AT) | (1L << FILE))) != 0) || ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (OBJECT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (THIS - 65)) | (1L << (SUPER - 65)) | (1L << (WHERE - 65)) | (1L << (IF - 65)) | (1L << (WHEN - 65)) | (1L << (TRY - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (FOR - 65)) | (1L << (DO - 65)) | (1L << (WHILE - 65)) | (1L << (THROW - 65)) | (1L << (RETURN - 65)) | (1L << (CONTINUE - 65)) | (1L << (BREAK - 65)) | (1L << (OUT - 65)) | (1L << (FIELD - 65)) | (1L << (PROPERTY - 65)) | (1L << (GET - 65)) | (1L << (SET - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (RECEIVER - 65)) | (1L << (PARAM - 65)) | (1L << (SETPARAM - 65)) | (1L << (DELEGATE - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (QUOTE_OPEN - 129)) | (1L << (TRIPLE_QUOTE_OPEN - 129)) | (1L << (RealLiteral - 129)) | (1L << (LongLiteral - 129)) | (1L << (IntegerLiteral - 129)) | (1L << (HexLiteral - 129)) | (1L << (BinLiteral - 129)) | (1L << (BooleanLiteral - 129)) | (1L << (NullLiteral - 129)) | (1L << (Identifier - 129)) | (1L << (LabelReference - 129)) | (1L << (LabelDefinition - 129)) | (1L << (CharacterLiteral - 129)))) != 0)) {
 				{
 				setState(2066);
 				expression();
@@ -11410,6 +11425,8 @@ public class KotlinParser extends Parser {
 			case INFIX:
 			case EXTERNAL:
 			case SUSPEND:
+			case INTERRUPT:
+			case CC65:
 			case OVERRIDE:
 			case ABSTRACT:
 			case FINAL:
@@ -11685,6 +11702,8 @@ public class KotlinParser extends Parser {
 			case INFIX:
 			case EXTERNAL:
 			case SUSPEND:
+			case INTERRUPT:
+			case CC65:
 			case OVERRIDE:
 			case ABSTRACT:
 			case FINAL:
@@ -12383,6 +12402,8 @@ public class KotlinParser extends Parser {
 			case INFIX:
 			case EXTERNAL:
 			case SUSPEND:
+			case INTERRUPT:
+			case CC65:
 			case OVERRIDE:
 			case ABSTRACT:
 			case FINAL:
@@ -12850,7 +12871,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(2451);
 			_la = _input.LA(1);
-			if (((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0)) {
+			if (((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0)) {
 				{
 				setState(2438);
 				userType();
@@ -12951,6 +12972,8 @@ public class KotlinParser extends Parser {
 			case INFIX:
 			case EXTERNAL:
 			case SUSPEND:
+			case INTERRUPT:
+			case CC65:
 			case OVERRIDE:
 			case ABSTRACT:
 			case FINAL:
@@ -13771,6 +13794,7 @@ public class KotlinParser extends Parser {
 					case EXTERNAL:
 					case SUSPEND:
 					case INTERRUPT:
+					case CC65:
 					case OVERRIDE:
 					case ABSTRACT:
 					case FINAL:
@@ -13911,6 +13935,7 @@ public class KotlinParser extends Parser {
 			case EXTERNAL:
 			case SUSPEND:
 			case INTERRUPT:
+			case CC65:
 				{
 				setState(2527);
 				functionModifier();
@@ -14185,6 +14210,7 @@ public class KotlinParser extends Parser {
 		public TerminalNode EXTERNAL() { return getToken(KotlinParser.EXTERNAL, 0); }
 		public TerminalNode SUSPEND() { return getToken(KotlinParser.SUSPEND, 0); }
 		public TerminalNode INTERRUPT() { return getToken(KotlinParser.INTERRUPT, 0); }
+		public TerminalNode CC65() { return getToken(KotlinParser.CC65, 0); }
 		public FunctionModifierContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -14213,7 +14239,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(2548);
 			_la = _input.LA(1);
-			if ( !(((((_la - 120)) & ~0x3f) == 0 && ((1L << (_la - 120)) & ((1L << (TAILREC - 120)) | (1L << (OPERATOR - 120)) | (1L << (INLINE - 120)) | (1L << (INFIX - 120)) | (1L << (EXTERNAL - 120)) | (1L << (SUSPEND - 120)) | (1L << (INTERRUPT - 120)))) != 0)) ) {
+			if ( !(((((_la - 120)) & ~0x3f) == 0 && ((1L << (_la - 120)) & ((1L << (TAILREC - 120)) | (1L << (OPERATOR - 120)) | (1L << (INLINE - 120)) | (1L << (INFIX - 120)) | (1L << (EXTERNAL - 120)) | (1L << (SUSPEND - 120)) | (1L << (INTERRUPT - 120)) | (1L << (CC65 - 120)))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			} else {
 				consume();
@@ -14305,7 +14331,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(2552);
 			_la = _input.LA(1);
-			if ( !(((((_la - 128)) & ~0x3f) == 0 && ((1L << (_la - 128)) & ((1L << (ABSTRACT - 128)) | (1L << (FINAL - 128)) | (1L << (OPEN - 128)))) != 0)) ) {
+			if ( !(((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			} else {
 				consume();
@@ -14355,7 +14381,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(2554);
 			_la = _input.LA(1);
-			if ( !(((((_la - 133)) & ~0x3f) == 0 && ((1L << (_la - 133)) & ((1L << (VARARG - 133)) | (1L << (NOINLINE - 133)) | (1L << (CROSSINLINE - 133)))) != 0)) ) {
+			if ( !(((((_la - 134)) & ~0x3f) == 0 && ((1L << (_la - 134)) & ((1L << (VARARG - 134)) | (1L << (NOINLINE - 134)) | (1L << (CROSSINLINE - 134)))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			} else {
 				consume();
@@ -14789,7 +14815,7 @@ public class KotlinParser extends Parser {
 					setState(2618); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
-				} while ( ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0) );
+				} while ( ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0) );
 				setState(2620);
 				match(RSQUARE);
 				}
@@ -14814,7 +14840,7 @@ public class KotlinParser extends Parser {
 					setState(2627); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
-				} while ( ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0) );
+				} while ( ((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0) );
 				setState(2629);
 				match(RSQUARE);
 				}
@@ -15061,6 +15087,8 @@ public class KotlinParser extends Parser {
 		public TerminalNode DYNAMIC() { return getToken(KotlinParser.DYNAMIC, 0); }
 		public TerminalNode ENUM() { return getToken(KotlinParser.ENUM, 0); }
 		public TerminalNode EXTERNAL() { return getToken(KotlinParser.EXTERNAL, 0); }
+		public TerminalNode INTERRUPT() { return getToken(KotlinParser.INTERRUPT, 0); }
+		public TerminalNode CC65() { return getToken(KotlinParser.CC65, 0); }
 		public TerminalNode FINAL() { return getToken(KotlinParser.FINAL, 0); }
 		public TerminalNode FINALLY() { return getToken(KotlinParser.FINALLY, 0); }
 		public TerminalNode GETTER() { return getToken(KotlinParser.GETTER, 0); }
@@ -15115,7 +15143,7 @@ public class KotlinParser extends Parser {
 			{
 			setState(2656);
 			_la = _input.LA(1);
-			if ( !(((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (OVERRIDE - 65)) | (1L << (ABSTRACT - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0)) ) {
+			if ( !(((((_la - 65)) & ~0x3f) == 0 && ((1L << (_la - 65)) & ((1L << (IMPORT - 65)) | (1L << (CONSTRUCTOR - 65)) | (1L << (BY - 65)) | (1L << (COMPANION - 65)) | (1L << (INIT - 65)) | (1L << (WHERE - 65)) | (1L << (CATCH - 65)) | (1L << (FINALLY - 65)) | (1L << (OUT - 65)) | (1L << (GETTER - 65)) | (1L << (SETTER - 65)) | (1L << (DYNAMIC - 65)) | (1L << (PUBLIC - 65)) | (1L << (PRIVATE - 65)) | (1L << (PROTECTED - 65)) | (1L << (INTERNAL - 65)) | (1L << (ENUM - 65)) | (1L << (SEALED - 65)) | (1L << (ANNOTATION - 65)) | (1L << (DATA - 65)) | (1L << (INNER - 65)) | (1L << (TAILREC - 65)) | (1L << (OPERATOR - 65)) | (1L << (INLINE - 65)) | (1L << (INFIX - 65)) | (1L << (EXTERNAL - 65)) | (1L << (SUSPEND - 65)) | (1L << (INTERRUPT - 65)) | (1L << (CC65 - 65)) | (1L << (OVERRIDE - 65)))) != 0) || ((((_la - 129)) & ~0x3f) == 0 && ((1L << (_la - 129)) & ((1L << (ABSTRACT - 129)) | (1L << (FINAL - 129)) | (1L << (OPEN - 129)) | (1L << (CONST - 129)) | (1L << (LATEINIT - 129)) | (1L << (VARARG - 129)) | (1L << (NOINLINE - 129)) | (1L << (CROSSINLINE - 129)) | (1L << (REIFIED - 129)) | (1L << (Identifier - 129)))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			} else {
 				consume();
@@ -15292,7 +15320,7 @@ public class KotlinParser extends Parser {
 
 	private static final int _serializedATNSegments = 2;
 	private static final String _serializedATNSegment0 =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\u00b4\u0a7b\4\2\t"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\u00b5\u0a7b\4\2\t"+
 		"\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13"+
 		"\t\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
 		"\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30\4\31\t\31"+
@@ -15514,66 +15542,66 @@ public class KotlinParser extends Parser {
 		"\u00d8\u00da\u00dc\u00de\u00e0\u00e2\u00e4\u00e6\u00e8\u00ea\u00ec\u00ee"+
 		"\u00f0\u00f2\u00f4\u00f6\u00f8\u00fa\u00fc\u00fe\u0100\u0102\u0104\u0106"+
 		"\u0108\u010a\u010c\u010e\u0110\u0112\u0114\u0116\u0118\u011a\u011c\u011e"+
-		"\u0120\u0122\u0124\u0126\u0128\2\33\3\2DE\3\2HI\4\2\35\35LL\3\2\u00a6"+
-		"\u00a8\3\2\u00ac\u00ae\4\2>>]]\3\2()\4\2\35$<=\4\2\64\65\678\3\2\60\63"+
-		"\4\2bbdd\4\2aacc\4\2\24\25::\4\2\21\23;;\5\2\33\33\66\66``\3\2uy\4\2\u0081"+
-		"\u0081\u0086\u0086\3\2qt\4\2bbee\3\2z\u0080\3\2\u0082\u0084\3\2\u0087"+
-		"\u0089\5\2AAfilo\13\2CCKNRRWXeejkp\177\u0081\u008a\u0096\u0096\4\2\7\7"+
-		"\34\34\u0bb9\2\u012d\3\2\2\2\4\u014c\3\2\2\2\6\u0169\3\2\2\2\b\u016f\3"+
-		"\2\2\2\n\u0183\3\2\2\2\f\u018f\3\2\2\2\16\u0194\3\2\2\2\20\u0197\3\2\2"+
-		"\2\22\u01a1\3\2\2\2\24\u01a9\3\2\2\2\26\u01ac\3\2\2\2\30\u01f2\3\2\2\2"+
-		"\32\u01ff\3\2\2\2\34\u020d\3\2\2\2\36\u021c\3\2\2\2 \u0236\3\2\2\2\"\u0238"+
-		"\3\2\2\2$\u023b\3\2\2\2&\u024b\3\2\2\2(\u0268\3\2\2\2*\u0270\3\2\2\2,"+
-		"\u027a\3\2\2\2.\u02ac\3\2\2\2\60\u02ae\3\2\2\2\62\u02dc\3\2\2\2\64\u02e3"+
-		"\3\2\2\2\66\u0300\3\2\2\28\u0359\3\2\2\2:\u0367\3\2\2\2<\u036e\3\2\2\2"+
-		">\u037b\3\2\2\2@\u037e\3\2\2\2B\u03ab\3\2\2\2D\u03db\3\2\2\2F\u0429\3"+
-		"\2\2\2H\u0434\3\2\2\2J\u046a\3\2\2\2L\u048f\3\2\2\2N\u0492\3\2\2\2P\u04b4"+
-		"\3\2\2\2R\u04d8\3\2\2\2T\u04f8\3\2\2\2V\u0508\3\2\2\2X\u050c\3\2\2\2Z"+
-		"\u0512\3\2\2\2\\\u0532\3\2\2\2^\u0534\3\2\2\2`\u0548\3\2\2\2b\u055d\3"+
-		"\2\2\2d\u055f\3\2\2\2f\u0573\3\2\2\2h\u057f\3\2\2\2j\u0581\3\2\2\2l\u0592"+
-		"\3\2\2\2n\u05b0\3\2\2\2p\u05c3\3\2\2\2r\u05ca\3\2\2\2t\u05df\3\2\2\2v"+
-		"\u05e4\3\2\2\2x\u05f2\3\2\2\2z\u05fb\3\2\2\2|\u0604\3\2\2\2~\u0618\3\2"+
-		"\2\2\u0080\u062c\3\2\2\2\u0082\u063b\3\2\2\2\u0084\u0647\3\2\2\2\u0086"+
-		"\u0660\3\2\2\2\u0088\u0674\3\2\2\2\u008a\u0683\3\2\2\2\u008c\u0691\3\2"+
-		"\2\2\u008e\u06a0\3\2\2\2\u0090\u06af\3\2\2\2\u0092\u06c1\3\2\2\2\u0094"+
-		"\u06c8\3\2\2\2\u0096\u06dc\3\2\2\2\u0098\u06de\3\2\2\2\u009a\u06f8\3\2"+
-		"\2\2\u009c\u06fd\3\2\2\2\u009e\u070b\3\2\2\2\u00a0\u0718\3\2\2\2\u00a2"+
-		"\u0725\3\2\2\2\u00a4\u0747\3\2\2\2\u00a6\u074a\3\2\2\2\u00a8\u075c\3\2"+
-		"\2\2\u00aa\u0772\3\2\2\2\u00ac\u0776\3\2\2\2\u00ae\u0778\3\2\2\2\u00b0"+
-		"\u0782\3\2\2\2\u00b2\u078e\3\2\2\2\u00b4\u0790\3\2\2\2\u00b6\u0794\3\2"+
-		"\2\2\u00b8\u0796\3\2\2\2\u00ba\u079d\3\2\2\2\u00bc\u07d1\3\2\2\2\u00be"+
-		"\u07f8\3\2\2\2\u00c0\u07fa\3\2\2\2\u00c2\u0813\3\2\2\2\u00c4\u0820\3\2"+
-		"\2\2\u00c6\u0824\3\2\2\2\u00c8\u083c\3\2\2\2\u00ca\u083e\3\2\2\2\u00cc"+
-		"\u0868\3\2\2\2\u00ce\u086a\3\2\2\2\u00d0\u08cc\3\2\2\2\u00d2\u08d1\3\2"+
-		"\2\2\u00d4\u08d3\3\2\2\2\u00d6\u08dc\3\2\2\2\u00d8\u08e5\3\2\2\2\u00da"+
-		"\u0902\3\2\2\2\u00dc\u091c\3\2\2\2\u00de\u0928\3\2\2\2\u00e0\u092a\3\2"+
-		"\2\2\u00e2\u0948\3\2\2\2\u00e4\u095b\3\2\2\2\u00e6\u0986\3\2\2\2\u00e8"+
-		"\u0995\3\2\2\2\u00ea\u09a8\3\2\2\2\u00ec\u09aa\3\2\2\2\u00ee\u09ac\3\2"+
-		"\2\2\u00f0\u09ae\3\2\2\2\u00f2\u09b0\3\2\2\2\u00f4\u09b2\3\2\2\2\u00f6"+
-		"\u09b4\3\2\2\2\u00f8\u09b6\3\2\2\2\u00fa\u09bf\3\2\2\2\u00fc\u09d0\3\2"+
-		"\2\2\u00fe\u09d5\3\2\2\2\u0100\u09d9\3\2\2\2\u0102\u09e6\3\2\2\2\u0104"+
-		"\u09ee\3\2\2\2\u0106\u09f0\3\2\2\2\u0108\u09f2\3\2\2\2\u010a\u09f4\3\2"+
-		"\2\2\u010c\u09f6\3\2\2\2\u010e\u09f8\3\2\2\2\u0110\u09fa\3\2\2\2\u0112"+
-		"\u09fc\3\2\2\2\u0114\u09fe\3\2\2\2\u0116\u0a00\3\2\2\2\u0118\u0a09\3\2"+
-		"\2\2\u011a\u0a34\3\2\2\2\u011c\u0a49\3\2\2\2\u011e\u0a4b\3\2\2\2\u0120"+
-		"\u0a4d\3\2\2\2\u0122\u0a54\3\2\2\2\u0124\u0a62\3\2\2\2\u0126\u0a76\3\2"+
-		"\2\2\u0128\u0a78\3\2\2\2\u012a\u012c\7\7\2\2\u012b\u012a\3\2\2\2\u012c"+
-		"\u012f\3\2\2\2\u012d\u012b\3\2\2\2\u012d\u012e\3\2\2\2\u012e\u0130\3\2"+
-		"\2\2\u012f\u012d\3\2\2\2\u0130\u0134\5\6\4\2\u0131\u0133\5\u0128\u0095"+
-		"\2\u0132\u0131\3\2\2\2\u0133\u0136\3\2\2\2\u0134\u0132\3\2\2\2\u0134\u0135"+
-		"\3\2\2\2\u0135\u0145\3\2\2\2\u0136\u0134\3\2\2\2\u0137\u0142\5\24\13\2"+
-		"\u0138\u013a\5\u0128\u0095\2\u0139\u0138\3\2\2\2\u013a\u013b\3\2\2\2\u013b"+
-		"\u0139\3\2\2\2\u013b\u013c\3\2\2\2\u013c\u013e\3\2\2\2\u013d\u013f\5\24"+
-		"\13\2\u013e\u013d\3\2\2\2\u013e\u013f\3\2\2\2\u013f\u0141\3\2\2\2\u0140"+
-		"\u0139\3\2\2\2\u0141\u0144\3\2\2\2\u0142\u0140\3\2\2\2\u0142\u0143\3\2"+
-		"\2\2\u0143\u0146\3\2\2\2\u0144\u0142\3\2\2\2\u0145\u0137\3\2\2\2\u0145"+
-		"\u0146\3\2\2\2\u0146\u0147\3\2\2\2\u0147\u0148\7\2\2\3\u0148\3\3\2\2\2"+
-		"\u0149\u014b\7\7\2\2\u014a\u0149\3\2\2\2\u014b\u014e\3\2\2\2\u014c\u014a"+
-		"\3\2\2\2\u014c\u014d\3\2\2\2\u014d\u014f\3\2\2\2\u014e\u014c\3\2\2\2\u014f"+
-		"\u0153\5\6\4\2\u0150\u0152\5\u0128\u0095\2\u0151\u0150\3\2\2\2\u0152\u0155"+
-		"\3\2\2\2\u0153\u0151\3\2\2\2\u0153\u0154\3\2\2\2\u0154\u0164\3\2\2\2\u0155"+
-		"\u0153\3\2\2\2\u0156\u0161\5z>\2\u0157\u0159\5\u0128\u0095\2\u0158\u0157"+
-		"\3\2\2\2\u0159\u015a\3\2\2\2\u015a\u0158\3\2\2\2\u015a\u015b\3\2\2\2\u015b"+
+		"\u0120\u0122\u0124\u0126\u0128\2\33\3\2DE\3\2HI\4\2\35\35LL\3\2\u00a7"+
+		"\u00a9\3\2\u00ad\u00af\4\2>>]]\3\2()\4\2\35$<=\4\2\64\65\678\3\2\60\63"+
+		"\4\2bbdd\4\2aacc\4\2\24\25::\4\2\21\23;;\5\2\33\33\66\66``\3\2uy\4\2\u0082"+
+		"\u0082\u0087\u0087\3\2qt\4\2bbee\3\2z\u0081\3\2\u0083\u0085\3\2\u0088"+
+		"\u008a\5\2AAfilo\n\2CCKNRRWXeejkp\u008b\u0097\u0097\4\2\7\7\34\34\u0bb9"+
+		"\2\u012d\3\2\2\2\4\u014c\3\2\2\2\6\u0169\3\2\2\2\b\u016f\3\2\2\2\n\u0183"+
+		"\3\2\2\2\f\u018f\3\2\2\2\16\u0194\3\2\2\2\20\u0197\3\2\2\2\22\u01a1\3"+
+		"\2\2\2\24\u01a9\3\2\2\2\26\u01ac\3\2\2\2\30\u01f2\3\2\2\2\32\u01ff\3\2"+
+		"\2\2\34\u020d\3\2\2\2\36\u021c\3\2\2\2 \u0236\3\2\2\2\"\u0238\3\2\2\2"+
+		"$\u023b\3\2\2\2&\u024b\3\2\2\2(\u0268\3\2\2\2*\u0270\3\2\2\2,\u027a\3"+
+		"\2\2\2.\u02ac\3\2\2\2\60\u02ae\3\2\2\2\62\u02dc\3\2\2\2\64\u02e3\3\2\2"+
+		"\2\66\u0300\3\2\2\28\u0359\3\2\2\2:\u0367\3\2\2\2<\u036e\3\2\2\2>\u037b"+
+		"\3\2\2\2@\u037e\3\2\2\2B\u03ab\3\2\2\2D\u03db\3\2\2\2F\u0429\3\2\2\2H"+
+		"\u0434\3\2\2\2J\u046a\3\2\2\2L\u048f\3\2\2\2N\u0492\3\2\2\2P\u04b4\3\2"+
+		"\2\2R\u04d8\3\2\2\2T\u04f8\3\2\2\2V\u0508\3\2\2\2X\u050c\3\2\2\2Z\u0512"+
+		"\3\2\2\2\\\u0532\3\2\2\2^\u0534\3\2\2\2`\u0548\3\2\2\2b\u055d\3\2\2\2"+
+		"d\u055f\3\2\2\2f\u0573\3\2\2\2h\u057f\3\2\2\2j\u0581\3\2\2\2l\u0592\3"+
+		"\2\2\2n\u05b0\3\2\2\2p\u05c3\3\2\2\2r\u05ca\3\2\2\2t\u05df\3\2\2\2v\u05e4"+
+		"\3\2\2\2x\u05f2\3\2\2\2z\u05fb\3\2\2\2|\u0604\3\2\2\2~\u0618\3\2\2\2\u0080"+
+		"\u062c\3\2\2\2\u0082\u063b\3\2\2\2\u0084\u0647\3\2\2\2\u0086\u0660\3\2"+
+		"\2\2\u0088\u0674\3\2\2\2\u008a\u0683\3\2\2\2\u008c\u0691\3\2\2\2\u008e"+
+		"\u06a0\3\2\2\2\u0090\u06af\3\2\2\2\u0092\u06c1\3\2\2\2\u0094\u06c8\3\2"+
+		"\2\2\u0096\u06dc\3\2\2\2\u0098\u06de\3\2\2\2\u009a\u06f8\3\2\2\2\u009c"+
+		"\u06fd\3\2\2\2\u009e\u070b\3\2\2\2\u00a0\u0718\3\2\2\2\u00a2\u0725\3\2"+
+		"\2\2\u00a4\u0747\3\2\2\2\u00a6\u074a\3\2\2\2\u00a8\u075c\3\2\2\2\u00aa"+
+		"\u0772\3\2\2\2\u00ac\u0776\3\2\2\2\u00ae\u0778\3\2\2\2\u00b0\u0782\3\2"+
+		"\2\2\u00b2\u078e\3\2\2\2\u00b4\u0790\3\2\2\2\u00b6\u0794\3\2\2\2\u00b8"+
+		"\u0796\3\2\2\2\u00ba\u079d\3\2\2\2\u00bc\u07d1\3\2\2\2\u00be\u07f8\3\2"+
+		"\2\2\u00c0\u07fa\3\2\2\2\u00c2\u0813\3\2\2\2\u00c4\u0820\3\2\2\2\u00c6"+
+		"\u0824\3\2\2\2\u00c8\u083c\3\2\2\2\u00ca\u083e\3\2\2\2\u00cc\u0868\3\2"+
+		"\2\2\u00ce\u086a\3\2\2\2\u00d0\u08cc\3\2\2\2\u00d2\u08d1\3\2\2\2\u00d4"+
+		"\u08d3\3\2\2\2\u00d6\u08dc\3\2\2\2\u00d8\u08e5\3\2\2\2\u00da\u0902\3\2"+
+		"\2\2\u00dc\u091c\3\2\2\2\u00de\u0928\3\2\2\2\u00e0\u092a\3\2\2\2\u00e2"+
+		"\u0948\3\2\2\2\u00e4\u095b\3\2\2\2\u00e6\u0986\3\2\2\2\u00e8\u0995\3\2"+
+		"\2\2\u00ea\u09a8\3\2\2\2\u00ec\u09aa\3\2\2\2\u00ee\u09ac\3\2\2\2\u00f0"+
+		"\u09ae\3\2\2\2\u00f2\u09b0\3\2\2\2\u00f4\u09b2\3\2\2\2\u00f6\u09b4\3\2"+
+		"\2\2\u00f8\u09b6\3\2\2\2\u00fa\u09bf\3\2\2\2\u00fc\u09d0\3\2\2\2\u00fe"+
+		"\u09d5\3\2\2\2\u0100\u09d9\3\2\2\2\u0102\u09e6\3\2\2\2\u0104\u09ee\3\2"+
+		"\2\2\u0106\u09f0\3\2\2\2\u0108\u09f2\3\2\2\2\u010a\u09f4\3\2\2\2\u010c"+
+		"\u09f6\3\2\2\2\u010e\u09f8\3\2\2\2\u0110\u09fa\3\2\2\2\u0112\u09fc\3\2"+
+		"\2\2\u0114\u09fe\3\2\2\2\u0116\u0a00\3\2\2\2\u0118\u0a09\3\2\2\2\u011a"+
+		"\u0a34\3\2\2\2\u011c\u0a49\3\2\2\2\u011e\u0a4b\3\2\2\2\u0120\u0a4d\3\2"+
+		"\2\2\u0122\u0a54\3\2\2\2\u0124\u0a62\3\2\2\2\u0126\u0a76\3\2\2\2\u0128"+
+		"\u0a78\3\2\2\2\u012a\u012c\7\7\2\2\u012b\u012a\3\2\2\2\u012c\u012f\3\2"+
+		"\2\2\u012d\u012b\3\2\2\2\u012d\u012e\3\2\2\2\u012e\u0130\3\2\2\2\u012f"+
+		"\u012d\3\2\2\2\u0130\u0134\5\6\4\2\u0131\u0133\5\u0128\u0095\2\u0132\u0131"+
+		"\3\2\2\2\u0133\u0136\3\2\2\2\u0134\u0132\3\2\2\2\u0134\u0135\3\2\2\2\u0135"+
+		"\u0145\3\2\2\2\u0136\u0134\3\2\2\2\u0137\u0142\5\24\13\2\u0138\u013a\5"+
+		"\u0128\u0095\2\u0139\u0138\3\2\2\2\u013a\u013b\3\2\2\2\u013b\u0139\3\2"+
+		"\2\2\u013b\u013c\3\2\2\2\u013c\u013e\3\2\2\2\u013d\u013f\5\24\13\2\u013e"+
+		"\u013d\3\2\2\2\u013e\u013f\3\2\2\2\u013f\u0141\3\2\2\2\u0140\u0139\3\2"+
+		"\2\2\u0141\u0144\3\2\2\2\u0142\u0140\3\2\2\2\u0142\u0143\3\2\2\2\u0143"+
+		"\u0146\3\2\2\2\u0144\u0142\3\2\2\2\u0145\u0137\3\2\2\2\u0145\u0146\3\2"+
+		"\2\2\u0146\u0147\3\2\2\2\u0147\u0148\7\2\2\3\u0148\3\3\2\2\2\u0149\u014b"+
+		"\7\7\2\2\u014a\u0149\3\2\2\2\u014b\u014e\3\2\2\2\u014c\u014a\3\2\2\2\u014c"+
+		"\u014d\3\2\2\2\u014d\u014f\3\2\2\2\u014e\u014c\3\2\2\2\u014f\u0153\5\6"+
+		"\4\2\u0150\u0152\5\u0128\u0095\2\u0151\u0150\3\2\2\2\u0152\u0155\3\2\2"+
+		"\2\u0153\u0151\3\2\2\2\u0153\u0154\3\2\2\2\u0154\u0164\3\2\2\2\u0155\u0153"+
+		"\3\2\2\2\u0156\u0161\5z>\2\u0157\u0159\5\u0128\u0095\2\u0158\u0157\3\2"+
+		"\2\2\u0159\u015a\3\2\2\2\u015a\u0158\3\2\2\2\u015a\u015b\3\2\2\2\u015b"+
 		"\u015d\3\2\2\2\u015c\u015e\5z>\2\u015d\u015c\3\2\2\2\u015d\u015e\3\2\2"+
 		"\2\u015e\u0160\3\2\2\2\u015f\u0158\3\2\2\2\u0160\u0163\3\2\2\2\u0161\u015f"+
 		"\3\2\2\2\u0161\u0162\3\2\2\2\u0162\u0165\3\2\2\2\u0163\u0161\3\2\2\2\u0164"+
@@ -16064,7 +16092,7 @@ public class KotlinParser extends Parser {
 		"\u06f9\3\2\2\2\u06f8\u06e2\3\2\2\2\u06f8\u06ec\3\2\2\2\u06f8\u06f4\3\2"+
 		"\2\2\u06f9\u009b\3\2\2\2\u06fa\u06fc\5\u0120\u0091\2\u06fb\u06fa\3\2\2"+
 		"\2\u06fc\u06ff\3\2\2\2\u06fd\u06fb\3\2\2\2\u06fd\u06fe\3\2\2\2\u06fe\u0701"+
-		"\3\2\2\2\u06ff\u06fd\3\2\2\2\u0700\u0702\7\u0098\2\2\u0701\u0700\3\2\2"+
+		"\3\2\2\2\u06ff\u06fd\3\2\2\2\u0700\u0702\7\u0099\2\2\u0701\u0700\3\2\2"+
 		"\2\u0701\u0702\3\2\2\2\u0702\u0706\3\2\2\2\u0703\u0705\7\7\2\2\u0704\u0703"+
 		"\3\2\2\2\u0705\u0708\3\2\2\2\u0706\u0704\3\2\2\2\u0706\u0707\3\2\2\2\u0707"+
 		"\u0709\3\2\2\2\u0708\u0706\3\2\2\2\u0709\u070a\5\u00ba^\2\u070a\u009d"+
@@ -16099,25 +16127,25 @@ public class KotlinParser extends Parser {
 		"\u0760\7\21\2\2\u075f\u075e\3\2\2\2\u075f\u0760\3\2\2\2\u0760\u0764\3"+
 		"\2\2\2\u0761\u0763\7\7\2\2\u0762\u0761\3\2\2\2\u0763\u0766\3\2\2\2\u0764"+
 		"\u0762\3\2\2\2\u0764\u0765\3\2\2\2\u0765\u0767\3\2\2\2\u0766\u0764\3\2"+
-		"\2\2\u0767\u0768\5z>\2\u0768\u00a9\3\2\2\2\u0769\u0773\7\u0094\2\2\u076a"+
-		"\u0773\7\u0091\2\2\u076b\u0773\5\u00acW\2\u076c\u0773\7\u0092\2\2\u076d"+
-		"\u0773\7\u0093\2\2\u076e\u0773\7\u009a\2\2\u076f\u0773\7\u008d\2\2\u0770"+
-		"\u0773\7\u0095\2\2\u0771\u0773\7\u0090\2\2\u0772\u0769\3\2\2\2\u0772\u076a"+
+		"\2\2\u0767\u0768\5z>\2\u0768\u00a9\3\2\2\2\u0769\u0773\7\u0095\2\2\u076a"+
+		"\u0773\7\u0092\2\2\u076b\u0773\5\u00acW\2\u076c\u0773\7\u0093\2\2\u076d"+
+		"\u0773\7\u0094\2\2\u076e\u0773\7\u009b\2\2\u076f\u0773\7\u008e\2\2\u0770"+
+		"\u0773\7\u0096\2\2\u0771\u0773\7\u0091\2\2\u0772\u0769\3\2\2\2\u0772\u076a"+
 		"\3\2\2\2\u0772\u076b\3\2\2\2\u0772\u076c\3\2\2\2\u0772\u076d\3\2\2\2\u0772"+
 		"\u076e\3\2\2\2\u0772\u076f\3\2\2\2\u0772\u0770\3\2\2\2\u0772\u0771\3\2"+
 		"\2\2\u0773\u00ab\3\2\2\2\u0774\u0777\5\u00aeX\2\u0775\u0777\5\u00b0Y\2"+
 		"\u0776\u0774\3\2\2\2\u0776\u0775\3\2\2\2\u0777\u00ad\3\2\2\2\u0778\u077d"+
-		"\7\u008b\2\2\u0779\u077c\5\u00b2Z\2\u077a\u077c\5\u00b4[\2\u077b\u0779"+
+		"\7\u008c\2\2\u0779\u077c\5\u00b2Z\2\u077a\u077c\5\u00b4[\2\u077b\u0779"+
 		"\3\2\2\2\u077b\u077a\3\2\2\2\u077c\u077f\3\2\2\2\u077d\u077b\3\2\2\2\u077d"+
-		"\u077e\3\2\2\2\u077e\u0780\3\2\2\2\u077f\u077d\3\2\2\2\u0780\u0781\7\u00a5"+
-		"\2\2\u0781\u00af\3\2\2\2\u0782\u0789\7\u008c\2\2\u0783\u0788\5\u00b6\\"+
-		"\2\u0784\u0788\5\u00b8]\2\u0785\u0788\5\u00aeX\2\u0786\u0788\7\u00ab\2"+
+		"\u077e\3\2\2\2\u077e\u0780\3\2\2\2\u077f\u077d\3\2\2\2\u0780\u0781\7\u00a6"+
+		"\2\2\u0781\u00af\3\2\2\2\u0782\u0789\7\u008d\2\2\u0783\u0788\5\u00b6\\"+
+		"\2\u0784\u0788\5\u00b8]\2\u0785\u0788\5\u00aeX\2\u0786\u0788\7\u00ac\2"+
 		"\2\u0787\u0783\3\2\2\2\u0787\u0784\3\2\2\2\u0787\u0785\3\2\2\2\u0787\u0786"+
 		"\3\2\2\2\u0788\u078b\3\2\2\2\u0789\u0787\3\2\2\2\u0789\u078a\3\2\2\2\u078a"+
-		"\u078c\3\2\2\2\u078b\u0789\3\2\2\2\u078c\u078d\7\u00aa\2\2\u078d\u00b1"+
-		"\3\2\2\2\u078e\u078f\t\5\2\2\u078f\u00b3\3\2\2\2\u0790\u0791\7\u00a9\2"+
+		"\u078c\3\2\2\2\u078b\u0789\3\2\2\2\u078c\u078d\7\u00ab\2\2\u078d\u00b1"+
+		"\3\2\2\2\u078e\u078f\t\5\2\2\u078f\u00b3\3\2\2\2\u0790\u0791\7\u00aa\2"+
 		"\2\u0791\u0792\5z>\2\u0792\u0793\7\20\2\2\u0793\u00b5\3\2\2\2\u0794\u0795"+
-		"\t\6\2\2\u0795\u00b7\3\2\2\2\u0796\u0797\7\u00af\2\2\u0797\u0798\5z>\2"+
+		"\t\6\2\2\u0795\u00b7\3\2\2\2\u0796\u0797\7\u00b0\2\2\u0797\u0798\5z>\2"+
 		"\u0798\u0799\7\20\2\2\u0799\u00b9\3\2\2\2\u079a\u079c\5\u0118\u008d\2"+
 		"\u079b\u079a\3\2\2\2\u079c\u079f\3\2\2\2\u079d\u079b\3\2\2\2\u079d\u079e"+
 		"\3\2\2\2\u079e\u07ce\3\2\2\2\u079f\u079d\3\2\2\2\u07a0\u07a4\7\17\2\2"+
@@ -16162,7 +16190,7 @@ public class KotlinParser extends Parser {
 		"\u0814\3\2\2\2\u0815\u0816\3\2\2\2\u0816\u081b\3\2\2\2\u0817\u0818\7\n"+
 		"\2\2\u0818\u081a\5z>\2\u0819\u0817\3\2\2\2\u081a\u081d\3\2\2\2\u081b\u0819"+
 		"\3\2\2\2\u081b\u081c\3\2\2\2\u081c\u081e\3\2\2\2\u081d\u081b\3\2\2\2\u081e"+
-		"\u081f\7\16\2\2\u081f\u00c3\3\2\2\2\u0820\u0822\7O\2\2\u0821\u0823\7\u0097"+
+		"\u081f\7\16\2\2\u081f\u00c3\3\2\2\2\u0820\u0822\7O\2\2\u0821\u0823\7\u0098"+
 		"\2\2\u0822\u0821\3\2\2\2\u0822\u0823\3\2\2\2\u0823\u00c5\3\2\2\2\u0824"+
 		"\u0835\7P\2\2\u0825\u0829\7\60\2\2\u0826\u0828\7\7\2\2\u0827\u0826\3\2"+
 		"\2\2\u0828\u082b\3\2\2\2\u0829\u0827\3\2\2\2\u0829\u082a\3\2\2\2\u082a"+
@@ -16170,7 +16198,7 @@ public class KotlinParser extends Parser {
 		"\2\u082e\u082d\3\2\2\2\u082f\u0832\3\2\2\2\u0830\u082e\3\2\2\2\u0830\u0831"+
 		"\3\2\2\2\u0831\u0833\3\2\2\2\u0832\u0830\3\2\2\2\u0833\u0834\7\61\2\2"+
 		"\u0834\u0836\3\2\2\2\u0835\u0825\3\2\2\2\u0835\u0836\3\2\2\2\u0836\u0838"+
-		"\3\2\2\2\u0837\u0839\7\u0097\2\2\u0838\u0837\3\2\2\2\u0838\u0839\3\2\2"+
+		"\3\2\2\2\u0837\u0839\7\u0098\2\2\u0838\u0837\3\2\2\2\u0838\u0839\3\2\2"+
 		"\2\u0839\u00c7\3\2\2\2\u083a\u083d\5\u00caf\2\u083b\u083d\5\u00ceh\2\u083c"+
 		"\u083a\3\2\2\2\u083c\u083b\3\2\2\2\u083d\u00c9\3\2\2\2\u083e\u0842\7S"+
 		"\2\2\u083f\u0841\7\7\2\2\u0840\u083f\3\2\2\2\u0841\u0844\3\2\2\2\u0842"+
@@ -16250,9 +16278,9 @@ public class KotlinParser extends Parser {
 		"\2\u091d\u091f\7\7\2\2\u091e\u091d\3\2\2\2\u091f\u0922\3\2\2\2\u0920\u091e"+
 		"\3\2\2\2\u0920\u0921\3\2\2\2\u0921\u0923\3\2\2\2\u0922\u0920\3\2\2\2\u0923"+
 		"\u0924\5p9\2\u0924\u00dd\3\2\2\2\u0925\u0929\5\u00e0q\2\u0926\u0929\5"+
-		"\u00e2";
+		"\u00e2r\2";
 	private static final String _serializedATNSegment1 =
-		"r\2\u0927\u0929\5\u00e4s\2\u0928\u0925\3\2\2\2\u0928\u0926\3\2\2\2\u0928"+
+		"\u0927\u0929\5\u00e4s\2\u0928\u0925\3\2\2\2\u0928\u0926\3\2\2\2\u0928"+
 		"\u0927\3\2\2\2\u0929\u00df\3\2\2\2\u092a\u092e\7Y\2\2\u092b\u092d\7\7"+
 		"\2\2\u092c\u092b\3\2\2\2\u092d\u0930\3\2\2\2\u092e\u092c\3\2\2\2\u092e"+
 		"\u092f\3\2\2\2\u092f\u0931\3\2\2\2\u0930\u092e\3\2\2\2\u0931\u0935\7\13"+
@@ -16327,10 +16355,10 @@ public class KotlinParser extends Parser {
 		"\2\2\u09ec\u0103\3\2\2\2\u09ed\u09eb\3\2\2\2\u09ee\u09ef\t\21\2\2\u09ef"+
 		"\u0105\3\2\2\2\u09f0\u09f1\t\22\2\2\u09f1\u0107\3\2\2\2\u09f2\u09f3\t"+
 		"\23\2\2\u09f3\u0109\3\2\2\2\u09f4\u09f5\t\24\2\2\u09f5\u010b\3\2\2\2\u09f6"+
-		"\u09f7\t\25\2\2\u09f7\u010d\3\2\2\2\u09f8\u09f9\7\u0085\2\2\u09f9\u010f"+
+		"\u09f7\t\25\2\2\u09f7\u010d\3\2\2\2\u09f8\u09f9\7\u0086\2\2\u09f9\u010f"+
 		"\3\2\2\2\u09fa\u09fb\t\26\2\2\u09fb\u0111\3\2\2\2\u09fc\u09fd\t\27\2\2"+
-		"\u09fd\u0113\3\2\2\2\u09fe\u09ff\7\u008a\2\2\u09ff\u0115\3\2\2\2\u0a00"+
-		"\u0a04\7\u0098\2\2\u0a01\u0a03\7\7\2\2\u0a02\u0a01\3\2\2\2\u0a03\u0a06"+
+		"\u09fd\u0113\3\2\2\2\u09fe\u09ff\7\u008b\2\2\u09ff\u0115\3\2\2\2\u0a00"+
+		"\u0a04\7\u0099\2\2\u0a01\u0a03\7\7\2\2\u0a02\u0a01\3\2\2\2\u0a03\u0a06"+
 		"\3\2\2\2\u0a04\u0a02\3\2\2\2\u0a04\u0a05\3\2\2\2\u0a05\u0117\3\2\2\2\u0a06"+
 		"\u0a04\3\2\2\2\u0a07\u0a0a\5\u011a\u008e\2\u0a08\u0a0a\5\u011c\u008f\2"+
 		"\u0a09\u0a07\3\2\2\2\u0a09\u0a08\3\2\2\2\u0a0a\u0a0e\3\2\2\2\u0a0b\u0a0d"+
@@ -16341,7 +16369,7 @@ public class KotlinParser extends Parser {
 		"\2\2\u0a18\u0a1c\7\33\2\2\u0a19\u0a1b\7\7\2\2\u0a1a\u0a19\3\2\2\2\u0a1b"+
 		"\u0a1e\3\2\2\2\u0a1c\u0a1a\3\2\2\2\u0a1c\u0a1d\3\2\2\2\u0a1d\u0a1f\3\2"+
 		"\2\2\u0a1e\u0a1c\3\2\2\2\u0a1f\u0a20\5\u0120\u0091\2\u0a20\u0a35\3\2\2"+
-		"\2\u0a21\u0a29\7\u0097\2\2\u0a22\u0a24\7\7\2\2\u0a23\u0a22\3\2\2\2\u0a24"+
+		"\2\u0a21\u0a29\7\u0098\2\2\u0a22\u0a24\7\7\2\2\u0a23\u0a22\3\2\2\2\u0a24"+
 		"\u0a27\3\2\2\2\u0a25\u0a23\3\2\2\2\u0a25\u0a26\3\2\2\2\u0a26\u0a28\3\2"+
 		"\2\2\u0a27\u0a25\3\2\2\2\u0a28\u0a2a\5\u00a2R\2\u0a29\u0a25\3\2\2\2\u0a29"+
 		"\u0a2a\3\2\2\2\u0a2a\u0a32\3\2\2\2\u0a2b\u0a2d\7\7\2\2\u0a2c\u0a2b\3\2"+

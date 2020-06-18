@@ -593,6 +593,19 @@ let SPF(?dst)[uword]=?adr[uword] -> """
     sta (__wolin_spf),y
 """
 
+let SPF(?dst)[ubyte] = CPU.A -> """
+    ldy #{dst}
+    sta (__wolin_spf),y
+"""
+
+let SPF(?dst)[uword] = CPU.AX -> """
+    ldy #{dst}
+    sta (__wolin_spf),y
+    iny
+    txa
+    sta (__wolin_spf),y
+"""
+
 
 //============================================
 // SPE, exception stack, Y based
@@ -670,6 +683,11 @@ let ?addr[uword] = SPE(?s)[uword] -> """
     iny
     lda (__wolin_spe),y
     sta {addr}+1"""
+
+//============================================
+// Inne
+//============================================
+
 
 //============================================
 // Sterta

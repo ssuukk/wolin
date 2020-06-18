@@ -4,7 +4,10 @@ fun chrout^0xFFD2(char: ubyte^CPU.A)
 fun plot^0xFFF0(x: ubyte^CPU.X, y: ubyte^CPU.Y)
 var carry: bool^CPU.C
 
+cc65 fun clrscr()
+cc65 fun wherex(): ubyte
 
+/*
 fun print(what: string) {
     val i = 0
     var char: ubyte = what[i] // BLĄD!!! inference myśli, ze char jest ubyte*
@@ -14,7 +17,12 @@ fun print(what: string) {
         char = what[i]
     }
 }
+*/
 
 fun main() {
-    print("dupa")
+    val x: ubyte
+    //print("dupa")
+    clrscr()
+
+    x = wherex()
 }
