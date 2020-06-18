@@ -12,7 +12,7 @@ class Debugger2(val view: MyView): Thread() {
     var debugging = true
     val state = CPUState()
     val spTop = 0x72 - 1
-    val spfTop = 0x9fff - 1
+    val spfTop = 0x9fff
     val buildPath = "D:\\Projekty\\kotlinek\\src\\main\\wolin\\"
     val objectName = "assembler"
     var line = ""
@@ -243,13 +243,17 @@ class Debugger2(val view: MyView): Thread() {
         val hi = Integer.parseInt(match?.groupValues?.get(2) ?: "0", 16)
         val bottom = hi * 256 + lo
 
-        if(spfTop - bottom > 0) {
-            sendCommand("m ${bottom.hex()} ${spfTop.hex()}")
-            val razem = "Function stack: $bottom - $spfTop size: ${spfTop - bottom+1}\n" + getOutputAndUpdate()
-            showIn(razem, view.spfText)
+        val stackSize = spfTop - bottom
+
+        var razem = "Function stack: $bottom - $spfTop size: ${stackSize}\n"
+
+        razem += if(stackSize > 0) {
+            sendCommand("m ${(bottom+1).hex()} ${spfTop.hex()}")
+            getOutputAndUpdate()
         } else {
-            showIn("empty", view.spfText)
+            "empty"
         }
+        showIn(razem, view.spfText)
     }
 
     fun parseListingLine(linia: String):Pair<Int, String>? {
