@@ -2007,7 +2007,9 @@ class WolinVisitor(
             state.rem(" main function entry")
             //state.code("goto ${state.mainFunction!!.labelName}[adr]")
 
-            state.code("goto ${state.mainFunction!!.labelName}[uword]")
+            state.fnCallAllocRetAndArgs(state.mainFunction!!)
+            state.code("call ${state.mainFunction!!.labelName}[uword]")
+            state.code("endfunction")
 //            easeyCall(ctx, state.mainFunction!!, null)
 //            state.code("endfunction")
         }

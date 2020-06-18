@@ -8,7 +8,10 @@ abstract class CompilerProcess {
     var inputName: String = ""
     var outputName: String = ""
     var state: WolinStateObject? = null
-    val workDir = "src/main/wolin/"
+
+    companion object {
+        val workDir = "src/main/wolin/"
+    }
 
     fun chain(next: CompilerProcess, oName: String): CompilerProcess {
         next.inputName = outputName

@@ -1,6 +1,6 @@
 ca65 V2.18 - Git 31daa70
-Main file   : assembler.s
-Current file: assembler.s
+Main file   : test.s
+Current file: test.s
 
 000000r 1               ; 1: setup HEADER
 000000r 1               
@@ -63,87 +63,131 @@ Current file: assembler.s
 00081A  1               __wolin_this_ptr_hi := 176+1
 00081A  1               
 00081A  1               
-00081A  1               ; 7: goto __wolin_pl_qus_wolin_main[uword]
+00081A  1               ; 7: alloc SPF<__wolin_pl_qus_wolin_main> , #1
 00081A  1               
-00081A  1  4C 1D 08         jmp __wolin_pl_qus_wolin_main
-00081D  1               
-00081D  1               ; 8: import _clrscr
-00081D  1               
-00081D  1               
-00081D  1                   .import _clrscr
-00081D  1               
-00081D  1               ; 9: import _wherex
-00081D  1               
-00081D  1               
-00081D  1                   .import _wherex
-00081D  1               
-00081D  1               ; 10: function __wolin_pl_qus_wolin_main
-00081D  1               
-00081D  1               __wolin_pl_qus_wolin_main:
-00081D  1               
-00081D  1               ; 11: save SP
-00081D  1               
-00081D  1               
-00081D  1  8A               txa
-00081E  1  48               pha
-00081F  1               
-00081F  1               ; 12: call _clrscr[uword]
-00081F  1               
-00081F  1  20 rr rr         jsr _clrscr
-000822  1               
-000822  1               ; 13: restore SP
-000822  1               
-000822  1               
-000822  1  68               pla
-000823  1  AA               tax
-000824  1               
-000824  1               ; 14: alloc SPF<_wherex> , #1
-000824  1               
-000824  1               
-000824  1  38               sec
-000825  1  A5 FB            lda __wolin_spf
-000827  1  E9 01            sbc #1
-000829  1  85 FB            sta __wolin_spf
-00082B  1  B0 02            bcs :+
-00082D  1  C6 FC            dec __wolin_spf+1
-00082F  1               :
-00082F  1               
-00082F  1               ; 15: save SP
-00082F  1               
-00082F  1               
-00082F  1  8A               txa
-000830  1  48               pha
-000831  1               
-000831  1               ; 16: call _wherex[uword]
-000831  1               
-000831  1  20 rr rr         jsr _wherex
+00081A  1               
+00081A  1  38               sec
+00081B  1  A5 FB            lda __wolin_spf
+00081D  1  E9 01            sbc #1
+00081F  1  85 FB            sta __wolin_spf
+000821  1  B0 02            bcs :+
+000823  1  C6 FC            dec __wolin_spf+1
+000825  1               :
+000825  1               
+000825  1               ; 8: call __wolin_pl_qus_wolin_main[uword]
+000825  1               
+000825  1  20 29 08         jsr __wolin_pl_qus_wolin_main
+000828  1               
+000828  1               ; 9: endfunction
+000828  1               
+000828  1  60               rts
+000829  1               
+000829  1               ; 10: import _clrscr
+000829  1               
+000829  1               
+000829  1                   .import _clrscr
+000829  1               
+000829  1               ; 11: import _wherex
+000829  1               
+000829  1               
+000829  1                   .import _wherex
+000829  1               
+000829  1               ; 12: import _bordercolor
+000829  1               
+000829  1               
+000829  1                   .import _bordercolor
+000829  1               
+000829  1               ; 13: import _strlen
+000829  1               
+000829  1               
+000829  1                   .import _strlen
+000829  1               
+000829  1               ; 14: function __wolin_pl_qus_wolin_main
+000829  1               
+000829  1               __wolin_pl_qus_wolin_main:
+000829  1               
+000829  1               ; 15: alloc SPF<_strlen> , #1
+000829  1               
+000829  1               
+000829  1  38               sec
+00082A  1  A5 FB            lda __wolin_spf
+00082C  1  E9 01            sbc #1
+00082E  1  85 FB            sta __wolin_spf
+000830  1  B0 02            bcs :+
+000832  1  C6 FC            dec __wolin_spf+1
+000834  1               :
 000834  1               
-000834  1               ; 17: restore SP
+000834  1               ; 16: save SP
 000834  1               
 000834  1               
-000834  1  68               pla
-000835  1  AA               tax
+000834  1  8A               txa
+000835  1  48               pha
 000836  1               
-000836  1               ; 18: let SPF(0)<pl.qus.wolin.main..x>[ubyte] = CPU.A
+000836  1               ; 17: let CPU.AX[ubyte*] = #__wolin_lab_stringConst_0[uword]
 000836  1               
 000836  1               
-000836  1  A0 00            ldy #0
-000838  1  91 FB            sta (__wolin_spf),y
+000836  1  A9 62            lda #<__wolin_lab_stringConst_0
+000838  1  A2 08            ldx #>__wolin_lab_stringConst_0
 00083A  1               
 00083A  1               
-00083A  1               ; 19: free SPF<__wolin_pl_qus_wolin_main> , #1
+00083A  1               ; 20: call _strlen[uword]
 00083A  1               
-00083A  1               
-00083A  1  18               clc
-00083B  1  A5 FB            lda __wolin_spf
-00083D  1  69 01            adc #1
-00083F  1  85 FB            sta __wolin_spf
-000841  1  90 02            bcc :+
-000843  1  E6 FC            inc __wolin_spf+1
-000845  1               :
-000845  1               
-000845  1               ; 20: endfunction
-000845  1               
-000845  1  60               rts
-000846  1               
-000846  1               
+00083A  1  20 rr rr         jsr _strlen
+00083D  1               
+00083D  1               ; 21: let SPF(0)<pl.qus.wolin.strlen.__returnValue>[ubyte] = CPU.A
+00083D  1               
+00083D  1               
+00083D  1  A0 00            ldy #0
+00083F  1  91 FB            sta (__wolin_spf),y
+000841  1               
+000841  1               
+000841  1               ; 22: restore SP
+000841  1               
+000841  1               
+000841  1  68               pla
+000842  1  AA               tax
+000843  1               
+000843  1               ; 23: free SPF<pl.qus.wolin.strlen.__returnValue> , #1
+000843  1               
+000843  1               
+000843  1  18               clc
+000844  1  A5 FB            lda __wolin_spf
+000846  1  69 01            adc #1
+000848  1  85 FB            sta __wolin_spf
+00084A  1  90 02            bcc :+
+00084C  1  E6 FC            inc __wolin_spf+1
+00084E  1               :
+00084E  1               
+00084E  1               ; 24: let SPF(0)<pl.qus.wolin.main..x>[ubyte] = SPF(0)<pl.qus.wolin.strlen.__returnValue>[ubyte]
+00084E  1               
+00084E  1               
+00084E  1  A0 00            ldy #0
+000850  1  B1 FB            lda (__wolin_spf),y
+000852  1  A0 00            ldy #0
+000854  1  91 FB            sta (__wolin_spf),y
+000856  1               
+000856  1               
+000856  1               ; 25: free SPF<__wolin_pl_qus_wolin_main> , #1
+000856  1               
+000856  1               
+000856  1  18               clc
+000857  1  A5 FB            lda __wolin_spf
+000859  1  69 01            adc #1
+00085B  1  85 FB            sta __wolin_spf
+00085D  1  90 02            bcc :+
+00085F  1  E6 FC            inc __wolin_spf+1
+000861  1               :
+000861  1               
+000861  1               ; 26: endfunction
+000861  1               
+000861  1  60               rts
+000862  1               
+000862  1               ; 27: string __wolin_lab_stringConst_0[uword] = $"dupa"
+000862  1               
+000862  1               
+000862  1               __wolin_lab_stringConst_0:
+000862  1  44 55 50 41      .asciiz "dupa"
+000866  1  00           
+000867  1               
+000867  1               
+000867  1               

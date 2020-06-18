@@ -12,6 +12,7 @@ cc65 fun wherex(): ubyte
 // A/X/Sreg dla 32 sreg = secondary register na ZP
 // unsigned char __fastcall__ bordercolor (unsigned char color);
 cc65 fun bordercolor(col: ubyte^CPU.A): ubyte
+cc65 fun strlen(string: string^CPU.AX): ubyte
 
 /*
 fun print(what: string) {
@@ -28,7 +29,9 @@ fun print(what: string) {
 fun main() {
     val x: ubyte
     //print("dupa")
-    clrscr()
-    x = wherex()
-    bordercolor(0)
+
+    //clrscr()
+    //x = wherex()
+    //bordercolor(0)
+    x = strlen("dupa")
 }

@@ -404,6 +404,13 @@ free SPF, #?count -> """
     inc __wolin_spf+1
 :"""
 
+let SPF(?dst)[ubyte] = SPF(?src)[ubyte] -> """
+    ldy #{src}
+    lda (__wolin_spf),y
+    ldy #{dst}
+    sta (__wolin_spf),y
+"""
+
 let ?dst[bool] = SPF(?src)[bool] -> """
     ldy #{src}
     lda (__wolin_spf),y
@@ -1227,6 +1234,11 @@ let CPU.I[bool] = #0[bool] -> """
 
 let CPU.A[ubyte] = #?val[ubyte] -> """
     lda #{val}
+"""
+
+let CPU.AX[ubyte*] = #?val[uword] -> """
+    lda #<{val}
+    ldx #>{val}
 """
 
 let CPU.A[ubyte] = SP(?s)[ubyte] -> """

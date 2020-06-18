@@ -1,18 +1,28 @@
 package pl.qus.wolin
 
-import org.antlr.v4.runtime.ANTLRInputStream
-import org.antlr.v4.runtime.CommonTokenStream
+import com.beust.jcommander.JCommander
+import com.beust.jcommander.Parameter
 import pl.qus.wolin.pl.qus.wolin.steps.OptimizerStep
 import pl.qus.wolin.pl.qus.wolin.steps.PseudoAsmStep
-import pl.qus.wolin.pl.qus.wolin.steps.SanitizerStep
 import pl.qus.wolin.pl.qus.wolin.steps.TargetStep
 import tornadofx.launch
-import java.io.*
-import java.lang.StringBuilder
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
+import java.io.PrintWriter
 import java.net.ServerSocket
 import java.net.URL
+import java.util.*
 
 object Main {
+    @Parameter(description = "Input file")
+    var input: List<String> = ArrayList()
+
+    @Parameter(names = ["-o", "--output"], description = "Output file name")
+    var output: String? = null
+
+    @Parameter(names = ["-d", "--debug"], description = "Start debugger")
+    var debug: Boolean = false
     /*
 
 ******************************************
@@ -235,76 +245,58 @@ label xxxx
 
 
     @JvmStatic
-    fun main(args: Array<String>) {
+    fun main(argv: Array<String>) {
 
         //server()
-
-        PseudoAsmStep().apply {
-            this.inputName = "test.ktk"
-            this.outputName = "pseudoasm.qasm"
-            execute()
-        }
-            .chain(OptimizerStep(), "pseudoasm_optimized1.qasm")
-            .chain(TargetStep(), "assembler.s")
-
-        //launch<MyApp>(args)
-    }
+        JCommander.newBuilder()
+            .addObject(Main)
+            .build()
+            .parse(*argv)
 
 
-    private fun wolinIntoPseudoAsm(istream: InputStream): WolinStateObject {
-        // Get our lexer
-        val lexer = KotlinLexer(ANTLRInputStream(istream))
+        val assemblerNames = mutableListOf<String>()
 
-        // Get a list of matched tokens
-        val tokens = CommonTokenStream(lexer)
+        input.forEach { sourceName ->
+            val noExtension = sourceName.substring(0, sourceName.lastIndexOf("."))
 
-        // Pass the tokens to the parser
-        val parser = KotlinParser(tokens)
+            if(output == null) {
+                output = noExtension
+            }
 
-        // Specify our entry point
-        val fileContext = parser.kotlinFile()
+            when {
+                sourceName.endsWith(".ktk") -> {
+                    println("Compiling '$sourceName'")
+                    PseudoAsmStep().apply {
+                        this.inputName = sourceName
+                        this.outputName = "$noExtension.qasm"
+                        execute()
+                    }
+                        .chain(OptimizerStep(), "${noExtension}_optimized1.qasm")
+                        .chain(TargetStep(), "${noExtension}.s")
 
-        val symbolsVisitor = WolinVisitor(Pass.SYMBOLS, tokens)
-
-        val declarationVisitor = WolinVisitor(Pass.DECLARATION, tokens)
-
-        val translationVisitor = WolinVisitor(Pass.TRANSLATION, tokens)
-
-        //try {
-
-        // przygotowanie
-
-        println("== PASS 1 - gathering symbols ==")
-
-        symbolsVisitor.visit(fileContext)
-
-        println("== PASS 2 - type inference ==")
-
-        // zebranie typów dla rejestrów
-        val mainName = symbolsVisitor.state.findFunction("main")// { it == "main" || it.endsWith(".main")}
-        symbolsVisitor.state.copyInto(declarationVisitor.state)
-        declarationVisitor.state.mainFunction = mainName
-
-        declarationVisitor.visit(fileContext)
-        declarationVisitor.appendLambdas()
-
-        println("== PASS 3 - code generation ==")
-
-        // właściwa translacja
-        declarationVisitor.state.copyInto(translationVisitor.state)
-        val wynik = translationVisitor.visit(fileContext)
-
-        translationVisitor.appendLambdas()
-        wynik.appendStatics()
-
-        val ostream = BufferedOutputStream(FileOutputStream(File("src/main/wolin/assembler.asm")))
-
-        ostream.use {
-            it.write(wynik.dumpCode().toByteArray())
+                    assemblerNames.add("${noExtension}.s")
+                }
+                sourceName.endsWith(".qasm") -> {
+                    println("Assembling '$sourceName'")
+                    TargetStep().apply {
+                        this.inputName = sourceName
+                        this.outputName = "$noExtension.s"
+                        execute()
+                    }
+                    assemblerNames.add("${noExtension}.s")
+                }
+            }
         }
 
-        return translationVisitor.state
+
+
+        val rt = Runtime.getRuntime()
+        //rt.exec("cl65.exe -o ${output}.prg -WaU -t c64 -C c64-asm.cfg -g -Ln assembler.lbl -l assembler.lst ${assemblerNames.joinToString(" ")}", null, File("D:/Projekty/kotlinek/src/main/wolin"))
+
+        if(debug)
+            launch<MyApp>(argv)
     }
+
 
     fun server() {
         val hostName = "127.0.0.1"
