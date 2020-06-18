@@ -6,6 +6,12 @@ var carry: bool^CPU.C
 
 cc65 fun clrscr()
 cc65 fun wherex(): ubyte
+// fastcall - najprawszy arg idzie przez rejestry
+// A dla 8 bitów
+// AX dla 16
+// A/X/Sreg dla 32 sreg = secondary register na ZP
+// unsigned char __fastcall__ bordercolor (unsigned char color);
+cc65 fun bordercolor(col: ubyte^CPU.A): ubyte
 
 /*
 fun print(what: string) {
@@ -23,6 +29,6 @@ fun main() {
     val x: ubyte
     //print("dupa")
     clrscr()
-
     x = wherex()
+    bordercolor(0)
 }

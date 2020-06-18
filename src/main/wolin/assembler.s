@@ -72,15 +72,14 @@ __wolin_this_ptr_hi := 176+1
 
     .import _wherex
 
-; 10: function __wolin_pl_qus_wolin_main 
+; 10: import _bordercolor 
+
+
+    .import _bordercolor
+
+; 11: function __wolin_pl_qus_wolin_main 
 
 __wolin_pl_qus_wolin_main:
-
-; 11: save SP 
-
-
-    txa
-    pha
 
 ; 12: call _clrscr[uword] 
 
@@ -103,30 +102,24 @@ __wolin_pl_qus_wolin_main:
     dec __wolin_spf+1
 :
 
-; 15: save SP 
-
-
-    txa
-    pha
-
-; 16: call _wherex[uword] 
+; 15: call _wherex[uword] 
 
     jsr _wherex
 
-; 17: let SPF(0)<pl.qus.wolin.wherex.__returnValue>[ubyte] = CPU.A 
+; 16: let SPF(0)<pl.qus.wolin.wherex.__returnValue>[ubyte] = #0[ubyte] 
 
 
     ldy #0
+    lda #0
     sta (__wolin_spf),y
 
-
-; 18: restore SP 
+; 17: restore SP 
 
 
     pla
     tax
 
-; 19: free SPF<pl.qus.wolin.wherex.__returnValue> , #1 
+; 18: free SPF<pl.qus.wolin.wherex.__returnValue> , #1 
 
 
     clc
@@ -137,7 +130,48 @@ __wolin_pl_qus_wolin_main:
     inc __wolin_spf+1
 :
 
-; 21: free SPF<__wolin_pl_qus_wolin_main> , #1 
+; 20: alloc SPF<_bordercolor> , #1 
+
+
+    sec
+    lda __wolin_spf
+    sbc #1
+    sta __wolin_spf
+    bcs :+
+    dec __wolin_spf+1
+:
+
+; 21: save SP 
+
+
+    txa
+    pha
+
+; 22: save #0[ubyte] 
+
+
+    lda #0
+    pha
+
+
+; 24: call _bordercolor[uword] 
+
+    jsr _bordercolor
+
+; 25: let SPF(0)<pl.qus.wolin.bordercolor.__returnValue>[ubyte] = #0[ubyte] 
+
+
+    ldy #0
+    lda #0
+    sta (__wolin_spf),y
+
+; 26: restore SP 
+
+
+    pla
+    tax
+
+; 27: free SPF<pl.qus.wolin.bordercolor.__returnValue> , #1 
 
 
     clc
@@ -148,7 +182,18 @@ __wolin_pl_qus_wolin_main:
     inc __wolin_spf+1
 :
 
-; 22: endfunction 
+; 28: free SPF<__wolin_pl_qus_wolin_main> , #1 
+
+
+    clc
+    lda __wolin_spf
+    adc #1
+    sta __wolin_spf
+    bcc :+
+    inc __wolin_spf+1
+:
+
+; 29: endfunction 
 
     rts
 

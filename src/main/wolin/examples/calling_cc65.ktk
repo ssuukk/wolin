@@ -1,0 +1,13 @@
+package pl.qus.wolin
+
+cc65 fun clrscr()
+cc65 fun wherex(): ubyte
+cc65 fun bordercolor(col: ubyte^CPU.A): ubyte // unsigned char __fastcall__ bordercolor (unsigned char color);
+
+
+fun main() {
+    val x: ubyte
+    clrscr()
+    x = wherex()
+    bordercolor(0)
+}

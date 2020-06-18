@@ -1620,7 +1620,7 @@ class WolinVisitor(
 //                    } else {
                         if (zmienna.allocation == AllocType.FIXED && zmienna.type.array) {
                             state.code(
-                                "let ${state.currentRegToAsm()} = #${zmienna.locationVal}[uword] // simple id - fixed array var"
+                                "let ${state.currentRegToAsm()} = #${zmienna.locationVal ?: zmienna.locationTxt}[uword] // simple id - fixed array var"
                             )
                         } else if (state.assignStack.processingLeftSide) {
                             checkTypeAndAddAssignment(
@@ -2537,10 +2537,15 @@ class WolinVisitor(
             // w valueArgumentContext jest ExpressionContext
             visitValueArgument(it)
 
+            if(prototyp.iscc65) {
+                state.code("save SP // save SP, as X might be trashed by cc65 call")
+            }
+
+
             if (prototyp.arguments[i].allocation == AllocType.FIXED) {
                 // dla argumentów CPU koelejność musi być A, Y, X!!!
                 state.code(
-                    "let ${prototyp.arguments[i].locationVal}[${prototyp.arguments[i].type.typeForAsm}] = ${state.currentRegToAsm()}"
+                    "let ${prototyp.arguments[i].locationVal ?: prototyp.arguments[i].locationTxt}[${prototyp.arguments[i].type.typeForAsm}] = ${state.currentRegToAsm()}"
                 )
                 if (prototyp.arguments[i].locationTxt?.startsWith("CPU.") == true)
                     state.code("save ${prototyp.arguments[i].locationTxt}")
@@ -2563,10 +2568,6 @@ class WolinVisitor(
             if (arg.allocation == AllocType.FIXED && arg.locationTxt?.startsWith("CPU.") == true) {
                 state.code("restore ${arg.locationTxt} // fill register for call")
             }
-        }
-
-        if(prototyp.iscc65) {
-            state.code("save SP // save SP, as X might be trashed by cc65 call")
         }
 
         state.code(state.getFunctionCallCode(prototyp.fullName))
