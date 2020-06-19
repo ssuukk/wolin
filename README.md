@@ -134,6 +134,24 @@ Syntax different from Kotlin:
 - `fun xxx^location()` function attached to some address (usually ROM functions)
 - `var a:type^location` variable attached to some address (I/O registers)
 - `uwordVariable = functionName` set `uwordVariable` to address of some function
+- `external fun` declaration of a Wolin function written in assembler elsewhere
+- `cc65 fun` declaration of external C function compiled by cc65
+
+# Usage
+
+If you want to play with Wolin first you need to change hardcoded working directory path in `Main` object:
+
+`val buildPath = "D:\\Projekty\\kotlinek\\src\\main\\wolin\\"`
+
+Then you can run
+
+`java -jar wolinName.jar inputFile1 inputFile2... [-o || --output] [-d || --debug]`
+
+Input files might be either *.ktk (Wolin source files) or *.qasm (Wolin pseudo asm intermediate files, in case you want to correct them by hand).
+
+If you don't supply `-o` resulting file will be named like first supplied file
+
+If you add `-d` be sure to have VICE emulator started with `-remotedebug` option to open up a graphic Wolin debugger.
 
 # Let's talk
 

@@ -3,6 +3,9 @@ package pl.qus.wolin
 import javafx.application.Platform
 import javafx.beans.property.SimpleStringProperty
 import org.apache.commons.net.telnet.TelnetClient
+import pl.qus.wolin.Main.buildPath
+import pl.qus.wolin.Main.labelFileName
+import pl.qus.wolin.Main.listingFileName
 import java.io.*
 import java.net.ConnectException
 import java.util.*
@@ -14,8 +17,6 @@ class Debugger2(val view: MyView): Thread() {
     val state = CPUState()
     val spTop = 0x72
     val spfTop = 0x9fff
-    val buildPath = "D:\\Projekty\\kotlinek\\src\\main\\wolin\\"
-    val objectName = "assembler"
     var line = ""
     var shouldRun = true
 
@@ -98,13 +99,13 @@ class Debugger2(val view: MyView): Thread() {
 
 
     private fun loadLabels() {
-        sendCommand("""ll "$buildPath$objectName.lbl"  """)
+        sendCommand("""ll "$buildPath$labelFileName"  """)
         discardIncoming()
     }
 
     private fun loadSource() {
         try {
-            File(buildPath, "$objectName.lst").forEachLine {
+            File(buildPath, "$listingFileName").forEachLine {
                 val wynik = parseListingLine(it)
                 wynik?.let {
                     comments[wynik.first] = wynik.second

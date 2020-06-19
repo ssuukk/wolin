@@ -1,5 +1,6 @@
 package pl.qus.wolin.pl.qus.wolin.steps
 
+import pl.qus.wolin.Main.buildPath
 import pl.qus.wolin.WolinStateObject
 import java.io.*
 
@@ -8,10 +9,6 @@ abstract class CompilerProcess {
     var inputName: String = ""
     var outputName: String = ""
     var state: WolinStateObject? = null
-
-    companion object {
-        val workDir = "src/main/wolin/"
-    }
 
     fun chain(next: CompilerProcess, oName: String): CompilerProcess {
         next.inputName = outputName
@@ -22,8 +19,8 @@ abstract class CompilerProcess {
     }
 
     fun execute() {
-        val istream = FileInputStream(File("$workDir$inputName"))
-        val ostream = FileOutputStream(File("$workDir$outputName"))
+        val istream = FileInputStream(File("$buildPath$inputName"))
+        val ostream = FileOutputStream(File("$buildPath$outputName"))
 
         process(istream, ostream)
 

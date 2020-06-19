@@ -23,7 +23,13 @@ object Main {
 
     @Parameter(names = ["-d", "--debug"], description = "Start debugger")
     var debug: Boolean = false
+
+    val buildPath = "D:\\Projekty\\kotlinek\\src\\main\\wolin\\"
+    val labelFileName = "assembler.lbl"
+    val listingFileName = "assembler.lst"
+
     /*
+
 
 ******************************************
 Mapa pamięci
@@ -291,7 +297,8 @@ label xxxx
 
 
         val rt = Runtime.getRuntime()
-        //rt.exec("cl65.exe -o ${output}.prg -WaU -t c64 -C c64-asm.cfg -g -Ln assembler.lbl -l assembler.lst ${assemblerNames.joinToString(" ")}", null, File("D:/Projekty/kotlinek/src/main/wolin"))
+        rt.exec("${buildPath}cl65.exe -o ${output}.prg -t c64 -C c64-asm.cfg -g -Ln $labelFileName -l $listingFileName ${assemblerNames.joinToString(" ")}", null, File(
+            buildPath))
 
         if(debug)
             launch<MyApp>(argv)
