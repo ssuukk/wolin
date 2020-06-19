@@ -25,8 +25,8 @@ object Main {
     var debug: Boolean = false
 
     val buildPath = "D:\\Projekty\\kotlinek\\src\\main\\wolin\\"
-    val labelFileName = "assembler.lbl"
-    val listingFileName = "assembler.lst"
+    val labelFileName = "debug.lbl"
+    val listingFileName = "debug.lst"
 
     /*
 

@@ -29,10 +29,8 @@ fun print(what: string) {
 */
 
 fun main() {
-    val x: ubyte
     val y: uword
-    //print("dupa")
+    val x: ubyte
 
     x = strlen("dupa")
-    //y = IODevice_checkIECExists(8)
 }
