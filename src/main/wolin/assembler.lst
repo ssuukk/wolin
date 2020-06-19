@@ -63,12 +63,12 @@ Current file: test_optimized1.s
 00081A  1               __wolin_this_ptr_hi := 176+1
 00081A  1               
 00081A  1               
-00081A  1               ; 7: alloc SPF<__wolin_pl_qus_wolin_main> , #1
+00081A  1               ; 7: alloc SPF<__wolin_pl_qus_wolin_main> , #3
 00081A  1               
 00081A  1               
 00081A  1  38               sec
 00081B  1  A5 FB            lda __wolin_spf
-00081D  1  E9 01            sbc #1
+00081D  1  E9 03            sbc #3
 00081F  1  85 FB            sta __wolin_spf
 000821  1  B0 02            bcs :+
 000823  1  C6 FC            dec __wolin_spf+1
@@ -167,12 +167,12 @@ Current file: test_optimized1.s
 000854  1  E6 FC            inc __wolin_spf+1
 000856  1               :
 000856  1               
-000856  1               ; 25: free SPF<__wolin_pl_qus_wolin_main> , #1
+000856  1               ; 25: free SPF<__wolin_pl_qus_wolin_main> , #3
 000856  1               
 000856  1               
 000856  1  18               clc
 000857  1  A5 FB            lda __wolin_spf
-000859  1  69 01            adc #1
+000859  1  69 03            adc #3
 00085B  1  85 FB            sta __wolin_spf
 00085D  1  90 02            bcc :+
 00085F  1  E6 FC            inc __wolin_spf+1

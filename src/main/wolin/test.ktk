@@ -13,6 +13,8 @@ cc65 fun wherex(): ubyte
 // unsigned char __fastcall__ bordercolor (unsigned char color);
 cc65 fun bordercolor(col: ubyte^CPU.A): ubyte
 cc65 fun strlen(string: string^CPU.AX): ubyte
+//cc65 fun IODevice_checkIECExists(d: uword): uword
+
 
 /*
 fun print(what: string) {
@@ -28,10 +30,9 @@ fun print(what: string) {
 
 fun main() {
     val x: ubyte
+    val y: uword
     //print("dupa")
 
-    //clrscr()
-    //x = wherex()
-    //bordercolor(0)
     x = strlen("dupa")
+    //y = IODevice_checkIECExists(8)
 }

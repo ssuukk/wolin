@@ -1,0 +1,48 @@
+linking:
+
+bin\ld65.exe -C wolin.cfg costam.o crt0.o callmain.o exehdr.o loadaddr.o zerobss.o zeropage.o
+
+
+Jedyne, co trzeba zrobić, to wyeksportować main:
+
+ 	.export _main
+
+_main:
+	rts
+
+
+
+
+__CONSTRUCTOR_COUNT__, __CONSTRUCTOR_TABLE__, __DESTRUCTOR_COUNT__, __DESTRUCTOR_TABLE__
+żródło: pliki *.cfg
+odwołania: condes.s - procedury do obsługi wczytywalnych modułów
+
+'__STACKSIZE__'
+żródło: w plikach *.cfg 
+odwołanie: heap.s, crt0.s (.importzp sp)
+
+__MAIN_SIZE__, __MAIN_START__
+źródło: "linker generated"
+odwołania: c64.lib = libstc/c64/crt0.s
+
+
+Custom cc65 target:  https://cc65.github.io/doc/customizing.html
+Zmiana lokacji stosu: https://github.com/cc65/wiki/wiki/Parameter-and-return-stacks#Moving_the_stack
+Konfigi linkera: https://www.cc65.org/doc/ld65-5.html
+
+SP zdefiniowany w:
+libsrc/runtime/zeropage.s inkluduje; asminc/zeropage.inc
+plik ten jest w segmencie .zeropage i sp znajduje się na początku tego segmentu:
+
+.zeropage
+
+sp:             .res    2       ; Stack pointer
+sreg:           .res    2       ; Secondary register/high 16 bit for longs
+regsave:        .res    4       ; Slot to save/restore (E)AX into
+
+
+w cfg jest:
+
+MEMORY {
+    ZP:       file = "", define = yes, start = $0002,           size = $001A;
+
