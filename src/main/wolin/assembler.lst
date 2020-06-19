@@ -1,6 +1,6 @@
 ca65 V2.18 - Git 31daa70
-Main file   : test.s
-Current file: test.s
+Main file   : test_optimized1.s
+Current file: test_optimized1.s
 
 000000r 1               ; 1: setup HEADER
 000000r 1               
@@ -147,25 +147,25 @@ Current file: test.s
 000841  1  68               pla
 000842  1  AA               tax
 000843  1               
-000843  1               ; 23: free SPF<pl.qus.wolin.strlen.__returnValue> , #1
+000843  1               ; 23: let SPF(1)<pl.qus.wolin.main..x>[ubyte] = SPF(0)<pl.qus.wolin.strlen.__returnValue>[ubyte]
 000843  1               
 000843  1               
-000843  1  18               clc
-000844  1  A5 FB            lda __wolin_spf
-000846  1  69 01            adc #1
-000848  1  85 FB            sta __wolin_spf
-00084A  1  90 02            bcc :+
-00084C  1  E6 FC            inc __wolin_spf+1
-00084E  1               :
-00084E  1               
-00084E  1               ; 24: let SPF(0)<pl.qus.wolin.main..x>[ubyte] = SPF(0)<pl.qus.wolin.strlen.__returnValue>[ubyte]
-00084E  1               
-00084E  1               
-00084E  1  A0 00            ldy #0
-000850  1  B1 FB            lda (__wolin_spf),y
-000852  1  A0 00            ldy #0
-000854  1  91 FB            sta (__wolin_spf),y
-000856  1               
+000843  1  A0 00            ldy #0
+000845  1  B1 FB            lda (__wolin_spf),y
+000847  1  A0 01            ldy #1
+000849  1  91 FB            sta (__wolin_spf),y
+00084B  1               
+00084B  1               
+00084B  1               ; 24: free SPF<pl.qus.wolin.strlen.__returnValue> , #1
+00084B  1               
+00084B  1               
+00084B  1  18               clc
+00084C  1  A5 FB            lda __wolin_spf
+00084E  1  69 01            adc #1
+000850  1  85 FB            sta __wolin_spf
+000852  1  90 02            bcc :+
+000854  1  E6 FC            inc __wolin_spf+1
+000856  1               :
 000856  1               
 000856  1               ; 25: free SPF<__wolin_pl_qus_wolin_main> , #1
 000856  1               

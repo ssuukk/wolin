@@ -40,6 +40,13 @@ class MyView : View() {
 
     val data = FXCollections.observableArrayList<String>()
 
+    override fun onDock() {
+        currentWindow?.onHidingProperty()?.onChangeOnce {
+            debugger.shouldRun = false
+            exit()
+        }
+    }
+
     override fun onBeforeShow() {
         super.onBeforeShow()
 
@@ -63,6 +70,7 @@ class MyView : View() {
             processCommand(command)
         }
         debugList.items = data
+
 
 //        debugList.setCellFactory {
 //            object: ListCell<String>() {

@@ -4,6 +4,7 @@ import javafx.application.Platform
 import javafx.beans.property.SimpleStringProperty
 import org.apache.commons.net.telnet.TelnetClient
 import java.io.*
+import java.net.ConnectException
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -11,7 +12,7 @@ class Debugger2(val view: MyView): Thread() {
     val comments = HashMap<Int, String>()
     var debugging = true
     val state = CPUState()
-    val spTop = 0x72 - 1
+    val spTop = 0x72
     val spfTop = 0x9fff
     val buildPath = "D:\\Projekty\\kotlinek\\src\\main\\wolin\\"
     val objectName = "assembler"
@@ -78,9 +79,16 @@ class Debugger2(val view: MyView): Thread() {
                 }
                 yield()
             } while (shouldRun)
-        } catch (ex: ExceptionInInitializerError) {
+        }
+        catch (ex: ExceptionInInitializerError) {
             printAsm("Problem z debuggerem")
-        } finally {
+        }
+        catch (ex: ConnectException) {
+            Platform.runLater {
+                view.close()
+            }
+        }
+        finally {
             if (telnet.isConnected)
                 telnet.disconnect()
 
@@ -216,13 +224,15 @@ class Debugger2(val view: MyView): Thread() {
         discardIncoming()
         obtainRegState()
 
-        if(spTop - state.x > 0) {
-            sendCommand("m ${state.x.hex()} ${spTop.hex()}")
-            val razem = "ZP stack: ${state.x}(${state.x.hex()}) - $spTop size: ${spTop - state.x+1}\n" + getOutputAndUpdate()
-            showIn(razem, view.spText)
+        var razem = "ZP stack: $${state.x.hex()} - ${spTop.hex()} size: ${spTop - state.x}\n"
+
+        razem += if(spTop - state.x > 0) {
+            sendCommand("m ${state.x.hex()} ${(spTop-1).hex()}")
+            getOutputAndUpdate()
         } else {
-            showIn("Empty", view.spText)
+            "Empty"
         }
+        showIn(razem, view.spText)
     }
 
     fun dumpSPF() {
@@ -245,10 +255,10 @@ class Debugger2(val view: MyView): Thread() {
 
         val stackSize = spfTop - bottom
 
-        var razem = "Function stack: $bottom - $spfTop size: ${stackSize}\n"
+        var razem = "Function stack: ${bottom.hex()} - ${spfTop.hex()} size: ${stackSize}\n"
 
         razem += if(stackSize > 0) {
-            sendCommand("m ${(bottom+1).hex()} ${spfTop.hex()}")
+            sendCommand("m ${bottom.hex()} ${(spfTop-1).hex()}")
             getOutputAndUpdate()
         } else {
             "empty"
