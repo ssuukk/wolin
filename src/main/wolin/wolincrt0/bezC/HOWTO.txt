@@ -1,6 +1,6 @@
 linking:
 
-bin\ld65.exe -C wolin.cfg costam.o crt0.o callmain.o exehdr.o loadaddr.o zerobss.o zeropage.o
+ld65.exe -C wolin.cfg wolincrt0\bezC\main.o wolincrt0\bezC\crt0.o wolincrt0\bezC\callmain.o wolincrt0\bezC\exehdr.o wolincrt0\bezC\loadaddr.o wolincrt0\bezC\zerobss.o wolincrt0\bezC\zeropage.o
 
 
 Jedyne, co trzeba zrobić, to wyeksportować main:

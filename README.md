@@ -137,6 +137,19 @@ Syntax different from Kotlin:
 - `external fun` declaration of a Wolin function written in assembler elsewhere
 - `cc65 fun` declaration of external C function compiled by cc65
 
+# cc65 Interfacing
+
+To use cc65 functions in Wolin it is enough to declare them with `cc65` decoration with arguments and return values of matching sizes.
+
+`__fastcall__` fuctions are declared via "attached" parameters, like:
+
+```
+// unsigned char __fastcall__ bordercolor (unsigned char color);
+cc65 fun bordercolor(col: ubyte^CPU.A): ubyte
+// unsigned char __fastcall__ strlen (char* string);
+cc65 fun strlen(string: string^CPU.AX): ubyte
+```
+
 # Usage
 
 If you want to play with Wolin first you need to change hardcoded working directory path in `Main` object:

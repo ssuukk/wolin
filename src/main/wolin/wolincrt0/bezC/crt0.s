@@ -1,5 +1,7 @@
 ;
-; Startup code for cc65 (C64 version)
+; SSUUKK 20.6.2020
+;
+; Startup code for Wolin (C64 version)
 ;
 
         .export         _exit
@@ -9,9 +11,9 @@
         .import         zerobss, callmain
         .import         __MAIN_START__, __MAIN_SIZE__   ; Linker generated
         .import         __STACKSIZE__                   ; from configure file
-;        .importzp       ST
 
         .include        "zeropage.inc"
+        .include        "wolin.inc"
 ;        .include        "c64.inc"
 
 
@@ -44,27 +46,21 @@ Start:
 
 ; Push the command-line arguments; and, call main().
 
-
-		ldx		#__wolin_sp_top	; set Wolin SP
+		ldx		#__wolin_sp_bottom + zpspace	; set Wolin SP
         jsr     callmain
 
 ; Back from main() [this is also the exit() entry]. Run the module destructors.
-
-_exit:  pha                     ; Save the return code on stack
+_exit:  lda_spf_lo 0            ; get _main return value from SPF
+        sta     $90             ; Place the program return code into BASICs status variable.
 ;        jsr     donelib
 
 ; Copy back the zero-page stuff.
 
-        ldx     #zpspace-1
+        ldx     #zpspace
 L2:     lda     zpsave,x
-        sta     sp,x
+        sta     __wolin_sp_bottom,x
         dex
-        bpl     L2
-
-; Place the program return code into BASICs status variable.
-
-;        pla
-;        sta     ST
+        bne     L2
 
 ; Restore the system stuff.
 
@@ -86,22 +82,23 @@ init:
 
 ; Save the zero-page locations that we need.
 
-        ldx     #zpspace-1
-L1:     lda     sp,x
+        ldx     #zpspace
+L1:     lda     __wolin_sp_bottom,x
         sta     zpsave,x
         dex
-        bpl     L1
+        bne     L1
 
 ; Set up the stack.
 
         lda     #<(__MAIN_START__ + __MAIN_SIZE__)
         ldx     #>(__MAIN_START__ + __MAIN_SIZE__)
-        sta     sp
-        stx     sp+1            ; Set argument stack ptr
+        sta     __wolin_spf
+        stx     __wolin_spf+1            ; Set argument stack ptr
 
 ; Call the module constructors.
 
 ;        jmp     initlib
+        rts
 
 
 ; ------------------------------------------------------------------------

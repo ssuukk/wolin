@@ -6,16 +6,16 @@
 
         .export         zerobss
         .import         __BSS_RUN__, __BSS_SIZE__
-        .importzp       ptr1
+        .importzp       __wolin_this_ptr
 
 
 .code
 
 zerobss:
         lda     #<__BSS_RUN__
-        sta     ptr1
+        sta     __wolin_this_ptr
         lda     #>__BSS_RUN__
-        sta     ptr1+1
+        sta     __wolin_this_ptr+1
         lda     #0
         tay
 
@@ -23,10 +23,10 @@ zerobss:
 
 L1:     ldx     #>__BSS_SIZE__
         beq     L3
-L2:     sta     (ptr1),y
+L2:     sta     (__wolin_this_ptr),y
         iny
         bne     L2
-        inc     ptr1+1
+        inc     __wolin_this_ptr+1
         dex
         bne     L2
 
@@ -34,7 +34,7 @@ L2:     sta     (ptr1),y
 
 L3:     cpy     #<__BSS_SIZE__
         beq     L4
-        sta     (ptr1),y
+        sta     (__wolin_this_ptr),y
         iny
         bne     L3
 
