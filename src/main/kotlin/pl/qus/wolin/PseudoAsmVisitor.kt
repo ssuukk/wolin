@@ -49,9 +49,9 @@ let SP(?a)[uword] = SP(?b)[uword]
             state.matched = template
         }
 
-        if(template.instrukcja().text == "string" && state.matched != null) {
-            println("tu string!")
-        }
+//        if(template.instrukcja().text == "string" && state.matched != null) {
+//            println("tu string!")
+//        }
 
 
         if (template.target(0) != null && data.target(0) != null) {

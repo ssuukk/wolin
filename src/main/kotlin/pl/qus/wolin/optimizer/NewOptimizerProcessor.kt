@@ -6,6 +6,7 @@ import pl.qus.wolin.WolinStateObject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
+import java.lang.Exception
 
 class ReplacementPair(
     val thiz: FlowNode,
@@ -112,9 +113,13 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
             if (redundant != null) {
                 redundant.incomingLeft?.let { better ->
                     newRegs.filter { it.uid == redundant.uid }.forEach { red ->
-                        println("REPLACE ${red.uid} with ${better.node.uid}")
-                        red.replaceWith(better, newRegs, isMutable(better.node))
-                        pairs.add(ReplacementPair(red, better.node))
+                        println("REPLACE ${red.uid} with ${better.node.uid} for ${red}")
+                        try {
+                            red.replaceWith(better, newRegs, isMutable(better.node))
+                            pairs.add(ReplacementPair(red, better.node))
+                        } catch (ex: Exception) {
+                            println("Failed! ${ex.message}")
+                        }
                     }
                 }
 

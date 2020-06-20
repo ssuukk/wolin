@@ -920,18 +920,33 @@ class WolinVisitor(
                         visitAtomicExpression(atomEx)
                         state.codeOn = true
 
-                        state.allocReg("arr_deref", state.currentWolinType).apply {
-                            type.pointer = true
+                        val finalDerefPointer = state.allocReg("final_deref_pointer", state.currentWolinType).apply {
+                            type.pointer = true // reg5
                         }
                         state.rem(" LEWA strona array access, czyli co to za zmienna")
 
-                        state.allocReg("array variable")
+                        val arrayStartAddress = state.allocReg("array start address") // reg6
 
                         visitAtomicExpression(atomEx)
                         state.rem(" PRAWA strona array access, czyli indeks w nawiasach")
                         visitArrayAccess(prawo.arrayAccess())
 
-                        state.freeReg("array variable")
+                        state.rem("// tutaj __wolin_reg5 = __wolin_reg6")
+                        state.rem("// ma być: __wolin_reg5 = __wolin_reg7")
+
+                        checkTypeAndAddAssignment(
+                            ctx,
+                            finalDerefPointer,// reg5
+                            state.currentReg,// reg7
+                            "non-fast array copy element address to final deref reg",
+                            RegOper.VALUE,
+                            RegOper.VALUE
+                        )
+
+                        // TODO uwaga!!! jeżeli wykorzystyamy visitArrayAccess w innym miejscu, też musimy tam zwolnic jego rejestr!
+                        state.freeReg("Element size multiplied by index")
+
+                        state.freeReg("array start address")
 
                         state.rem(" kod obsługi tablicy")
 
@@ -983,7 +998,7 @@ class WolinVisitor(
                         }
 */
                         // jeśli indeks 8-bitowy i element nie robic tej allokacji
-                        state.freeReg("arr_deref")
+                        state.freeReg("final_deref_pointer")
                     }
                     else -> błędzik(ctx, "Nieznany postfixUnaryOp ${prawo.javaClass.simpleName}")
                 }
@@ -1008,7 +1023,7 @@ class WolinVisitor(
 
                 // ARRAYCODE
 
-                state.allocReg("For calculating index", state.currentWolinType)
+                val sizeByIndex = state.allocReg("Element size multiplied by index", state.currentWolinType)
 
 //                if (state.currentShortArray == null) {
 //                    state.allocReg("For calculating index", state.currentWolinType)
@@ -1052,7 +1067,9 @@ class WolinVisitor(
                 when {
                     state.arrayElementSize > 1 -> {
                         state.code("mul ${state.currentRegToAsm()} = ${state.currentRegToAsm()}, #${state.arrayElementSize} // long index, multi-byte per element array")
-                        state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()} // long index, contd.")
+                        //state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()} // long index, contd.")
+                        state.code("add ${state.currentRegToAsm()} = ${state.currentRegToAsm()}, ${state.varToAsm(prevReg)} // long index, contd.")
+
                     }
                     else -> {
                         state.code(
@@ -1063,7 +1080,8 @@ class WolinVisitor(
                     }
                 }
 
-                state.freeReg("For calculating index")
+                //state.freeReg("Element size multiplied by index") - przeniesione za wywołanie!!!
+                //TODO uwaga!
 
                 state.rem("**ARRAY Changing current type to prevReg type $prevReg")
                 state.currentWolinType = prevReg.type.copy()
@@ -2217,7 +2235,7 @@ class WolinVisitor(
         state.assignStack.push(AssignEntry())
         state.rem("")
         state.rem("== ASSIGNMENT LEFT =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
-        state.assignStack.assignLeftSideVar = state.allocReg("ASSIGNMENT target")
+        state.assignStack.assignLeftSideVar = state.allocReg("ASSIGNMENT target REFERENCE (process assignment)")
         try {
             state.rem("(do assignLeftSideVar przypisano ${state.assignStack.assignLeftSideVar})")
         } catch (ex: UninitializedPropertyAccessException) {
@@ -2260,7 +2278,7 @@ class WolinVisitor(
 
         state.freeReg("ASSIGNMENT value, type = ${state.currentWolinType}")
 
-        state.freeReg("ASSIGNMENT target")
+        state.freeReg("ASSIGNMENT target REFERENCE")
 
         state.rem("== ASSIGNMENT END =======================================")
         state.rem("== ASSIGNMENT POP =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
@@ -2285,7 +2303,7 @@ class WolinVisitor(
         state.assignStack.push(AssignEntry())
         state.rem("")
         state.rem("== ASSIGNMENT LEFT =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar
-        state.assignStack.assignLeftSideVar = state.allocReg("ASSIGNMENT target")
+        state.assignStack.assignLeftSideVar = state.allocReg("ASSIGNMENT target (process bitop)")
         try {
             state.rem("(do assignLeftSideVar przypisano ${state.assignStack.assignLeftSideVar})")
         } catch (ex: UninitializedPropertyAccessException) {
@@ -2321,7 +2339,7 @@ class WolinVisitor(
 
         state.freeReg("ASSIGNMENT value, type = ${state.currentWolinType}")
 
-        state.freeReg("ASSIGNMENT target")
+        state.freeReg("ASSIGNMENT target REFERENCE")
 
         state.rem("== ASSIGNMENT END =======================================")
         state.rem("== ASSIGNMENT POP =======================================") // TODO użyć tego rejestru zamiast assignLeftSideVar

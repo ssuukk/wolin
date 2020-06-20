@@ -115,15 +115,26 @@ class WolinStateObject(val pass: Pass) {
         val fnType = typeContext.functionType()
 
         val type = when {
-            typeContext.typeReference()?.userType()?.text != null -> Typ.byName(
-                typeContext.typeReference()!!.userType()!!.text,
-                this
-            )
-            typeContext.nullableType()?.typeReference()?.userType()?.text != null -> Typ.byName(
-                typeContext.nullableType()!!.typeReference()!!.userType()!!.text,
-                this
-            )
+            typeContext.typeReference()?.userType()?.text != null -> {
+                val test = Typ.byName(typeContext.typeReference()!!.userType()!!.text, this)
+
+                if(test.isPointer && array != null) {
+                    Typ.byName("any", this).apply {
+                        pointer = true
+                    }
+                } else test
+            }
+            typeContext.nullableType()?.typeReference()?.userType()?.text != null -> {
+                val test = Typ.byName(typeContext.nullableType()!!.typeReference()!!.userType()!!.text, this)
+
+                if(test.isPointer && array != null) {
+                    Typ.byName("any", this).apply {
+                        pointer = true
+                    }
+                } else test
+            }
             fnType?.functionTypeParameters() != null -> {
+                // is functional type
                 val fnTypePars =
                     fnType.functionTypeParameters().type().map { findQualifiedType(it.text) }.joinToString(",")
 
@@ -875,7 +886,12 @@ class WolinStateObject(val pass: Pass) {
                     val tenKlasa = classary[co.name] ?: throw Exception("Unknown class $co ($doJakiej=)")
 
                     doJakiej.name == co.name || doTegoKlasa.hasChild(tenKlasa.name)
-                } else
+                }
+                else if(doJakiej.isPointer && co.name == "any" && co.isPointer) // a: typ* = x: any*
+                    true
+                else if(doJakiej.isPointer && co == Typ.uword) // a: typ* = x: uword
+                    true
+                else
                     false
 
         return when {
