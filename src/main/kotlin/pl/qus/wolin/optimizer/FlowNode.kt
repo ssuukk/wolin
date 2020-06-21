@@ -31,6 +31,7 @@ class FlowNode (
     var contents: ParserRuleContext? = null
         set(value) {
             field = copyTree(value as ParserRuleContext) as ParserRuleContext
+            field!!.stripRefs()
         }
 
     val hasOneInput get() = incomingRight == null
@@ -189,5 +190,7 @@ class FlowNode (
             incomingRight?.node?.walkDownToSource(finalState)
         }
     }
+
+    fun isTarget(): Boolean = incomingLeft != null
 }
 

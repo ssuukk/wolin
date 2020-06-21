@@ -1,6 +1,7 @@
 package pl.qus.wolin.pl.qus.wolin.optimizer
 
 import org.antlr.v4.runtime.ParserRuleContext
+import pl.qus.wolin.MegaAsmParser
 import pl.qus.wolin.PseudoAsmParser
 import pl.qus.wolin.WolinStateObject
 import pl.qus.wolin.components.Zmienna
@@ -20,7 +21,7 @@ class ReplacementPair(
 }
 
 class NewOptimizerProcessor(private val finalState: WolinStateObject) {
-    val newRegs = mutableListOf<FlowNode>()
+    val allRegs = mutableListOf<FlowNode>()
     val redundantRegs = mutableListOf<FlowNode>()
     val pairs = mutableListOf<ReplacementPair>()
 
@@ -66,7 +67,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                     }
 
                 targetContext?.let { tc ->
-                    val existing = newRegs.lastOrNull { it.uid == tc.getUid() }
+                    val existing = allRegs.lastOrNull { it.uid == tc.getUid() }
                     existing?.referenced = true
                 }
 
@@ -87,20 +88,20 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
 
 
         // create tree
-        newRegs.forEach {
+        allRegs.forEach {
             it.walkDownToSource(finalState)
             it.walkDownToSource(finalState)
         }
 
-        dumpIntoGraphVizFile(newRegs, "initial")
+        dumpIntoGraphVizFile(allRegs, "initial")
 
-        newRegs.filter { !it.referenced }.forEach {
+        allRegs.filter { !it.referenced }.forEach {
             it.redundant = true
         }
 
-        redundantRegs.addAll(newRegs.filter { it.redundant })
+        redundantRegs.addAll(allRegs.filter { it.redundant })
 
-        newRegs.removeIf {
+        allRegs.removeIf {
             it.redundant
         }
     }
@@ -133,7 +134,9 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
         // 3. czy po lewej stronie znajduje się tylko jako &?
         //
 
-        newRegs.forEach {
+        allRegs.forEach {
+            if(it.uid == "__wolin_reg4")
+                println("tu!")
             val onlyDerefsRemain = remainingAssignsAreDerefs(it)
             val found = findInVariablary(it)
             val isPointer = found?.type?.isPointer
@@ -142,16 +145,17 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                 found.isDereferenced = false
         }
 
-        newRegs.firstOrNull { it.uid == "__wolin_reg8" }?.let {
+        allRegs.firstOrNull { it.uid == "__wolin_reg4" }?.let {
             val prerequisites = optimizeAllowed(it) && it.isNode && it.hasOneInput
             val betterIsReg = it.incomingLeft?.node?.contents?.isReg() ?: false
+            val cont = it.contents?.text
 
             println("tu!")
         }
 
 
         do {
-            val redundant = newRegs.firstOrNull {
+            val redundant = allRegs.firstOrNull {
                 val prerequisites = optimizeAllowed(it) && it.isNode && it.hasOneInput
                 val betterIsReg = it.incomingLeft?.node?.contents?.isReg() ?: false
 
@@ -159,7 +163,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                 // A = #B
                 // C = A
                 // musimy mieć pewność, że A nie jest po lewo jako &A
-                val redundantAssignedOnce = assigneOnceOrNever(it)
+                val redundantAssignedOnce = isLvalueOnceIncludingDerefs(it)
 
                 prerequisites && (
                         betterIsReg ||
@@ -171,10 +175,10 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
 
             if (redundant != null) {
                 redundant.incomingLeft?.let { better ->
-                    newRegs.filter { it.uid == redundant.uid }.forEach { red ->
+                    allRegs.filter { it.uid == redundant.uid }.forEach { red ->
                         println("REPLACE ${red.uid} with ${better.node.uid} for ${red}")
                         try {
-                            red.replaceWith(better, newRegs)
+                            red.replaceWith(better, allRegs)
                             pairs.add(ReplacementPair(red, better.node))
                         } catch (ex: Exception) {
                             println("Failed! ${ex.message}")
@@ -182,9 +186,9 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                     }
                 }
 
-                redundantRegs.addAll(newRegs.filter { it.redundant })
+                redundantRegs.addAll(allRegs.filter { it.redundant })
 
-                newRegs.removeIf {
+                allRegs.removeIf {
                     it.redundant
                 }
             }
@@ -192,24 +196,24 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
 
         // "backwards" replace
         do {
-            val redundant = newRegs.firstOrNull {
-                !it.hasOneInput && it.goesInto.size == 1 && assigneOnceOrNeverDerefsOK(it) && optimizeAllowed(it)
+            val redundant = allRegs.firstOrNull {
+                !it.hasOneInput && it.goesInto.size == 1 && isLvalueOnceNotCountingDerefs(it) && optimizeAllowed(it)
             }
 
             if (redundant != null) {
                 val better = redundant.goesInto.first()
                 println("BK REPLACE ${redundant.uid} with ${better.node.uid}")
-                pairs.add(redundant.revReplaceWith(better, newRegs, isMutable(better.node)))
+                pairs.add(redundant.revReplaceWith(better, allRegs, isMutable(better.node)))
 
-                redundantRegs.addAll(newRegs.filter { it.redundant })
+                redundantRegs.addAll(allRegs.filter { it.redundant })
 
-                newRegs.removeIf {
+                allRegs.removeIf {
                     it.redundant
                 }
             }
         } while (redundant != null)
 
-        dumpIntoGraphVizFile(newRegs, "optimized")
+        dumpIntoGraphVizFile(allRegs, "optimized")
     }
 
     private fun findInVariablary(checked: FlowNode): Zmienna? {
@@ -227,21 +231,15 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
         }
     }
 
-    private fun assigneOnceOrNeverDerefsOK(checked: FlowNode): Boolean {
-        val incoming = newRegs.count { it.uid == checked.uid && it.contents?.ref() != "&"}
+    private fun isLvalueOnceNotCountingDerefs(checked: FlowNode): Boolean =
+        allRegs.filter { it.isTarget() }.count { it.uid == checked.uid && it.contents?.ref() != "&"} == 1
 
-        return incoming <= 1
-    }
-
-    private fun assigneOnceOrNever(checked: FlowNode): Boolean {
-        val incoming = newRegs.count { it.uid == checked.uid }
-
-        return incoming <= 1
-    }
+    private fun isLvalueOnceIncludingDerefs(checked: FlowNode): Boolean =
+        allRegs.filter { it.isTarget() }.count { it.uid == checked.uid } == 1
 
     private fun remainingAssignsAreDerefs(checked: FlowNode): Boolean {
-        val allAssigns = newRegs.count { it.uid == checked.uid }
-        val allDerefs = newRegs.count { it.uid == checked.uid && it.contents?.ref() == "&" }
+        val allAssigns = allRegs.filter { it.isTarget() }.count { it.uid == checked.uid }
+        val allDerefs = allRegs.filter { it.isTarget() }.count { it.uid == checked.uid && it.contents?.ref() == "&" }
 
         return allAssigns - allDerefs == 1
     }
@@ -328,18 +326,20 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     }
 
     fun obtain(c: ParserRuleContext): FlowNode {
-        val existing = newRegs.lastOrNull { it.uid == c.getUid() }
+        val existing = allRegs.lastOrNull { it.uid == c.getUid() }
         return if (existing != null)
             existing
         else {
-            val nowy = FlowNode().apply { contents = c }
-            newRegs.add(nowy)
+            val nowy = FlowNode().apply {
+                contents = c
+            }
+            allRegs.add(nowy)
             nowy
         }
     }
 
     fun obtainTarget(c: ParserRuleContext, opcode: String): FlowNode {
-        val existing = newRegs.lastOrNull { it.uid == c.getUid() }
+        val existing = allRegs.lastOrNull { it.uid == c.getUid() }
         return if (existing != null && (existing.incomingLeft == null || existing.incomingLeft?.ref == "&"))
             existing.apply { this.opcode = opcode } // pierwsze przypisanie
         else {
@@ -348,7 +348,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                     contents = c
                     this.opcode = opcode
                 }
-            newRegs.add(nowy)
+            allRegs.add(nowy)
             nowy
         }
     }
@@ -389,7 +389,18 @@ fun ParserRuleContext.ref(): String {
         is PseudoAsmParser.ArgContext -> {
             this.operand()?.referencer()?.firstOrNull()?.text ?: ""
         }
-        else -> throw java.lang.Exception("Nie wiem, jak to przerobić")
+        else -> throw java.lang.Exception("Nie wiem, jak to przerobić: ${this.javaClass.name}")
+    }
+}
+
+fun ParserRuleContext.stripRefs() {
+    when (this) {
+        is PseudoAsmParser.TargetContext -> {
+            (this.children.firstOrNull { it is PseudoAsmParser.OperandContext } as PseudoAsmParser.OperandContext?)?.children?.removeAll { it is PseudoAsmParser.ReferencerContext }
+        }
+        is PseudoAsmParser.ArgContext -> {
+            (this.children.firstOrNull { it is PseudoAsmParser.OperandContext } as PseudoAsmParser.OperandContext?)?.children?.removeAll { it is PseudoAsmParser.ReferencerContext }
+        }
     }
 }
 
