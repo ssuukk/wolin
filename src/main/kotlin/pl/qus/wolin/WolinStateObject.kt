@@ -12,7 +12,6 @@ class WolinStateObject(val pass: Pass) {
 
     val stackDumpOn = false
     var codeOn = true
-    var commentOn = true
 
     var variablary = hashMapOf<String, Zmienna>()
     var functiary = hashMapOf<String, Funkcja>()
@@ -82,7 +81,7 @@ class WolinStateObject(val pass: Pass) {
     }
 
     fun rem(c: String) {
-        if (commentOn && pass == Pass.TRANSLATION)
+        if (Main.verboseComments && pass == Pass.TRANSLATION)
             tekstProgramu += "// $c\n"
 
     }
@@ -96,7 +95,6 @@ class WolinStateObject(val pass: Pass) {
         name: String,
         typeContext: KotlinParser.TypeContext?,
         propertyCtx: KotlinParser.PropertyDeclarationContext?,
-        //isArgument: Boolean = false,
         fieldType: FieldType
     ): Zmienna {
         if (typeContext == null) {
@@ -183,7 +181,7 @@ class WolinStateObject(val pass: Pass) {
 
         val zmienna = Zmienna("", allocation = typ, fieldType = fieldType)
 
-        zmienna.immutable = propertyCtx?.VAL() != null || fieldType == FieldType.ARGUMENT
+        zmienna.mutable = propertyCtx?.VAL() == null && fieldType != FieldType.ARGUMENT
 
         val location = locRef?.literalConstant() ?: nullableTypeLocRef?.literalConstant()
         val otherLocation = locRef?.userType()?.text
@@ -202,7 +200,7 @@ class WolinStateObject(val pass: Pass) {
         //if (fileScopeSuffix.isNotEmpty()) pomiń += fileScopeSuffix.length + 1
 
 
-        if (!zmienna.immutable && zmienna.allocation == AllocType.LITERAL)
+        if (zmienna.mutable && zmienna.allocation == AllocType.LITERAL)
             throw Exception("var can't be const!")
 
         if (propertyCtx?.expression() != null && zmienna.allocation == AllocType.LITERAL) {
@@ -249,12 +247,11 @@ class WolinStateObject(val pass: Pass) {
         name: String,
         alloc: AllocType,
         typ: Typ,
-        //isArgument: Boolean,
         fieldType: FieldType
     ): Zmienna {
         val zmienna = Zmienna("", allocation = alloc, fieldType = fieldType, typexxx = typ)
 
-        zmienna.immutable = fieldType == FieldType.ARGUMENT
+        zmienna.mutable = fieldType != FieldType.ARGUMENT
         zmienna.name = nameStitcher(name, fieldType == FieldType.ARGUMENT)
 
         var pomiń = 0
@@ -400,7 +397,7 @@ class WolinStateObject(val pass: Pass) {
             else deref
 
         if(finalDeref == RegOper.AMPRESAND)
-            register.dontOptimize = true
+            register.isDereferenced = true
 
         return when (finalDeref) {
             RegOper.AMPRESAND -> "&"
@@ -559,9 +556,7 @@ class WolinStateObject(val pass: Pass) {
                 AllocType.NORMAL,
                 fieldType = FieldType.LOCAL,
                 typexxx = funkcja.type
-            ).apply {
-                dontOptimize = true
-            }
+            )
 
         toVariablary(retZmienna)
     }
@@ -576,7 +571,7 @@ class WolinStateObject(val pass: Pass) {
             callStack.add(
                 Zmienna(
                     name = funkcja.returnName,
-                    immutable = false,
+                    mutable = true,
                     allocation = AllocType.NORMAL,
                     fieldType = FieldType.LOCAL,
                     typexxx = funkcja.type
@@ -623,7 +618,7 @@ class WolinStateObject(val pass: Pass) {
             callStack.add(
                 Zmienna(
                     name = funkcja.returnName,
-                    immutable = false,
+                    mutable = true,
                     allocation = AllocType.NORMAL,
                     fieldType = FieldType.LOCAL,
                     typexxx = funkcja.type
@@ -722,7 +717,8 @@ class WolinStateObject(val pass: Pass) {
         val rejestr = variablary[name] ?: Zmienna(
             name,
             allocation = AllocType.NORMAL,
-            fieldType = FieldType.OP_STACK
+            fieldType = FieldType.OP_STACK,
+            mutable = true
         )
 
         if (pass == Pass.SYMBOLS)
@@ -853,7 +849,7 @@ class WolinStateObject(val pass: Pass) {
     fun switchType(newType: Typ, reason: String, pointerize: Boolean = false) {
         currentWolinType = newType.copy()
         currentWolinType.pointer = pointerize
-        code("// switchType to:$newType by $reason")
+        rem("switchType to:$newType by $reason")
     }
 
 

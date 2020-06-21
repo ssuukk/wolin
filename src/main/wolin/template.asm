@@ -1403,6 +1403,30 @@ or ?dst[ubyte] = #?val[ubyte] -> """
 """
 
 
+mul SP(?d)[ubyte] = SP(?a)[?any], #0 -> """
+    lda #0
+    sta {d},x
+"""
+
+mul SP(?d)[uword] = SP(?a)[?any], #0 -> """
+    lda #0
+    sta {d},x
+    lda #0
+    sta {d+1},x
+"""
+
+mul SP(?d)[ubyte] = #0, SP(?a)[?any] -> """
+    lda #0
+    sta {d},x
+"""
+
+mul SP(?d)[uword] = #0, SP(?a)[?any] -> """
+    lda #0
+    sta {d},x
+    lda #0
+    sta {d+1},x
+"""
+
 mul SP(?d)[ubyte] = SP(?d)[ubyte], #1 -> """ """
 
 mul SP(?d)[uword] = SP(?d)[uword], #2 -> """   asl {d},x"""

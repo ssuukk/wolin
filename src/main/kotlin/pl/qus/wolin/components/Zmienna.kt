@@ -4,7 +4,7 @@ import pl.qus.wolin.KotlinParser
 
 class Zmienna(
     var name: String = "",
-    var immutable: Boolean = true,
+    var mutable: Boolean = false,
     var locationTxt: String? = null,
     var allocation: AllocType,
     var comment: String = "",
@@ -15,11 +15,13 @@ class Zmienna(
 )
 
 {
-    var dontOptimize: Boolean = false
+    var isDereferenced: Boolean = false
     var intValue: Long = 0L
     var stringValue: String = ""
     var floatValue: Float = 0f
     var inClass: Klasa? = null
+
+    val immutable get() = !mutable
 
     var type: Typ
         get() {

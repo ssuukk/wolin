@@ -3,6 +3,7 @@ package pl.qus.wolin.pl.qus.wolin.optimizer
 import org.antlr.v4.runtime.ParserRuleContext
 import pl.qus.wolin.PseudoAsmParser
 import pl.qus.wolin.WolinStateObject
+import pl.qus.wolin.components.Zmienna
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
@@ -105,17 +106,75 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
     }
 
     fun optimizeGraph() {
+
+        // nowy:
+        // jeżeli rejestr ma jedno podstawienie, a znajduje się też jako cel z &, to możemy zastąpić wszystkie & tymże podstawieniem
+        // A = B
+        // &A = C
+        // &A = D
+        // ....
+        // Upraszcza się do:
+        // &B = C
+        // &B = D
+        //
+        // jeżeli
+        // A = *B
+        // to upraszcza się do:
+        // B = C
+        // B = D
+        //
+        // ale ponieważ przy A stoi &, to jest oznaczana jako don't optimize, więc jeśli jest pointerem i jeżeli jest tylko deref
+        // to możemy jej skasować ten hint!
+
+
+        // Let's enable optimization for pointers that are always dereferenced
+        // 1. sprawdzamy, czy A jest pointerem
+        // 2. czy ma tylko jedno podstawienie?
+        // 3. czy po lewej stronie znajduje się tylko jako &?
+        //
+
+        newRegs.forEach {
+            val onlyDerefsRemain = remainingAssignsAreDerefs(it)
+            val found = findInVariablary(it)
+            val isPointer = found?.type?.isPointer
+
+            if(onlyDerefsRemain && isPointer == true)
+                found.isDereferenced = false
+        }
+
+        newRegs.firstOrNull { it.uid == "__wolin_reg8" }?.let {
+            val prerequisites = optimizeAllowed(it) && it.isNode && it.hasOneInput
+            val betterIsReg = it.incomingLeft?.node?.contents?.isReg() ?: false
+
+            println("tu!")
+        }
+
+
         do {
             val redundant = newRegs.firstOrNull {
-                it.isNotEntry && it.isNotEntry && it.hasOneInput && !isMutable(it) && optimizeAllowed(it)
+                val prerequisites = optimizeAllowed(it) && it.isNode && it.hasOneInput
+                val betterIsReg = it.incomingLeft?.node?.contents?.isReg() ?: false
+
+                // zamienienie
+                // A = #B
+                // C = A
+                // musimy mieć pewność, że A nie jest po lewo jako &A
+                val redundantAssignedOnce = assigneOnceOrNever(it)
+
+                prerequisites && (
+                        betterIsReg ||
+                                redundantAssignedOnce
+                        )
             }
+
+            // jeżeli lepszy nie jest rejestrem, ale zastępowany jest niemutable, to można
 
             if (redundant != null) {
                 redundant.incomingLeft?.let { better ->
                     newRegs.filter { it.uid == redundant.uid }.forEach { red ->
                         println("REPLACE ${red.uid} with ${better.node.uid} for ${red}")
                         try {
-                            red.replaceWith(better, newRegs, isMutable(better.node))
+                            red.replaceWith(better, newRegs)
                             pairs.add(ReplacementPair(red, better.node))
                         } catch (ex: Exception) {
                             println("Failed! ${ex.message}")
@@ -134,7 +193,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
         // "backwards" replace
         do {
             val redundant = newRegs.firstOrNull {
-                !it.hasOneInput && it.goesInto.size == 1 && !isMutable(it) && optimizeAllowed(it)
+                !it.hasOneInput && it.goesInto.size == 1 && assigneOnceOrNeverDerefsOK(it) && optimizeAllowed(it)
             }
 
             if (redundant != null) {
@@ -153,15 +212,43 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
         dumpIntoGraphVizFile(newRegs, "optimized")
     }
 
-    private fun isMutable(b: FlowNode): Boolean {
-        val zmienna = finalState.variablary.values.firstOrNull { it.name == b.uid }
-        val incoming = newRegs.count { it.uid == b.uid && it.incomingLeft?.ref == "" }
-        return if (zmienna != null) !zmienna.immutable else (incoming > 1)
+    private fun findInVariablary(checked: FlowNode): Zmienna? {
+        return finalState.variablary.values.firstOrNull { it.name == checked.uid }
+    }
+
+    private fun isMutable(checked: FlowNode): Boolean {
+        val zmienna = findInVariablary(checked)
+        val isReg = checked.contents!!.isReg()
+
+        return when {
+            !isReg -> false
+            zmienna!=null -> zmienna.mutable
+            else -> false
+        }
+    }
+
+    private fun assigneOnceOrNeverDerefsOK(checked: FlowNode): Boolean {
+        val incoming = newRegs.count { it.uid == checked.uid && it.contents?.ref() != "&"}
+
+        return incoming <= 1
+    }
+
+    private fun assigneOnceOrNever(checked: FlowNode): Boolean {
+        val incoming = newRegs.count { it.uid == checked.uid }
+
+        return incoming <= 1
+    }
+
+    private fun remainingAssignsAreDerefs(checked: FlowNode): Boolean {
+        val allAssigns = newRegs.count { it.uid == checked.uid }
+        val allDerefs = newRegs.count { it.uid == checked.uid && it.contents?.ref() == "&" }
+
+        return allAssigns - allDerefs == 1
     }
 
     private fun optimizeAllowed(b: FlowNode): Boolean {
-        val zmienna = finalState.variablary.values.firstOrNull { it.name == b.uid }
-        return if (zmienna != null) !zmienna.dontOptimize else b.contents?.isReg() == true
+        val zmienna = findInVariablary(b)
+        return if (zmienna != null) !zmienna.isDereferenced else b.contents?.isReg() == true
     }
 
 
@@ -293,6 +380,18 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
 
 }
 
+fun ParserRuleContext.ref(): String {
+    return when (this) {
+        null -> ""
+        is PseudoAsmParser.TargetContext -> {
+            this.operand()?.referencer()?.firstOrNull()?.text ?: ""
+        }
+        is PseudoAsmParser.ArgContext -> {
+            this.operand()?.referencer()?.firstOrNull()?.text ?: ""
+        }
+        else -> throw java.lang.Exception("Nie wiem, jak to przerobić")
+    }
+}
 
 fun ParserRuleContext.getUid(): String {
     return when (this) {

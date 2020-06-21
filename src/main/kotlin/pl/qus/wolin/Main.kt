@@ -24,6 +24,9 @@ object Main {
     @Parameter(names = ["-d", "--debug"], description = "Start debugger")
     var debug: Boolean = false
 
+    @Parameter(names = ["-vc", "--verbose-comments"], description = "Put verbose comments into unoptimized source")
+    var verboseComments: Boolean = false
+
     val buildPath = "D:\\Projekty\\kotlinek\\src\\main\\wolin\\"
     val labelFileName = "debug.lbl"
     val listingFileName = "debug.lst"

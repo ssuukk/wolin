@@ -26,7 +26,7 @@ class FlowNode (
     var type: Type = Type.NODE,
     var redundant: Boolean = false
 ) {
-    enum class Type {ENTRY, EXIT, NODE}
+    enum class Type {ENTRY, RETVAL, NODE}
 
     var contents: ParserRuleContext? = null
         set(value) {
@@ -34,17 +34,12 @@ class FlowNode (
         }
 
     val hasOneInput get() = incomingRight == null
+    //val isNotEntry get() = type != Type.ENTRY
     val isNode get() = type == Type.NODE
-    val isNotEntry get() = type != Type.ENTRY
-    val isNotExit get() = type != Type.EXIT
-    val isEntry get() = type == Type.ENTRY
-    val leftIsComplex get() = incomingLeft?.node?.incomingLeft != null && incomingLeft?.node?.incomingRight != null
-    val rightIsComplex get() = incomingRight?.node?.incomingLeft != null && incomingRight?.node?.incomingRight != null
     val uid get() = contents?.getUid()
-    val goesIntoOne get(): Boolean = goesInto.count { it.ref == ""} == 1
 
 
-    fun replaceWith(better: DestPair, all: MutableList<FlowNode>, isMutable: Boolean) {
+    fun replaceWith(better: DestPair, all: MutableList<FlowNode>) {
         if(incomingRight != null)
             throw java.lang.Exception("Can't replace complex reg")
 
@@ -180,7 +175,7 @@ class FlowNode (
 //        }
 
         if(contents?.text?.contains("__returnValue") == true) {
-            type = Type.EXIT
+            type = Type.RETVAL
         }
 
         if(meInVariablary?.fieldType == FieldType.ARGUMENT) {
