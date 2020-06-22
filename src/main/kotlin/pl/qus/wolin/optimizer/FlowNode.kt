@@ -12,7 +12,7 @@ class DestPair(
 
 {
     override fun toString(): String {
-        return "${ref?:""}${node.contents?.getUid()}"
+        return "${ref?:""}${node._contents?.getUid()}"
     }
 }
 class FlowNode (
@@ -28,17 +28,20 @@ class FlowNode (
 ) {
     enum class Type {ENTRY, RETVAL, NODE}
 
-    var contents: ParserRuleContext? = null
-        set(value) {
-            field = copyTree(value as ParserRuleContext) as ParserRuleContext
-            field!!.stripRefs()
-        }
+    internal var _contents: ParserRuleContext? = null
+
+    val contents get() = _contents
+    fun setContents(value: ParserRuleContext?, storeRef: Boolean) {
+        _contents = copyTree(value as ParserRuleContext) as ParserRuleContext
+        val refx = _contents!!.stripRefs()
+        if(storeRef)
+            ref = refx
+    }
 
     val hasOneInput get() = incomingRight == null
-    //val isNotEntry get() = type != Type.ENTRY
     val isNode get() = type == Type.NODE
-    val uid get() = contents?.getUid()
-
+    val uid get() = _contents?.getUid()
+    var ref: String = ""
 
     fun replaceWith(better: DestPair, all: MutableList<FlowNode>) {
         if(incomingRight != null)
@@ -99,7 +102,7 @@ class FlowNode (
 
         val finalBetter = if(isMutable) {
             val new = FlowNode().apply {
-                contents = better.node.contents
+                _contents = better.node._contents
                 all.add(this)
             }
 
@@ -146,13 +149,13 @@ class FlowNode (
     }
 
     override fun toString(): String {
-        return "${goesInto.size} <- ${contents!!.getUid()} ${type.name} <- ${incomingLeft?.node?.uid} + ${incomingRight?.node?.uid}"
+        return "${goesInto.size} <- ${_contents!!.getUid()} ${type.name} <- ${incomingLeft?.node?.uid} + ${incomingRight?.node?.uid}"
     }
 
     fun walkDownToSource(finalState: WolinStateObject) {
 
         val leftKnowsAboutMe = incomingLeft?.node?.goesInto?.any {
-            it.node.contents!!.getUid() == this.contents!!.getUid()
+            it.node._contents!!.getUid() == this._contents!!.getUid()
         }
 
         if(leftKnowsAboutMe != true) {
@@ -161,7 +164,7 @@ class FlowNode (
         }
 
         val rightKnowsAboutMe = incomingRight?.node?.goesInto?.any {
-            it.node.contents!!.getUid() == this.contents!!.getUid()
+            it.node._contents!!.getUid() == this._contents!!.getUid()
         }
 
         if(rightKnowsAboutMe != true) {
@@ -169,13 +172,13 @@ class FlowNode (
             incomingRight?.node?.goesInto?.add(toMe)
         }
 
-        val meInVariablary = finalState.variablary.values.firstOrNull { it.name == this.contents?.getUid() }
+        val meInVariablary = finalState.variablary.values.firstOrNull { it.name == this._contents?.getUid() }
 
 //        if(incomingLeft != null) {
 //            type = Type.NODE
 //        }
 
-        if(contents?.text?.contains("__returnValue") == true) {
+        if(_contents?.text?.contains("__returnValue") == true) {
             type = Type.RETVAL
         }
 

@@ -1148,6 +1148,10 @@ let SP(?d)[adr] = ?s[adr] -> """
 // rozmaite funkcje
 //============================================
 
+segment ?val[?dummy] -> """
+    .segment {val}
+"""
+
 string ?label[uword] = ?val[?dummy] -> """
 {label}:
     .asciiz {val}

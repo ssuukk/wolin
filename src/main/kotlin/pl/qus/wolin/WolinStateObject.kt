@@ -961,10 +961,22 @@ class WolinStateObject(val pass: Pass) {
 //        code("label __wolin_indirect_jsr")
 //        code("goto 65535[adr]")
 
-        variablary.filter { it.value.fieldType == FieldType.STATIC }.forEach {
+
+        code("segment BSS")
+
+        variablary.filter { it.value.fieldType == FieldType.STATIC && !it.value.immutable }.forEach {
             code("label ${it.value.labelName}")
             code("alloc ${it.value.immediateValue}[${it.value.type.typeForAsm}]  // ${it.value.name}")
         }
+
+        code("segment RODATA")
+
+        variablary.filter { it.value.fieldType == FieldType.STATIC && it.value.immutable }.forEach {
+            code("label ${it.value.labelName}")
+            code("alloc ${it.value.immediateValue}[${it.value.type.typeForAsm}]  // ${it.value.name}")
+        }
+
+        code("segment RODATA")
 
         strings.forEachIndexed { i, str ->
             code("string ${labelMaker("stringConst", i)}[uword] = \$$str")

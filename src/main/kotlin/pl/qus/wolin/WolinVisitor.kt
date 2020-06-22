@@ -1996,6 +1996,8 @@ class WolinVisitor(
     override fun visitKotlinFile(ctx: KotlinParser.KotlinFileContext): WolinStateObject {
         // TODO: to powinno być includem dla c64
 
+        state.code("segment CODE")
+
         state.code("setup HEADER")
 
         state.functiary.values.filter { it.location != 0 }.forEach {
@@ -2174,6 +2176,7 @@ class WolinVisitor(
     }
 
     fun appendLambdas() {
+        state.code("segment CODE")
         state.code(
             "\n\n" +
                     """// ****************************************
