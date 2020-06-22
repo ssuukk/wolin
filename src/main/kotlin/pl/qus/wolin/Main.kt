@@ -300,7 +300,9 @@ label xxxx
 
 
         val rt = Runtime.getRuntime()
-        rt.exec("${buildPath}cl65.exe -o ${output}.prg -t c64 -C c64-asm.cfg -g -Ln $labelFileName -l $listingFileName ${assemblerNames.joinToString(" ")}", null, File(
+        val cl = "${buildPath}cl65.exe -o ${output}.prg -t c64 -C c64-asm.cfg -g -Ln $labelFileName -l $listingFileName ${assemblerNames.joinToString(" ")}"
+        println(cl)
+        rt.exec(cl, null, File(
             buildPath))
 
         if(debug)

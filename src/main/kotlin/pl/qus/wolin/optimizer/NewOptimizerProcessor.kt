@@ -137,14 +137,14 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
             if(onlyDerefsRemain && isPointer == true)
                 found.isDereferenced = false
         }
-
-        allRegs.firstOrNull { it.uid == "__wolin_reg4" }?.let {
-            val prerequisites = optimizeAllowed(it) && it.isNode && it.hasOneInput
-            val betterIsReg = it.incomingLeft?.node?.contents?.isReg() ?: false
-            val cont = it.contents?.text
-
-            println("tu!")
-        }
+//
+//        allRegs.firstOrNull { it.uid == "__wolin_reg4" }?.let {
+//            val prerequisites = optimizeAllowed(it) && it.isNode && it.hasOneInput
+//            val betterIsReg = it.incomingLeft?.node?.contents?.isReg() ?: false
+//            val cont = it.contents?.text
+//
+//            println("tu!")
+//        }
 
 
         do {
@@ -173,6 +173,12 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
                 val c2remainingAssignsAreDerefs = remainingAssignsAreDerefs(it)
 // FINAL =====================================
 
+                if(prerequisites) {
+                    if (c0betterIsReg) println("CASE0 match - better is reg")
+                    if (c1redundantAssignedOnce) println("CASE1 match - immediate chain")
+                    if (c2redundantAssignedOnce && c2remainingAssignsAreDerefs) println("CASE2 only one assignment")
+                }
+
                 prerequisites && (
                         c0betterIsReg
                                 || c1redundantAssignedOnce
@@ -185,7 +191,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
             if (redundant != null) {
                 redundant.incomingLeft?.let { better ->
                     allRegs.filter { it.uid == redundant.uid }.forEach { red ->
-                        println("REPLACE ${red.uid} with ${better.node.uid} for ${red}")
+                        println("REPLACE ${red.uid} <==with== ${better.node.uid}  [${red}]")
                         try {
                             red.replaceWith(better, allRegs)
                             pairs.add(ReplacementPair(red, better.node))
@@ -211,7 +217,7 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
 
             if (redundant != null) {
                 val better = redundant.goesInto.first()
-                println("BK REPLACE ${redundant.uid} with ${better.node.uid}")
+                println("BK REPLACE ${redundant.uid} <==with== ${better.node.uid}")
                 pairs.add(redundant.revReplaceWith(better, allRegs, isMutable(better.node)))
 
                 redundantRegs.addAll(allRegs.filter { it.redundant })
@@ -273,8 +279,10 @@ class NewOptimizerProcessor(private val finalState: WolinStateObject) {
 
                 val opcode = line.instrukcja().simpleIdentifier().text
                 val arg1Uid = (line.arg()?.getOrNull(0) as ParserRuleContext?)?.getUid()
+                val isReg = (line.arg()?.getOrNull(0) as ParserRuleContext?)?.isReg()
 
-                if ((opcode == "alloc" || opcode == "free") && redundantRegs.any { it.uid == arg1Uid }) {
+                //if ((opcode == "alloc" || opcode == "free") && redundantRegs.any { it.uid == arg1Uid }) {
+                if (isReg == true && (opcode == "alloc" || opcode == "free") && redundantRegs.any { it.uid == arg1Uid }) {
                     println("usuwam: ${line.text}")
                     line.children.clear()
                 }

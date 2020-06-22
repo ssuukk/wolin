@@ -964,14 +964,7 @@ class WolinStateObject(val pass: Pass) {
 
         code("segment BSS")
 
-        variablary.filter { it.value.fieldType == FieldType.STATIC && !it.value.immutable }.forEach {
-            code("label ${it.value.labelName}")
-            code("alloc ${it.value.immediateValue}[${it.value.type.typeForAsm}]  // ${it.value.name}")
-        }
-
-        code("segment RODATA")
-
-        variablary.filter { it.value.fieldType == FieldType.STATIC && it.value.immutable }.forEach {
+        variablary.filter { it.value.fieldType == FieldType.STATIC }.forEach {
             code("label ${it.value.labelName}")
             code("alloc ${it.value.immediateValue}[${it.value.type.typeForAsm}]  // ${it.value.name}")
         }

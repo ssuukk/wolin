@@ -1,9 +1,15 @@
 package pl.qus.wolin
 
+val a: ubyte = 5
+val b: string
+
 fun main(argc: uword, argv: string[]): ubyte {
     val s: string
 
     s = argv[0]
 
+    b = "test"
+
     return 69
 }
+

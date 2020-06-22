@@ -140,7 +140,7 @@ alloc ?val[word] -> """    .word {val}"""
 alloc ?val[uword] -> """    .word {val}"""
 alloc ?val[float] -> """    .float {val}"""
 alloc ?val[bool] -> """    .byte {val}"""
-alloc ?val[ubyte*] -> """    .byte 1,2,3,4"""
+alloc ?val[?dummy*] -> """    .word {val}"""
 
 //============================================
 // SP, stos programowy oparty na X, wspiera dużo instrukcji, do 70 wordów
@@ -1149,7 +1149,7 @@ let SP(?d)[adr] = ?s[adr] -> """
 //============================================
 
 segment ?val[?dummy] -> """
-    .segment {val}
+    .segment "{val}"
 """
 
 string ?label[uword] = ?val[?dummy] -> """
