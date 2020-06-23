@@ -266,7 +266,7 @@ label xxxx
             .parse(*argv)
 
 
-        val assemblerNames = mutableListOf<String>()
+        val objectNames = mutableListOf<String>()
 
         input.forEach { sourceName ->
             val noExtension = sourceName.substring(0, sourceName.lastIndexOf("."))
@@ -286,7 +286,7 @@ label xxxx
                         .chain(OptimizerStep(), "${noExtension}_optimized1.qasm")
                         .chain(TargetStep(), "${noExtension}.s")
 
-                    assemblerNames.add("${noExtension}.s")
+                    objectNames.add(noExtension)
                 }
                 sourceName.endsWith(".qasm") -> {
                     println("Assembling '$sourceName'")
@@ -295,7 +295,7 @@ label xxxx
                         this.outputName = "$noExtension.s"
                         execute()
                     }
-                    assemblerNames.add("${noExtension}.s")
+                    objectNames.add(noExtension)
                 }
             }
         }
@@ -304,14 +304,19 @@ label xxxx
 
         val rt = Runtime.getRuntime()
         val cl = if(cStartup) {
-            // ld65.exe -C cfg\wolin.cfg wolincrt0\bezC\main.o wolin.lib
-            "${buildPath}ld65.exe -C cfg\\wolin.cfg -o ${output}.prg -Ln $labelFileName -l $listingFileName wolin.lib ${assemblerNames.joinToString(" ")}"
+            listOf(
+                "${buildPath}ca65.exe -l $listingFileName ${objectNames.joinToString(" ") { "$it.s" }}",
+                "${buildPath}ld65.exe -C cfg\\wolin.cfg -o ${output}.prg -Ln $labelFileName ${objectNames.joinToString(" ") { "$it.o" } } wolin.lib"
+            )
         } else {
-            "${buildPath}cl65.exe -o ${output}.prg -t c64 -C c64-asm.cfg -g -Ln $labelFileName -l $listingFileName ${assemblerNames.joinToString(" ")}"
+            listOf("${buildPath}cl65.exe -o ${output}.prg -t c64 -C c64-asm.cfg -g -Ln $labelFileName -l $listingFileName ${objectNames.joinToString(" ") { "$it.s" }}")
         }
+
         println(cl)
-        rt.exec(cl, null, File(
-            buildPath))
+
+        cl.forEach {
+            rt.exec(it, null, File(buildPath))
+        }
 
         if(debug)
             launch<MyApp>(argv)
