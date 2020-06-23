@@ -27,6 +27,9 @@ object Main {
     @Parameter(names = ["-vc", "--verbose-comments"], description = "Put verbose comments into unoptimized source")
     var verboseComments: Boolean = false
 
+    @Parameter(names = ["-cs", "--cstartup"], description = "Use cc65 startup code instead of Wolin simple startup")
+    var cStartup: Boolean = false
+
     val buildPath = "D:\\Projekty\\kotlinek\\src\\main\\wolin\\"
     val labelFileName = "debug.lbl"
     val listingFileName = "debug.lst"
@@ -300,7 +303,12 @@ label xxxx
 
 
         val rt = Runtime.getRuntime()
-        val cl = "${buildPath}cl65.exe -o ${output}.prg -t c64 -C c64-asm.cfg -g -Ln $labelFileName -l $listingFileName ${assemblerNames.joinToString(" ")}"
+        val cl = if(cStartup) {
+            // ld65.exe -C cfg\wolin.cfg wolincrt0\bezC\main.o wolin.lib
+            "${buildPath}ld65.exe -C cfg\\wolin.cfg -o ${output}.prg -Ln $labelFileName -l $listingFileName wolin.lib ${assemblerNames.joinToString(" ")}"
+        } else {
+            "${buildPath}cl65.exe -o ${output}.prg -t c64 -C c64-asm.cfg -g -Ln $labelFileName -l $listingFileName ${assemblerNames.joinToString(" ")}"
+        }
         println(cl)
         rt.exec(cl, null, File(
             buildPath))

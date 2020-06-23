@@ -71,7 +71,12 @@ BasEnd:     .word 0
             ;
 """
 
-
+setup CC65 -> """
+ 	.export _main
+	.include        "zeropage.inc"
+	.include        "wolin.inc"
+	.forceimport __STARTUP__
+"""
 
 setup SPE = ?zp[ubyte], ?top[uword] -> """
 ; prepare exception stack

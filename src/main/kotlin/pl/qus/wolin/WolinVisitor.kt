@@ -712,7 +712,8 @@ class WolinVisitor(
                     prawo.callSuffix() != null -> {
                         val a = atomEx.simpleIdentifier()
                         val procName =
-                            atomEx.simpleIdentifier()?.Identifier()?.text ?: throw Exception("Pusta lub niedozwolona nazwa procedury")
+                            atomEx.simpleIdentifier()?.Identifier()?.text
+                                ?: throw Exception("Pusta lub niedozwolona nazwa procedury")
 
                         val callSuffix = prawo.callSuffix()
 
@@ -752,7 +753,9 @@ class WolinVisitor(
                             val found = state.findStackVector(state.callStack, "${prototyp.fullName}.this")
 
                             state.code(
-                                "let SPF(${found.first})<${found.second.name}>[${found.second.type.typeForAsm}] = ${state.varToAsm(state.classDerefStack.peek())}"
+                                "let SPF(${found.first})<${found.second.name}>[${found.second.type.typeForAsm}] = ${state.varToAsm(
+                                    state.classDerefStack.peek()
+                                )}"
                             )
                         }
 
@@ -1068,7 +1071,11 @@ class WolinVisitor(
                     state.arrayElementSize > 1 -> {
                         state.code("mul ${state.currentRegToAsm()} = ${state.currentRegToAsm()}, #${state.arrayElementSize} // long index, multi-byte per element array")
                         //state.code("add ${state.varToAsm(prevReg)} = ${state.varToAsm(prevReg)}, ${state.currentRegToAsm()} // long index, contd.")
-                        state.code("add ${state.currentRegToAsm()} = ${state.currentRegToAsm()}, ${state.varToAsm(prevReg)} // long index, contd.")
+                        state.code(
+                            "add ${state.currentRegToAsm()} = ${state.currentRegToAsm()}, ${state.varToAsm(
+                                prevReg
+                            )} // long index, contd."
+                        )
 
                     }
                     else -> {
@@ -1588,7 +1595,7 @@ class WolinVisitor(
                     else
                         RegOper.AMPRESAND
 
-                    if(state.currentReg.type.isUnit) {
+                    if (state.currentReg.type.isUnit) {
                         state.rem("Register ${state.currentReg} wass Unit, forcing in to return type!")
                         state.currentReg.type = zwrotka.type.copy()
                     }
@@ -1636,32 +1643,32 @@ class WolinVisitor(
 //                    if (zmienna.type.shortIndex && zmienna.type.elementOccupiesOneByte) {
 //                        state.currentShortArray = zmienna
 //                    } else {
-                        if (zmienna.allocation == AllocType.FIXED && zmienna.type.array) {
-                            state.code(
-                                "let ${state.currentRegToAsm()} = #${zmienna.locationVal ?: zmienna.locationTxt}[uword] // simple id - fixed array var"
-                            )
-                        } else if (state.assignStack.processingLeftSide) {
-                            checkTypeAndAddAssignment(
-                                ctx,
-                                state.currentReg,
-                                zmienna,
-                                "//simple id - assign in progress",
-                                RegOper.VALUE,
-                                RegOper.STAR
-                            )
-                        } else {
-                            state.currentReg.type = zmienna.type.copy()
-                            //state.currentReg.type.pointer = true
-                            checkTypeAndAddAssignment(
-                                ctx,
-                                state.currentReg,
-                                zmienna,
-                                "simple id from var",
-                                RegOper.VALUE,
-                                RegOper.VALUE
-                            )
-                        }
-           //         }
+                    if (zmienna.allocation == AllocType.FIXED && zmienna.type.array) {
+                        state.code(
+                            "let ${state.currentRegToAsm()} = #${zmienna.locationVal ?: zmienna.locationTxt}[uword] // simple id - fixed array var"
+                        )
+                    } else if (state.assignStack.processingLeftSide) {
+                        checkTypeAndAddAssignment(
+                            ctx,
+                            state.currentReg,
+                            zmienna,
+                            "//simple id - assign in progress",
+                            RegOper.VALUE,
+                            RegOper.STAR
+                        )
+                    } else {
+                        state.currentReg.type = zmienna.type.copy()
+                        //state.currentReg.type.pointer = true
+                        checkTypeAndAddAssignment(
+                            ctx,
+                            state.currentReg,
+                            zmienna,
+                            "simple id from var",
+                            RegOper.VALUE,
+                            RegOper.VALUE
+                        )
+                    }
+                    //         }
 
                     state.switchType(zmienna.type, "type from ${zmienna.name}", true)
                 } catch (ex: VariableNotFound) {
@@ -1758,7 +1765,7 @@ class WolinVisitor(
         if (body != null && nowaFunkcja.location != 0)
             throw Exception("Fixed address function ${nowaFunkcja.fullName} with a body!")
 
-        if (body != null && (nowaFunkcja.isExternal|| nowaFunkcja.iscc65))
+        if (body != null && (nowaFunkcja.isExternal || nowaFunkcja.iscc65))
             throw Exception("External function ${nowaFunkcja.fullName} with a body!")
 
 
@@ -1770,7 +1777,7 @@ class WolinVisitor(
         """.trimMargin()
             )
 
-            if(state.currentFunction?.isExternal == true || state.currentFunction?.iscc65 == true)
+            if (state.currentFunction?.isExternal == true || state.currentFunction?.iscc65 == true)
                 state.code("import ${state.currentFunction!!.labelName}")
             else
                 state.code("function ${state.currentFunction!!.labelName}")
@@ -1978,7 +1985,7 @@ class WolinVisitor(
 
             if (zmienna.fieldType == FieldType.LOCAL && state.pass != Pass.SYMBOLS) {
                 doInitCode(zmienna)
-                if(zmienna.type == Typ.unit)
+                if (zmienna.type == Typ.unit)
                     zmienna.type = state.currentWolinType.copy()
             }
         } else {
@@ -1998,43 +2005,58 @@ class WolinVisitor(
 
         state.code("segment CODE")
 
-        state.code("setup HEADER")
-
         state.functiary.values.filter { it.location != 0 }.forEach {
             state.code("label ${it.labelName} = ${it.location}")
         }
 
-        if (state.exceptionsUsed) {
-            state.code("setup SPE = 155[ubyte], 53247[uword] // exception stack pointer at 155 = 53247 (was: datasette something)")
-            state.code("setup EXPTR = 178[ubyte] // ptr to Exception object when exception occurs (was: datasette buffer)")
-            state.code("setup CATCH = 253[ubyte] // jmp adddress for catch")
+        if (Main.cStartup) {
+            state.code("setup CC65")
+            state.code("label _main")
+
+            state.initializedStatics().forEach {
+                state.rem("inicjalizacja zmiennej ${it.name}")
+                doInitCode(it)
+            }
+
+//            if (state.mainFunction != null) {
+//                state.code("goto ${state.mainFunction!!.labelName}[uword]")
+//            }
+        } else {
+            state.code("setup HEADER")
+
+            if (state.exceptionsUsed) {
+                state.code("setup SPE = 155[ubyte], 53247[uword] // exception stack pointer at 155 = 53247 (was: datasette something)")
+                state.code("setup EXPTR = 178[ubyte] // ptr to Exception object when exception occurs (was: datasette buffer)")
+                state.code("setup CATCH = 253[ubyte] // jmp adddress for catch")
+            }
+
+            if (state.spfUsed)
+                state.code("setup SPF = 251[ubyte], 40959[uword] // call stack pointer at 251 = 40959")
+
+            state.code("setup HEAP = 176[ubyte]")
+
+            if (state.spUsed)
+                state.code("setup SP = 114[ubyte] // (było 143) register stack top = 142")
+
+            state.initializedStatics().forEach {
+                state.rem("inicjalizacja zmiennej ${it.name}")
+                doInitCode(it)
+            }
+
+            if (state.mainFunction != null) {
+                state.rem(" main function entry")
+                //state.code("goto ${state.mainFunction!!.labelName}[adr]")
+
+                state.fnCallAllocRetAndArgs(state.mainFunction!!)
+                state.code("call ${state.mainFunction!!.labelName}[uword]")
+                state.code("endfunction")
+            }
+
         }
 
-        if (state.spfUsed)
-            state.code("setup SPF = 251[ubyte], 40959[uword] // call stack pointer at 251 = 40959")
 
-        if (state.spUsed)
-            state.code("setup SP = 114[ubyte] // (było 143) register stack top = 142")
 
-        state.code("setup HEAP = 176[ubyte]")
 
-        state.initializedStatics().forEach {
-            state.rem("inicjalizacja zmiennej ${it.name}")
-            doInitCode(it)
-        }
-
-        if (state.mainFunction != null) {
-            state.rem(" main function entry")
-            //state.code("goto ${state.mainFunction!!.labelName}[adr]")
-
-            state.fnCallAllocRetAndArgs(state.mainFunction!!)
-            state.code("call ${state.mainFunction!!.labelName}[uword]")
-            state.code("endfunction")
-//            easeyCall(ctx, state.mainFunction!!, null)
-//            state.code("endfunction")
-        }
-
-        //state.fileScopeSuffix = nazwaPliku
         ctx.preamble()?.let {
             visitPreamble(it)
         }
@@ -2424,7 +2446,10 @@ class WolinVisitor(
 
             if (można) {
                 state.code(
-                    "let ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(co, derefCo)} // przez sprawdzacz typow - $comment"
+                    "let ${state.varToAsm(doJakiej, derefDo)} = ${state.varToAsm(
+                        co,
+                        derefCo
+                    )} // przez sprawdzacz typow - $comment"
                 )
             } else {
                 błędzik(ctx, "Nie można przypisać $co do zmiennej $doJakiej")
@@ -2560,7 +2585,7 @@ class WolinVisitor(
             // w valueArgumentContext jest ExpressionContext
             visitValueArgument(it)
 
-            if(prototyp.iscc65) {
+            if (prototyp.iscc65) {
                 state.code("save SP // save SP, as X might be trashed by cc65 call")
             }
 
@@ -2596,17 +2621,16 @@ class WolinVisitor(
         state.code(state.getFunctionCallCode(prototyp.fullName))
 
         // TODO dla external C robimy tu:
-        if(prototyp.iscc65) {
-            if(!prototyp.type.isUnit) {
+        if (prototyp.iscc65) {
+            if (!prototyp.type.isUnit) {
                 val zwrotka = state.findStackVector(state.callStack, prototyp.returnName).second
-                if(prototyp.type.sizeOnStack == 1)
+                if (prototyp.type.sizeOnStack == 1)
                     state.code("let ${state.varToAsm(zwrotka)} = CPU.A // only for cc65 external functions!")
-                else if(prototyp.type.sizeOnStack == 2)
+                else if (prototyp.type.sizeOnStack == 2)
                     state.code("let ${state.varToAsm(zwrotka)} = CPU.AX // only for cc65 external functions!")
             }
             state.code("restore SP // restore SP, as X might be trashed by cc65 call")
-        }
-        else if (prototyp.arguments.any { it.allocation == AllocType.FIXED && it.locationTxt == "CPU.X" }) {
+        } else if (prototyp.arguments.any { it.allocation == AllocType.FIXED && it.locationTxt == "CPU.X" }) {
             state.code("restore CPU.X // restore SP, as X is used by native call")
         }
 
