@@ -380,7 +380,8 @@ class WolinStateObject(val pass: Pass) {
 
             gdzieJesteśmy = nameStitcher("")
 
-            if (currentFunction != null && zmienna.name.startsWith(gdzieJesteśmy)) {
+            // TODO - po co to?!
+            if (currentFunction != null && zmienna.fieldType == FieldType.DUMMY && zmienna.name.startsWith(gdzieJesteśmy)) {
                 zmienna.fieldType = FieldType.LOCAL
             }
 
@@ -535,7 +536,7 @@ class WolinStateObject(val pass: Pass) {
                     true,
                     null,
                     AllocType.NORMAL,
-                    fieldType = FieldType.LOCAL,
+                    fieldType = FieldType.ARGUMENT,
                     typexxx = Typ.byName(argType, this)
                 )
 

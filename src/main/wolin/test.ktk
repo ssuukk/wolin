@@ -2,14 +2,26 @@ package pl.qus.wolin
 
 val a: ubyte = 5
 val b: string
+val border: ubyte^53280
+var suma: (ubyte,ubyte)->ubyte
+
+
 
 fun main(argc: uword, argv: string[]): ubyte {
-    val s: string
+    suma = { a, b -> a+b }
 
-    s = argv[0]
+    a = suma(2,4)
 
-    b = "test"
-
-    return 69
+    return
 }
 
+
+/*
+fun main(argc: uword, argv: string[]): ubyte {
+	if(a == 5) {
+		border = 2
+	} else {
+		border = 3
+	}
+}
+*/

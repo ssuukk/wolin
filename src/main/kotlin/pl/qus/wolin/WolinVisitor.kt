@@ -1191,6 +1191,8 @@ class WolinVisitor(
     override fun visitFunctionLiteral(ctx: KotlinParser.FunctionLiteralContext): WolinStateObject {
         val parametryLambdy = ctx.lambdaParameters()
 
+        state.rem("Processing lambda, top=${state.currentReg}")
+
         val blok = ctx.statements()
 
         val lambdaName = "lambda_function_${state.lambdaCounter++}"
@@ -1242,7 +1244,10 @@ class WolinVisitor(
         state.codeOn = false
 
         state.fnCallAllocRetAndArgs(nowaFunkcja)
-        visitStatements(blok)
+        //visitStatements(blok)
+        state.rem("Tu powinno być wywołanie funkcji ${nowaFunkcja.labelName}")
+        state.rem("I reg4 powinien być ustawiony na zwrotkę tej lambdy")
+
         state.fnCallReleaseArgs(nowaFunkcja)
 
         //state.currentFunction?.calledFunctions?.add(nowaFunkcja)
@@ -1260,9 +1265,11 @@ class WolinVisitor(
         val test = state.functionToLambdaType(nowaFunkcja)
 
         state.switchType(test, "lambda declaration")
+
+        state.currentWolinType = nowaFunkcja.type
         state.inferTopOperType()
 
-        state.code("let ${state.currentRegToAsm()} = ${nowaFunkcja.labelName}[uword]")
+        state.code("let ${state.currentRegToAsm()} = ${nowaFunkcja.labelName}[uword] // przypisanie końcowe w visitFunctionLiteral")
 
         return state
     }
@@ -2452,7 +2459,7 @@ class WolinVisitor(
                     )} // przez sprawdzacz typow - $comment"
                 )
             } else {
-                błędzik(ctx, "Nie można przypisać $co do zmiennej $doJakiej")
+                błędzik(ctx, "Nie można przypisać $co do zmiennej 2 $doJakiej")
             }
         }
     }
@@ -2479,7 +2486,7 @@ class WolinVisitor(
                     )} = #${co.labelName}[uword] // przez sprawdzacz typow - $comment"
                 )
             } else {
-                błędzik(ctx, "Nie można przypisać $co do zmiennej $doJakiej")
+                błędzik(ctx, "Nie można przypisać $co do zmiennej 1 $doJakiej")
             }
         }
     }
