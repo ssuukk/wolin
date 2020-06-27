@@ -12,7 +12,7 @@ fun main(argc: uword, argv: string[]): ubyte {
 
     a = suma(2,4)
 
-    return
+    return 69
 }
 
 

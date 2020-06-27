@@ -143,11 +143,13 @@ class WolinVisitor(
 
                 state.inferTopOperType()
 
-                state.freeReg("for blockLevel expression")
-
                 if (retVal != null) {
                     state.code("let ${state.varToAsm(retVal)} = ${state.currentRegToAsm()} // assign block 'return value' to target variable")
                 }
+
+                state.freeReg("for blockLevel expression")
+
+
             }
             // ========================================================
             it.declaration() != null -> it.declaration()?.let {
@@ -2227,20 +2229,20 @@ class WolinVisitor(
         """.trimMargin()
             )
 
-            state.code("label ${state.currentFunction!!.labelName}")
+            state.code("function ${state.currentFunction!!.labelName}")
 
             state.fnDeclAllocStackAndRet(state.currentFunction!!)
 
             //state.allocReg("for lambda ${nowaFunkcja.name} return value",  nowaFunkcja.type?.type ?: "unit")
 
-            state.allocReg("for lambda 'return value' ${state.currentFunction?.fullName}")
+            //state.allocReg("for lambda 'return value' ${state.currentFunction?.fullName}")
 
             state.currentFunction!!.lambdaBody?.statement()?.forEach {
-                val zwrotka = state.findStackVector(state.callStack, state.currentFunction!!.returnName).second
+                val zwrotka = state.findStackVector (state.callStack, state.currentFunction!!.returnName).second
                 statementProcessor(it, zwrotka)
             }
 
-            state.freeReg("for lambda 'return value' ${state.currentFunction?.fullName}")
+            //state.freeReg("for lambda 'return value' ${state.currentFunction?.fullName}")
 
             state.switchType(state.currentFunction!!.type, "return expression")
 
