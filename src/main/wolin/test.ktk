@@ -1,6 +1,6 @@
 package pl.qus.wolin
 
-val a: ubyte = 5
+var a: ubyte = 5
 val b: string
 val border: ubyte^53280
 var suma: (ubyte,ubyte)->ubyte
@@ -8,9 +8,13 @@ var suma: (ubyte,ubyte)->ubyte
 
 
 fun main(argc: uword, argv: string[]): ubyte {
-    suma = { a, b -> a+b }
+//    suma = { a, b -> a+b }
 
-    a = suma(2,4)
+//    a = suma(2,4)
+
+   do {
+      border++;
+   } while ( border < 255);
 
     return 69
 }

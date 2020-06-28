@@ -43,6 +43,8 @@ class FlowNode (
     val uid get() = _contents?.getUid()
     var ref: String = ""
 
+    var walked = false
+
     fun replaceWith(better: DestPair, all: MutableList<FlowNode>) {
         if(incomingRight != null)
             throw java.lang.Exception("Can't replace complex reg")
@@ -154,6 +156,8 @@ class FlowNode (
 
     fun walkDownToSource(finalState: WolinStateObject) {
 
+        walked = true
+
         val leftKnowsAboutMe = incomingLeft?.node?.goesInto?.any {
             it.node._contents!!.getUid() == this._contents!!.getUid()
         }
@@ -188,9 +192,13 @@ class FlowNode (
 
         if(incomingLeft == null && incomingRight == null) {
             type = Type.ENTRY
-        } else {
-            incomingLeft!!.node.walkDownToSource(finalState)
-            incomingRight?.node?.walkDownToSource(finalState)
+        }
+        else {
+            if(incomingLeft?.node?.walked == false)
+                incomingLeft!!.node.walkDownToSource(finalState)
+
+            if(incomingRight?.node?.walked == false)
+                incomingRight?.node?.walkDownToSource(finalState)
         }
     }
 
