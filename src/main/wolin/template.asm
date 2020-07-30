@@ -946,6 +946,55 @@ evalgteq SP(?dest)[bool] = SP(?left)[ubyte], SP(?right)[ubyte] -> """
     sta {dest},x
 :"""
 
+bift CPU.NC[bool], ?dest[uword] -> """
+	bcc {dest}"""
+biff CPU.C[bool], ?dest[uword] -> """
+	bcc  {dest}"""
+biff CPU.NC[bool], ?dest[uword] -> """
+	bcs  {dest}"""
+bift CPU.C[bool], ?dest[uword] -> """
+	bcs  {dest}"""
+
+biff CPU.N[bool], ?dest[uword] -> """
+	bpl  {dest}"""
+bift CPU.NN[bool], ?dest[uword] -> """
+	bpl  {dest}"""
+biff CPU.NN[bool], ?dest[uword] -> """
+	bmi  {dest}"""
+bift CPU.N[bool], ?dest[uword] -> """
+	bmi  {dest}"""
+
+bift CPU.Z[bool], ?dest[uword] -> """
+	beq {dest}"""
+biff CPU.Z[bool], ?dest[uword] -> """
+	bne {dest}"""
+
+evalless CPU.NC[bool] = ?s1[ubyte], ?s2[ubyte] -> """
+    lda {s1}
+    cmp {s2}"""
+evalless CPU.NC[bool] = ?s1[ubyte], #?s2[ubyte] -> """
+    lda {s1}
+    cmp #{s2}"""
+
+
+evalless CPU.N[bool] = ?s1[byte], ?s2[byte] -> """
+    lda {s1}
+    cmp {s2}"""
+
+evaleq CPU.Z[bool] = ?s1[byte], ?s2[byte] -> """
+    lda {s1}
+    cmp {s2}"""
+evaleq CPU.NZ[bool] = ?s1[byte], ?s2[byte] -> """
+    lda {s1}
+    cmp {s2}"""
+
+evalgteq CPU.C = ?s1[ubyte], ?s2[ubyte] -> """
+    lda {s1}
+    cmp {s2}"""
+evalgteq CPU.NN = ?s1[byte], ?s2[byte] -> """
+    lda {s1}
+    cmp {s2}"""
+
 //============================================
 // nowe adresy
 //============================================

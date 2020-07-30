@@ -434,7 +434,10 @@ class WolinStateObject(val pass: Pass) {
                     FieldType.CLASS -> zmienna.inClass!!.heap //currentClass!!.heap // TODO - czasem musimy znaleźć to w klasie derefe, nie current!
                     else -> throw Exception("Unknown field type: ${zmienna.fieldType}!")
                 }
-                "${stos.stackName}(${findStackVector(stos, zmienna.name).first})<${zmienna.name}>"
+                if(zmienna.name.startsWith("CPU."))
+                    "${zmienna.name}"
+                else
+                    "${stos.stackName}(${findStackVector(stos, zmienna.name).first})<${zmienna.name}>"
             }
 
             zmienna.allocation == AllocType.FIXED -> "${zmienna.locationVal ?: zmienna.locationTxt}"
@@ -701,6 +704,19 @@ class WolinStateObject(val pass: Pass) {
 
     fun regFromTop(ile: Int): Zmienna = operStack.asReversed()[ile]
 
+    fun replaceRegWithCPU(replaced: Zmienna, name: String) {
+        val fakeReg = Zmienna(
+            name,
+            allocation = AllocType.FIXED,
+            fieldType = FieldType.OP_STACK,
+            mutable = true
+        )
+
+        val index = operStack.indexOfFirst { it == replaced }
+
+        operStack[index] = fakeReg
+    }
+
     fun allocReg(comment: String = "", typex: Typ = Typ.unit): Zmienna {
         val name = "__wolin_reg$stackVarCounter"
 
@@ -746,7 +762,7 @@ class WolinStateObject(val pass: Pass) {
     fun freeReg(comment: String = "") {
         val zmienna = operStack.peek()
 
-        if (!zmienna.type.isUnit && pass == Pass.TRANSLATION) {
+        if (!zmienna.type.isUnit && pass == Pass.TRANSLATION && !zmienna.name.startsWith("CPU.")) {
             var linia = "free SP<${zmienna.name}>, #${zmienna.type.sizeOnStack}"
             if (comment.isNotBlank()) linia += " // $comment"
             code(linia)

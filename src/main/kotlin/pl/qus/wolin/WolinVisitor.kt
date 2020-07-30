@@ -356,11 +356,17 @@ class WolinVisitor(
                             { visitNamedInfix(ctx.namedInfix(0)) },
                             { visitNamedInfix(ctx.namedInfix(1)) },
                             { wynik, lewa, prawa ->
-                                state.code(
-                                    "evalgteq ${state.varToAsm(wynik)} = ${state.varToAsm(lewa)}, ${state.varToAsm(
-                                        prawa
-                                    )}"
-                                )
+                                if(lewa.type.name.startsWith("u")) {
+                                    state.replaceRegWithCPU(wynik, "CPU.C")
+                                    state.code("evalgteq CPU.C = ${state.varToAsm(lewa)}, ${state.varToAsm(prawa)}")
+                                }
+                                else {
+                                    state.replaceRegWithCPU(wynik, "CPU.NN")
+                                    state.code("evalgteq CPU.NN = ${state.varToAsm(lewa)}, ${state.varToAsm(prawa)}")
+                                }
+//                                state.code(
+//                                    "evalgteq ${state.varToAsm(wynik)} = ${state.varToAsm(lewa)}, ${state.varToAsm(prawa)}"
+//                                )
                                 Typ.bool
                             },
                             "for >="
@@ -371,11 +377,14 @@ class WolinVisitor(
                             { visitNamedInfix(ctx.namedInfix(0)) },
                             { visitNamedInfix(ctx.namedInfix(1)) },
                             { wynik, lewa, prawa ->
-                                state.code(
-                                    "evalgteq ${state.varToAsm(wynik)} = ${state.varToAsm(prawa)}, ${state.varToAsm(
-                                        lewa
-                                    )}"
-                                )
+                                if(lewa.type.name.startsWith("u")) {
+                                    state.replaceRegWithCPU(wynik, "CPU.C")
+                                    state.code("evalgteq CPU.C = ${state.varToAsm(prawa)}, ${state.varToAsm(lewa)}")
+                                }
+                                else {
+                                    state.replaceRegWithCPU(wynik, "CPU.NN")
+                                    state.code("evalgteq CPU.NN = ${state.varToAsm(prawa)}, ${state.varToAsm(lewa)}")
+                                }
                                 Typ.bool
                             },
                             "for <="
@@ -386,14 +395,24 @@ class WolinVisitor(
                             { visitNamedInfix(ctx.namedInfix(0)) },
                             { visitNamedInfix(ctx.namedInfix(1)) },
                             { wynik, lewa, prawa ->
-                                state.code(
-                                    "evalless ${state.varToAsm(wynik, RegOper.AMPRESAND)} = ${state.varToAsm(
-                                        lewa,
-                                        RegOper.AMPRESAND
-                                    )}, ${state.varToAsm(
-                                        prawa, RegOper.AMPRESAND
-                                    )}"
-                                )
+                                if(lewa.type.name.startsWith("u")) {
+                                    state.replaceRegWithCPU(wynik, "CPU.NC")
+                                    state.code(
+                                        "evalless CPU.NC[bool] = ${state.varToAsm(
+                                            lewa,
+                                            RegOper.AMPRESAND
+                                        )}, ${state.varToAsm(prawa, RegOper.AMPRESAND)}"
+                                    )
+                                }
+                                else {
+                                    state.replaceRegWithCPU(wynik, "CPU.N")
+                                    state.code(
+                                        "evalless CPU.N[bool] = ${state.varToAsm(
+                                            lewa,
+                                            RegOper.AMPRESAND
+                                        )}, ${state.varToAsm(prawa, RegOper.AMPRESAND)}"
+                                    )
+                                }
                                 Typ.bool
                             },
                             "for <"
@@ -404,14 +423,25 @@ class WolinVisitor(
                             { visitNamedInfix(ctx.namedInfix(0)) },
                             { visitNamedInfix(ctx.namedInfix(1)) },
                             { wynik, lewa, prawa ->
-                                state.code(
-                                    "evalless ${state.varToAsm(wynik, RegOper.AMPRESAND)} = ${state.varToAsm(
-                                        prawa,
-                                        RegOper.AMPRESAND
-                                    )}, ${state.varToAsm(
-                                        lewa, RegOper.AMPRESAND
-                                    )}"
-                                )
+
+                                if(lewa.type.name.startsWith("u")) {
+                                    state.replaceRegWithCPU(wynik, "CPU.NC")
+                                    state.code(
+                                        "evalless CPU.NC[bool] = ${state.varToAsm(
+                                            prawa,
+                                            RegOper.AMPRESAND
+                                        )}, ${state.varToAsm(lewa, RegOper.AMPRESAND)}"
+                                    )
+                                }
+                                else {
+                                    state.replaceRegWithCPU(wynik, "CPU.N")
+                                    state.code(
+                                        "evalless CPU.N[bool] = ${state.varToAsm(
+                                            prawa,
+                                            RegOper.AMPRESAND
+                                        )}, ${state.varToAsm(lewa, RegOper.AMPRESAND)}"
+                                    )
+                                }
                                 Typ.bool
                             },
                             "for >"
@@ -879,7 +909,7 @@ class WolinVisitor(
 
                         if (safeDeref) {
                             state.code("evaleq costam[bool] = ${state.currentReg}[loc], null // safe deref")
-                            state.code("beq costam[bool] = #0, jakis_label[uword] // safe deref")
+                            state.code("biff costam[bool], jakis_label[uword] // safe deref")
                         }
 
                         state.rem(" postfix unary w dereferencji")
@@ -1338,7 +1368,8 @@ class WolinVisitor(
 
         visitExpression(ctx.expression())
 
-        state.code("beq ${state.currentRegToAsm()} = #1[bool], $bodyLabel<label_po_if>[uword]")
+        state.code("bift ${state.currentRegToAsm()}, $bodyLabel<while_start>[uword]")
+        //state.code("bift CPU.NC[bool], $bodyLabel<while_start>[uword]")
 
         state.code("_endscope_ loop,${scopeNow}")
 
